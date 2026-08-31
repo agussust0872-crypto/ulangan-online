@@ -81,7 +81,7 @@
                 <div>
                     <div class="flex items-center gap-2">
                         <h1 class="font-extrabold text-sm sm:text-base leading-none">CBT EduExam</h1>
-                        <span class="bg-indigo-500/20 text-indigo-300 text-[10px] px-2 py-0.5 rounded-full font-bold border border-indigo-500/30">v2.5</span>
+                        <span class="bg-indigo-500/20 text-indigo-300 text-[10px] px-2 py-0.5 rounded-full font-bold border border-indigo-500/30">v2.7</span>
                     </div>
                     <p class="text-[11px] text-slate-400">Informatika & Manajemen Ulangan Online</p>
                 </div>
@@ -89,8 +89,8 @@
 
             <!-- Device/Role Switcher Buttons -->
             <div class="flex items-center gap-2 bg-slate-800 p-1 rounded-xl border border-slate-700 text-xs font-bold">
-                <button id="btn-mode-teacher" onclick="switchMainRole('teacher')" class="px-3.5 py-1.5 rounded-lg bg-indigo-600 text-white shadow-sm transition flex items-center gap-2">
-                    <i class="fa-solid fa-laptop"></i>
+                <button id="btn-mode-teacher" onclick="requestTeacherAccess()" class="px-3.5 py-1.5 rounded-lg bg-indigo-600 text-white shadow-sm transition flex items-center gap-2">
+                    <i class="fa-solid fa-lock text-[10px] opacity-70"></i>
                     <span>Dashboard Guru (Laptop)</span>
                 </button>
                 <button id="btn-mode-student" onclick="switchMainRole('student')" class="px-3.5 py-1.5 rounded-lg text-slate-400 hover:text-white transition flex items-center gap-2">
@@ -149,9 +149,7 @@
             </button>
         </div>
 
-        <!-- ========================================================= -->
-        <!-- TAB 1 GURU: REKAP SISWA & NILAI (LAPTOP WIDE TABLE VIEW)  -->
-        <!-- ========================================================= -->
+        <!-- TAB 1 GURU: REKAP SISWA & NILAI -->
         <div id="ttab-rekap" class="space-y-5">
             <!-- Stats Metric Cards -->
             <div class="no-print grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -213,7 +211,7 @@
                     </div>
                 </div>
 
-                <!-- Official Print Header (Only appears when printed) -->
+                <!-- Official Print Header -->
                 <div class="hidden print-only text-center border-b-2 border-black pb-3 mb-4 space-y-1">
                     <h2 class="text-xl font-bold uppercase">REKAPITULASI HASIL ULANGAN ONLINE (CBT)</h2>
                     <p class="text-xs">Mata Pelajaran: <span id="print-subject-name">Informatika</span> | Tahun Ajaran 2026/2027</p>
@@ -237,7 +235,6 @@
                             </tr>
                         </thead>
                         <tbody id="table-rekap-body" class="divide-y divide-slate-100">
-                            <!-- Populated dynamically -->
                         </tbody>
                     </table>
                 </div>
@@ -253,11 +250,8 @@
             </div>
         </div>
 
-        <!-- ========================================================= -->
-        <!-- TAB 2 GURU: KELOLA & BUAT BANK SOAL (DUAL COLUMN LAPTOP)  -->
-        <!-- ========================================================= -->
+        <!-- TAB 2 GURU: KELOLA & BUAT BANK SOAL -->
         <div id="ttab-soal" class="hidden grid grid-cols-1 lg:grid-cols-12 gap-6">
-            <!-- Left Column: Form Input Soal Baru (5 Cols) -->
             <div class="lg:col-span-5 bg-white p-5 rounded-3xl border border-slate-200 shadow-sm space-y-4">
                 <div class="flex items-center justify-between border-b border-slate-100 pb-3">
                     <div>
@@ -269,7 +263,6 @@
                     </div>
                 </div>
 
-                <!-- Select / Create Subject -->
                 <div class="bg-indigo-50/70 p-3 rounded-2xl border border-indigo-100 space-y-2">
                     <label class="block font-bold text-indigo-900 text-xs">Pilih Mata Pelajaran Target</label>
                     <div class="flex gap-2">
@@ -281,13 +274,11 @@
                     </div>
                 </div>
 
-                <!-- Question Text -->
                 <div class="space-y-1">
                     <label class="block font-bold text-slate-700 text-xs">Pertanyaan / Soal</label>
                     <textarea id="input-new-q-text" rows="3" placeholder="Tuliskan pertanyaan soal di sini..." class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition"></textarea>
                 </div>
 
-                <!-- Options A, B, C, D -->
                 <div class="space-y-2 pt-1">
                     <label class="block font-bold text-slate-700 text-xs">Pilihan Jawaban (A, B, C, D)</label>
                     
@@ -309,7 +300,6 @@
                     </div>
                 </div>
 
-                <!-- Answer Key & Duration -->
                 <div class="grid grid-cols-2 gap-3 pt-1">
                     <div>
                         <label class="block font-bold text-slate-700 text-xs mb-1">Kunci Jawaban Benar</label>
@@ -326,7 +316,6 @@
                     </div>
                 </div>
 
-                <!-- Explanation -->
                 <div class="space-y-1">
                     <label class="block font-bold text-slate-700 text-xs">Pembahasan Kunci (Muncul setelah ulangan)</label>
                     <input type="text" id="input-new-q-exp" placeholder="Contoh: Berpikir komputasional memiliki 4 pilar..." class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500">
@@ -338,7 +327,6 @@
                 </button>
             </div>
 
-            <!-- Right Column: Daftar Soal Tersimpan (7 Cols) -->
             <div class="lg:col-span-7 bg-white p-5 rounded-3xl border border-slate-200 shadow-sm space-y-4">
                 <div class="flex items-center justify-between border-b border-slate-100 pb-3">
                     <div>
@@ -353,16 +341,12 @@
                     </span>
                 </div>
 
-                <!-- Scrollable List of Questions -->
                 <div id="admin-questions-list" class="space-y-3 max-h-[620px] overflow-y-auto custom-scroll pr-2">
-                    <!-- Dynamic Question Cards -->
                 </div>
             </div>
         </div>
 
-        <!-- ========================================================= -->
-        <!-- TAB 3 GURU: LAYAR PROYEKTOR / QR CODE KELAS               -->
-        <!-- ========================================================= -->
+        <!-- TAB 3 GURU: LAYAR PROYEKTOR / QR CODE KELAS -->
         <div id="ttab-projector" class="hidden bg-white p-8 rounded-3xl border border-slate-200 shadow-sm text-center space-y-6">
             <div class="max-w-xl mx-auto space-y-2">
                 <span class="bg-indigo-50 text-indigo-700 text-xs font-extrabold px-3 py-1 rounded-full uppercase tracking-wider border border-indigo-100">
@@ -372,7 +356,36 @@
                 <p class="text-xs sm:text-sm text-slate-500">Siswa silakan buka Kamera HP atau Google Lens, lalu arahkan ke kode QR di bawah ini.</p>
             </div>
 
-            <!-- Big Projector QR Box -->
+            <div id="qr-warning-banner" class="hidden max-w-2xl mx-auto bg-amber-50 border border-amber-300 rounded-2xl p-4 text-left text-xs space-y-2 text-amber-900 shadow-sm">
+                <div class="font-extrabold text-amber-800 flex items-center gap-2 text-sm">
+                    <i class="fa-solid fa-triangle-exclamation text-amber-600 text-base"></i>
+                    <span>Penting: Mengapa HP Tidak Bisa Terhubung?</span>
+                </div>
+                <p class="text-slate-700 leading-relaxed">
+                    Aplikasi saat ini dibuka secara lokal (<code class="bg-amber-100 px-1.5 py-0.5 rounded font-mono text-amber-900" id="current-protocol-text">file://</code> atau <code class="bg-amber-100 px-1.5 py-0.5 rounded font-mono text-amber-900">localhost</code>). HP Siswa <b>tidak akan bisa menyambung</b> jika QR Code mengarah ke file komputer Guru secara langsung.
+                </p>
+                <div class="bg-white/80 p-3 rounded-xl border border-amber-200 space-y-2">
+                    <span class="font-bold text-slate-800 block">Solusi Agar HP Siswa Bisa Scan & Konek:</span>
+                    <ol class="list-decimal list-inside space-y-1 text-slate-700">
+                        <li><b>Upload ke Hosting Gratis (Rekomendasi Utama)</b>: Unggah file HTML ini ke <b>GitHub Pages, Netlify, atau Vercel</b>, lalu buka dari domain tersebut.</li>
+                        <li><b>Gunakan IP Lokal Wi-Fi Sekolah</b>: Jika menggunakan Live Server, masukkan alamat IP Laptop Guru (contoh: <code class="bg-slate-100 px-1.5 py-0.5 rounded font-mono">http://192.168.1.15:5500</code>) pada kolom input URL di bawah ini.</li>
+                    </ol>
+                </div>
+            </div>
+
+            <div class="max-w-md mx-auto bg-slate-50 p-4 rounded-2xl border border-slate-200 space-y-2 text-left">
+                <label class="block font-bold text-slate-700 text-xs">
+                    <i class="fa-solid fa-link text-indigo-600 mr-1"></i> Alamat Website / IP Server Ujian:
+                </label>
+                <div class="flex gap-2">
+                    <input type="text" id="input-custom-qr-url" placeholder="http://192.168.1.100:5500 atau https://namasekolah.com" class="flex-1 px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs font-mono text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    <button onclick="updateCustomQrUrl()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-4 py-2 rounded-xl text-xs shrink-0 transition">
+                        Update QR
+                    </button>
+                </div>
+                <span class="text-[11px] text-slate-400 block">Ubah alamat ini jika menggunakan IP Wi-Fi lokal atau domain web sekolah.</span>
+            </div>
+
             <div class="bg-gradient-to-br from-indigo-50 to-slate-50 p-6 sm:p-8 rounded-3xl border border-indigo-100 max-w-md mx-auto shadow-inner space-y-4">
                 <div class="bg-white p-4 rounded-3xl shadow-xl border border-slate-200 inline-block">
                     <img id="projector-qr-img" src="" alt="QR Code Ujian" class="w-60 h-60 sm:w-72 sm:h-72 object-contain mx-auto rounded-2xl">
@@ -389,7 +402,6 @@
                 </div>
             </div>
 
-            <!-- Step Instructions for Students -->
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 max-w-3xl mx-auto text-left text-xs">
                 <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200 space-y-1">
                     <span class="w-6 h-6 rounded-lg bg-indigo-600 text-white font-bold flex items-center justify-center text-[11px] mb-2">1</span>
@@ -409,16 +421,23 @@
             </div>
         </div>
 
-        <!-- ========================================================= -->
-        <!-- TAB 4 GURU: PENGATURAN UJIAN & KKM                        -->
-        <!-- ========================================================= -->
+        <!-- TAB 4 GURU: PENGATURAN UJIAN, KKM & PIN -->
         <div id="ttab-settings" class="hidden bg-white p-6 rounded-3xl border border-slate-200 shadow-sm max-w-2xl mx-auto space-y-5 text-xs">
             <div class="border-b border-slate-100 pb-3">
-                <h3 class="font-extrabold text-slate-800 text-sm">Pengaturan Sistem Ujian & Keamanan</h3>
-                <p class="text-slate-500">Konfigurasikan standar penilaian dan fitur anti-kecurangan.</p>
+                <h3 class="font-extrabold text-slate-800 text-sm">Pengaturan Sistem Ujian & Keamanan Guru</h3>
+                <p class="text-slate-500">Konfigurasikan standar penilaian, PIN pengunci dashboard, dan fitur anti-kecurangan.</p>
             </div>
 
             <div class="space-y-4">
+                <div class="bg-amber-50 p-4 rounded-2xl border border-amber-200 space-y-2">
+                    <label class="block font-bold text-amber-900 flex items-center gap-1.5">
+                        <i class="fa-solid fa-key text-amber-600"></i>
+                        <span>PIN Keamanan Akses Guru (Mencegah Siswa Membuka Modul Guru)</span>
+                    </label>
+                    <input type="text" id="setting-teacher-pin" maxlength="10" value="1234" placeholder="Contoh: 1234" class="w-full px-3 py-2 bg-white border border-amber-300 rounded-xl font-mono font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-amber-500">
+                    <span class="text-[11px] text-amber-700 block">PIN ini wajib dimasukkan ketika ingin berpindah dari Layar Siswa ke Dashboard Guru. (Default: <b>1234</b>)</span>
+                </div>
+
                 <div>
                     <label class="block font-bold text-slate-700 mb-1">Standar KKM Kelulusan Nilai</label>
                     <input type="number" id="setting-kkm-value" min="0" max="100" value="75" class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500">
@@ -466,8 +485,8 @@
                         <p class="text-[11px] text-indigo-200" id="student-header-mapel">Informatika</p>
                     </div>
                 </div>
-                <button onclick="switchMainRole('teacher')" class="text-xs bg-white/10 hover:bg-white/20 active:scale-95 px-2.5 py-1.5 rounded-lg border border-white/20 font-bold transition flex items-center gap-1">
-                    <i class="fa-solid fa-laptop"></i>
+                <button onclick="requestTeacherAccess()" class="text-xs bg-white/10 hover:bg-white/20 active:scale-95 px-2.5 py-1.5 rounded-lg border border-white/20 font-bold transition flex items-center gap-1 text-indigo-100">
+                    <i class="fa-solid fa-lock text-[10px]"></i>
                     <span>Mode Guru</span>
                 </button>
             </div>
@@ -610,14 +629,12 @@
                         <p class="text-xs text-slate-500" id="result-student-info">Hasil ujian siswa</p>
                     </div>
 
-                    <!-- Big Score Card -->
                     <div class="bg-gradient-to-br from-indigo-600 to-indigo-800 text-white rounded-3xl p-5 shadow-lg shadow-indigo-100 space-y-1">
                         <span class="text-xs text-indigo-200 font-semibold tracking-wide uppercase">NILAI AKHIR</span>
                         <div class="text-5xl font-black tracking-tight" id="result-score">0</div>
                         <div id="result-status-text" class="text-xs font-bold text-indigo-100">Status: Memenuhi KKM</div>
                     </div>
 
-                    <!-- Breakdown Numbers -->
                     <div class="grid grid-cols-3 gap-2 text-center text-xs">
                         <div class="bg-emerald-50 border border-emerald-100 p-2.5 rounded-2xl">
                             <span class="block text-emerald-600 font-bold mb-0.5"><i class="fa-solid fa-circle-check mr-1"></i>Benar</span>
@@ -633,7 +650,6 @@
                         </div>
                     </div>
 
-                    <!-- Violations Box -->
                     <div id="violation-info-box" class="hidden bg-amber-50 border border-amber-200 p-3 rounded-2xl text-xs text-amber-800 flex items-center justify-center gap-2">
                         <i class="fa-solid fa-triangle-exclamation text-amber-600"></i>
                         <span>Terdeteksi <b><span id="res-violations">0</span> kali</b> berpindah tab / keluar aplikasi saat ujian.</span>
@@ -655,7 +671,32 @@
         </main>
     </div>
 
-    <!-- MODAL 1: QUESTION GRID DRAWER (NAVIAGASI NOMOR SOAL SISWA) -->
+    <!-- MODAL PIN ACCESS FOR TEACHER DASHBOARD -->
+    <div id="modal-pin-access" class="hidden fixed inset-0 z-50 bg-slate-900/70 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-white w-full max-w-sm rounded-3xl p-6 space-y-4 shadow-2xl text-center">
+            <div class="w-12 h-12 bg-indigo-50 text-indigo-600 rounded-2xl flex items-center justify-center mx-auto text-xl">
+                <i class="fa-solid fa-user-shield"></i>
+            </div>
+            <div class="space-y-1">
+                <h3 class="font-bold text-slate-800 text-base">Masukan PIN Guru</h3>
+                <p class="text-xs text-slate-500">Mode Guru dilindungi PIN agar tidak dapat diakses siswa di HP.</p>
+            </div>
+            <div class="space-y-2 text-left">
+                <input type="password" id="input-access-pin" placeholder="Masukkan PIN (Default: 1234)" class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-center font-mono font-bold text-lg tracking-widest text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                <p id="pin-error-msg" class="text-[11px] text-rose-600 font-bold text-center hidden">PIN Salah! Silakan coba lagi.</p>
+            </div>
+            <div class="grid grid-cols-2 gap-2 pt-1">
+                <button onclick="closePinModal()" class="py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition">
+                    Batal
+                </button>
+                <button onclick="verifyTeacherPin()" class="py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold transition shadow-md shadow-indigo-100">
+                    Masuk Mode Guru
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL 1: QUESTION GRID DRAWER -->
     <div id="modal-grid" class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4">
         <div class="bg-white w-full max-w-md rounded-t-3xl sm:rounded-3xl p-5 space-y-4 max-h-[85vh] flex flex-col shadow-2xl">
             <div class="flex items-center justify-between border-b border-slate-100 pb-3">
@@ -738,7 +779,7 @@
         </div>
     </div>
 
-    <!-- MODAL 4: CUSTOM DIALOG (ALERT / PROMPT REPLACEMENT) -->
+    <!-- MODAL 4: CUSTOM DIALOG -->
     <div id="modal-custom-dialog" class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
         <div class="bg-white w-full max-w-sm rounded-3xl p-5 space-y-3.5 shadow-2xl text-center">
             <div id="dialog-icon-container" class="w-12 h-12 bg-indigo-50 text-indigo-600 rounded-2xl flex items-center justify-center mx-auto text-xl">
@@ -824,11 +865,13 @@
 
         // App States
         let currentSubjectKey = "informatika";
-        let currentRole = "teacher"; // 'teacher' (Laptop) or 'student' (HP)
+        let currentRole = "teacher"; 
         let activeTeacherTab = 'rekap';
         let globalKkmTarget = 75;
         let antiCheatConfig = "enabled";
         let shuffleOptionsConfig = "enabled";
+        let customServerUrl = "";
+        let teacherSecurityPin = "1234"; // Default PIN Keamanan Guru
 
         // Student Exam States
         let currentQuestions = [];
@@ -840,22 +883,60 @@
         let antiCheatViolations = 0;
         let isExamActive = false;
         let studentData = { name: "", id: "", class: "" };
-
-        // Rekap Nilai Siswa (In-Memory & Persisted via LocalStorage)
         let examResultsLog = [];
 
-        // ON LOAD INITIALIZATION
+        // ON LOAD INITIALIZATION WITH SMART DEVICE DETECTION
         window.onload = function() {
             loadSavedQuizBanks();
             loadSavedExamLogs();
+            loadSavedPin();
             populateSubjectSelects();
             initAntiCheatListener();
             renderStudentResultsRekap();
             setupProjectorQr();
 
-            // Default: Show Laptop Guru view
-            switchMainRole('teacher');
+            // Detect whether user is on mobile or requested student mode via URL
+            const urlParams = new URLSearchParams(window.location.search);
+            const forceRole = urlParams.get('role');
+            const isMobileScreen = window.innerWidth < 768;
+
+            if (forceRole === 'student' || (!forceRole && isMobileScreen)) {
+                switchMainRole('student');
+            } else {
+                switchMainRole('teacher');
+            }
         };
+
+        // PIN SECURITY SYSTEM FOR GURU ACCESS
+        function requestTeacherAccess() {
+            if (currentRole === 'teacher') return;
+            document.getElementById("input-access-pin").value = "";
+            document.getElementById("pin-error-msg").classList.add("hidden");
+            document.getElementById("modal-pin-access").classList.remove("hidden");
+        }
+
+        function closePinModal() {
+            document.getElementById("modal-pin-access").classList.add("hidden");
+        }
+
+        function verifyTeacherPin() {
+            const enteredPin = document.getElementById("input-access-pin").value.trim();
+            if (enteredPin === teacherSecurityPin) {
+                closePinModal();
+                switchMainRole('teacher');
+            } else {
+                document.getElementById("pin-error-msg").classList.remove("hidden");
+            }
+        }
+
+        function loadSavedPin() {
+            try {
+                const savedPin = localStorage.getItem("cbt_teacher_pin");
+                if (savedPin) teacherSecurityPin = savedPin;
+                const pinInput = document.getElementById("setting-teacher-pin");
+                if (pinInput) pinInput.value = teacherSecurityPin;
+            } catch(e) { console.error(e); }
+        }
 
         // SWITCH ROLE: LAPTOP GURU VS HP SISWA
         function switchMainRole(role) {
@@ -975,21 +1056,18 @@
             keys.forEach(key => {
                 const title = DEFAULT_QUIZ_BANKS[key].title;
                 
-                // Student select
                 const opt1 = document.createElement("option");
                 opt1.value = key;
                 opt1.textContent = title;
                 if (key === currentSubjectKey) opt1.selected = true;
                 if (studentSelect) studentSelect.appendChild(opt1);
 
-                // Teacher select
                 const opt2 = document.createElement("option");
                 opt2.value = key;
                 opt2.textContent = title;
                 if (key === currentSubjectKey) opt2.selected = true;
                 if (teacherSelect) teacherSelect.appendChild(opt2);
 
-                // Filter select
                 const opt3 = document.createElement("option");
                 opt3.value = key;
                 opt3.textContent = title;
@@ -1012,7 +1090,7 @@
         }
 
         // =========================================================================
-        // QUESTION BANK MANAGEMENT (MODUL GURU)
+        // QUESTION BANK MANAGEMENT
         // =========================================================================
         function addNewSubjectPrompt() {
             showCustomDialog("Buat Mata Pelajaran Baru", `
@@ -1151,7 +1229,7 @@
         }
 
         // =========================================================================
-        // REKAP NILAI SISWA (GURU LAPTOP TABLE & STATS)
+        // REKAP NILAI SISWA
         // =========================================================================
         function renderStudentResultsRekap() {
             const tbody = document.getElementById("table-rekap-body");
@@ -1162,7 +1240,6 @@
             if (!tbody) return;
             tbody.innerHTML = "";
 
-            // Calculate Statistics
             const totalStudents = examResultsLog.length;
             const avgScore = totalStudents > 0 
                 ? Math.round(examResultsLog.reduce((acc, curr) => acc + curr.score, 0) / totalStudents) 
@@ -1171,7 +1248,6 @@
             const passRate = totalStudents > 0 ? Math.round((passedStudents / totalStudents) * 100) : 0;
             const totalViolations = examResultsLog.reduce((acc, curr) => acc + (curr.violations || 0), 0);
 
-            // Update stats indicators
             document.getElementById("stat-total-students-laptop").textContent = totalStudents;
             document.getElementById("badge-total-students").textContent = totalStudents;
             document.getElementById("stat-avg-score-laptop").textContent = avgScore;
@@ -1180,7 +1256,6 @@
             document.getElementById("stat-total-violations").textContent = totalViolations;
             document.getElementById("display-kkm-target").textContent = globalKkmTarget;
 
-            // Filter log
             const filteredLog = examResultsLog.filter(log => {
                 const matchSearch = log.studentName.toLowerCase().includes(searchTerm) || 
                                     log.studentId.toLowerCase().includes(searchTerm) || 
@@ -1280,32 +1355,84 @@
             antiCheatConfig = document.getElementById("setting-anti-cheat").value;
             shuffleOptionsConfig = document.getElementById("setting-shuffle-options").value;
 
-            showCustomDialog("Pengaturan Tersimpan", "Konfigurasi standar KKM dan sistem ujian berhasil diperbarui.", () => {
+            const newPin = document.getElementById("setting-teacher-pin").value.trim();
+            if (newPin) {
+                teacherSecurityPin = newPin;
+                localStorage.setItem("cbt_teacher_pin", teacherSecurityPin);
+            }
+
+            showCustomDialog("Pengaturan Tersimpan", "Konfigurasi standar KKM, PIN, dan sistem ujian berhasil diperbarui.", () => {
                 renderStudentResultsRekap();
                 switchTeacherTab('rekap');
             }, true);
         }
 
         // =========================================================================
-        // PROJECTOR QR GENERATOR
+        // PROJECTOR QR GENERATOR & HOST DETECTION
         // =========================================================================
         function setupProjectorQr() {
-            const currentUrl = window.location.href;
+            let currentUrl = window.location.href;
+
+            // Ensure QR directs student view specifically
+            if (!currentUrl.includes("role=student")) {
+                currentUrl += (currentUrl.includes("?") ? "&" : "?") + "role=student";
+            }
+
             const imgEl = document.getElementById("projector-qr-img");
             const textEl = document.getElementById("projector-url-text");
+            const warningBanner = document.getElementById("qr-warning-banner");
+            const customUrlInput = document.getElementById("input-custom-qr-url");
+            const protocolText = document.getElementById("current-protocol-text");
+
+            const isLocalFile = window.location.protocol === "file:";
+            const isLocalhost = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1";
+
+            if (isLocalFile || isLocalhost) {
+                if (warningBanner) warningBanner.classList.remove("hidden");
+                if (protocolText) protocolText.textContent = isLocalFile ? "file://" : "http://localhost";
+            } else {
+                if (warningBanner) warningBanner.classList.add("hidden");
+            }
+
+            let targetUrl = customServerUrl.trim() !== "" ? customServerUrl.trim() : currentUrl;
+
+            if (!customUrlInput.value && customServerUrl === "") {
+                customUrlInput.value = isLocalFile ? "" : currentUrl;
+            }
 
             if (imgEl) {
-                imgEl.src = `https://api.qrserver.com/v1/create-qr-code/?size=350x350&data=${encodeURIComponent(currentUrl)}`;
+                imgEl.src = `https://api.qrserver.com/v1/create-qr-code/?size=350x350&data=${encodeURIComponent(targetUrl)}`;
             }
             if (textEl) {
-                textEl.textContent = currentUrl.length > 40 ? currentUrl.substring(0, 38) + "..." : currentUrl;
+                textEl.textContent = targetUrl.length > 40 ? targetUrl.substring(0, 38) + "..." : targetUrl;
             }
         }
 
+        function updateCustomQrUrl() {
+            let inputVal = document.getElementById("input-custom-qr-url").value.trim();
+            if (!inputVal) {
+                showCustomDialog("URL Kosong", "Silakan masukkan alamat URL atau IP lokal laptop.", null, true);
+                return;
+            }
+            
+            if (!inputVal.startsWith("http://") && !inputVal.startsWith("https://")) {
+                inputVal = "http://" + inputVal;
+            }
+            
+            if (!inputVal.includes("role=student")) {
+                inputVal += (inputVal.includes("?") ? "&" : "?") + "role=student";
+            }
+
+            customServerUrl = inputVal;
+            document.getElementById("input-custom-qr-url").value = customServerUrl;
+            setupProjectorQr();
+            showCustomDialog("QR Code Diperbarui", `QR Code sekarang mengarah ke: <b>${customServerUrl}</b>`, null, true);
+        }
+
         function copyExamUrl() {
-            const currentUrl = window.location.href;
+            const targetUrl = customServerUrl || window.location.href;
             const tempInput = document.createElement("input");
-            tempInput.value = currentUrl;
+            tempInput.value = targetUrl;
             document.body.appendChild(tempInput);
             tempInput.select();
             try {
@@ -1338,7 +1465,6 @@
                 return;
             }
 
-            // Clone & optionally shuffle question options
             currentQuestions = bank.questions.map(q => {
                 let indexedOptions = q.options.map((optText, origIdx) => ({
                     text: optText,
@@ -1648,7 +1774,6 @@
             const now = new Date();
             const timeStr = `${String(now.getDate()).padStart(2, '0')}/${String(now.getMonth() + 1).padStart(2, '0')}/${now.getFullYear()} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
             
-            // Record result log
             const newLog = {
                 id: "LOG-" + Date.now(),
                 studentName: studentData.name,
@@ -1670,7 +1795,6 @@
             saveExamLogsToStorage();
             renderStudentResultsRekap();
 
-            // Display on student view
             document.getElementById("result-score").textContent = finalScore;
             document.getElementById("res-correct").textContent = correctCount;
             document.getElementById("res-wrong").textContent = Math.max(0, wrongCount);
@@ -1752,9 +1876,7 @@
             }
         }
 
-        // =========================================================================
-        // CUSTOM DIALOG & ALERTS
-        // =========================================================================
+        // CUSTOM DIALOGS
         let customDialogCallback = null;
 
         function showCustomDialog(title, message, onConfirm = null, isAlertOnly = false) {
