@@ -386,6 +386,10 @@
                 </span>
                 <h3 class="text-2xl sm:text-3xl font-black text-slate-800">Scan QR Code untuk Memulai Ulangan</h3>
                 <p class="text-xs sm:text-sm text-slate-500">Siswa silakan buka Kamera HP atau Google Lens, lalu arahkan ke kode QR di bawah ini.</p>
+                <div class="inline-flex items-center gap-2 bg-indigo-600 text-white px-4 py-1.5 rounded-2xl text-xs font-extrabold shadow-md mt-1">
+                    <i class="fa-solid fa-key"></i>
+                    <span>Kode Ruang Live: <b id="display-room-code" class="tracking-widest font-mono text-amber-300 text-sm">--</b></span>
+                </div>
             </div>
 
             <div class="max-w-md mx-auto bg-indigo-50/70 p-3.5 rounded-2xl border border-indigo-100 space-y-1.5 text-left">
@@ -515,6 +519,11 @@
                                 <label class="block text-xs font-bold text-slate-700 mb-1">Kelas / Rombel</label>
                                 <input type="text" id="input-student-class" required placeholder="Contoh: X-RPL-1" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500">
                             </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 mb-1">Kode Ruang Proktor (Otomatis dari QR)</label>
+                            <input type="text" id="input-student-room" placeholder="Contoh: 849201" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-mono font-bold text-indigo-700 uppercase focus:outline-none focus:ring-2 focus:ring-indigo-500">
                         </div>
 
                         <div>
@@ -819,9 +828,10 @@
         // PeerJS Instance variables
         let teacherPeer = null;
         let studentPeer = null;
-        let peerConns = {}; // Stores active Peer connections on Teacher side
-        let studentConnToTeacher = null; // Single active Peer connection on Student side
+        let peerConns = {}; 
+        let studentConnToTeacher = null; 
         let roomCode = null;
+        let currentTeacherRoomCode = Math.floor(100000 + Math.random() * 900000).toString();
 
         // Configuration WebRTC Google Public STUN Servers
         const peerIceConfig = {
@@ -932,15 +942,16 @@
             renderActiveStudentsLive();
             setupProjectorQr();
 
-            // Interval pembersih siswa inaktif
             setInterval(cleanUpInactiveStudents, 4000);
-
-            // Default ke Layar Siswa HP
             switchMainRole('student');
         };
 
         function initTeacherPeerServer() {
             const peerRoomId = getPeerRoomIdForSubject(currentSubjectKey);
+            
+            const roomDisplay = document.getElementById("display-room-code");
+            if (roomDisplay) roomDisplay.textContent = currentTeacherRoomCode;
+
             if (teacherPeer && teacherPeer.id === peerRoomId && !teacherPeer.destroyed) return;
             
             if (teacherPeer) {
@@ -952,7 +963,8 @@
                 
                 teacherPeer.on('open', (id) => {
                     console.log("Teacher Proctor Peer Live Room Active:", id);
-                    updateTeacherPeerStatus("connected", "Live Room Online");
+                    updateTeacherPeerStatus("connected", `Live Room Online (${currentTeacherRoomCode})`);
+                    setupProjectorQr();
                 });
 
                 teacherPeer.on('connection', (conn) => {
@@ -988,8 +1000,10 @@
 
                 teacherPeer.on('error', (err) => {
                     console.warn("Teacher Peer Notice:", err);
-                    updateTeacherPeerStatus("error", "Server Busy - Auto Retry");
-                    setTimeout(() => { initTeacherPeerServer(); }, 4000);
+                    // If room ID collision occurs, generate a fresh random room code
+                    currentTeacherRoomCode = Math.floor(100000 + Math.random() * 900000).toString();
+                    updateTeacherPeerStatus("error", "Generating New Room Code...");
+                    setTimeout(() => { initTeacherPeerServer(); }, 1500);
                 });
             } catch (err) {
                 console.error("PeerJS Init Error", err);
@@ -1010,7 +1024,14 @@
         }
 
         function initStudentPeerClient(targetRoomId) {
-            if (!targetRoomId) targetRoomId = getPeerRoomIdForSubject(currentSubjectKey);
+            if (!targetRoomId) {
+                const inputRoom = document.getElementById("input-student-room")?.value.trim();
+                if (inputRoom) {
+                    targetRoomId = `cbt_room_${inputRoom}`;
+                } else {
+                    targetRoomId = getPeerRoomIdForSubject(currentSubjectKey);
+                }
+            }
 
             if (studentConnToTeacher && studentConnToTeacher.open && studentConnToTeacher.peer === targetRoomId) {
                 return;
@@ -1083,364 +1104,14 @@
         }
 
         function getPeerRoomIdForSubject(subjectKey) {
-            return `cbt_stemga_room_${subjectKey.replace(/[^a-zA-Z0-9]/g, '_')}`;
-        }
-
-        function loadActiveStudentsFromStorage() {
-            try {
-                const saved = localStorage.getItem("cbt_stemga_active_students_sync");
-                if (saved) activeStudentsMap = JSON.parse(saved);
-            } catch(e) { console.error(e); }
-        }
-
-        function saveActiveStudentsToStorage() {
-            try {
-                localStorage.setItem("cbt_stemga_active_students_sync", JSON.stringify(activeStudentsMap));
-            } catch(e) { console.error(e); }
-        }
-
-        function handleIncomingHeartbeat(payload) {
-            if (!payload || !payload.sessionId) return;
-            activeStudentsMap[payload.sessionId] = {
-                ...payload,
-                lastSeen: Date.now()
-            };
-            saveActiveStudentsToStorage();
-            renderActiveStudentsLive();
-        }
-
-        function handleStudentFinishedEvent(sessionId) {
-            if (sessionId && activeStudentsMap[sessionId]) {
-                delete activeStudentsMap[sessionId];
-                saveActiveStudentsToStorage();
-                renderActiveStudentsLive();
+            if (currentRole === 'teacher') {
+                return `cbt_room_${currentTeacherRoomCode}`;
             }
-        }
-
-        function cleanUpInactiveStudents() {
-            const now = Date.now();
-            let changed = false;
-            Object.keys(activeStudentsMap).forEach(sId => {
-                const student = activeStudentsMap[sId];
-                if (now - (student.lastSeen || 0) > 15000) {
-                    delete activeStudentsMap[sId];
-                    changed = true;
-                }
-            });
-            if (changed) {
-                saveActiveStudentsToStorage();
-                renderActiveStudentsLive();
+            const studentInputRoom = document.getElementById("input-student-room")?.value.trim();
+            if (studentInputRoom) {
+                return `cbt_room_${studentInputRoom}`;
             }
-        }
-
-        function renderActiveStudentsLive() {
-            const container = document.getElementById("active-students-container");
-            const emptyEl = document.getElementById("active-students-empty");
-            const counterEl = document.getElementById("live-active-counter");
-            const statCounter = document.getElementById("stat-active-students-count");
-
-            if (!container) return;
-
-            const activeList = Object.values(activeStudentsMap);
-            if (counterEl) counterEl.textContent = activeList.length;
-            if (statCounter) statCounter.textContent = activeList.length;
-
-            if (activeList.length === 0) {
-                container.innerHTML = "";
-                if (emptyEl) emptyEl.classList.remove("hidden");
-                return;
-            }
-
-            if (emptyEl) emptyEl.classList.add("hidden");
-            container.innerHTML = "";
-
-            activeList.forEach(st => {
-                const answeredPct = st.totalQuestions > 0 ? Math.round((st.answeredCount / st.totalQuestions) * 100) : 0;
-                const minutesLeft = Math.floor(st.timeRemaining / 60);
-                const secondsLeft = st.timeRemaining % 60;
-                const formattedTime = `${String(minutesLeft).padStart(2, '0')}:${String(secondsLeft).padStart(2, '0')}`;
-                const hasViolations = st.violations > 0;
-
-                const card = document.createElement("div");
-                card.className = `p-3.5 rounded-2xl border transition shadow-sm space-y-2.5 ${
-                    hasViolations 
-                    ? 'bg-rose-950/40 border-rose-600/70 text-rose-100 ring-1 ring-rose-500/50' 
-                    : 'bg-slate-800/80 border-slate-700 text-slate-100'
-                }`;
-
-                card.innerHTML = `
-                    <div class="flex items-start justify-between gap-2">
-                        <div>
-                            <span class="font-extrabold text-xs block text-white">${st.studentName}</span>
-                            <span class="text-[11px] text-slate-400 font-mono">${st.studentId} &bull; ${st.studentClass}</span>
-                        </div>
-                        <span class="text-[10px] font-bold px-2 py-0.5 rounded-md ${
-                            hasViolations 
-                            ? 'bg-rose-600 text-white animate-pulse' 
-                            : 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
-                        }">
-                            ${hasViolations ? `<i class="fa-solid fa-triangle-exclamation mr-1"></i>Curang (${st.violations}x)` : 'Mengerjakan'}
-                        </span>
-                    </div>
-
-                    <div class="space-y-1">
-                        <div class="flex items-center justify-between text-[11px] font-semibold text-slate-300">
-                            <span>Soal #${st.currentQuestionIndex + 1} (${st.answeredCount}/${st.totalQuestions} Diisi)</span>
-                            <span class="font-mono text-indigo-300 font-bold"><i class="fa-regular fa-clock mr-1"></i>${formattedTime}</span>
-                        </div>
-                        <div class="w-full bg-slate-700 h-2 rounded-full overflow-hidden">
-                            <div class="bg-indigo-500 h-full transition-all duration-300" style="width: ${answeredPct}%"></div>
-                        </div>
-                    </div>
-
-                    <div class="flex items-center justify-between pt-1 border-t border-slate-700/60 text-[11px]">
-                        <span class="text-slate-400 truncate max-w-[170px]">${st.subjectTitle}</span>
-                        <button onclick="teacherForceSubmitStudent('${st.sessionId}')" class="bg-rose-600 hover:bg-rose-700 active:scale-95 text-white font-bold px-2.5 py-1 rounded-lg transition text-[10px] flex items-center gap-1 shadow-sm">
-                            <i class="fa-solid fa-hand"></i>
-                            <span>Paksa Submit</span>
-                        </button>
-                    </div>
-                `;
-
-                container.appendChild(card);
-            });
-        }
-
-        function teacherForceSubmitStudent(sessionId) {
-            showCustomDialog("Paksa Kumpulkan Ujian?", "Langkah ini akan langsung menyelesaikan dan mengumpulkan ujian siswa yang bersangkutan.", () => {
-                // Send via BroadcastChannel
-                if (cbtChannel) {
-                    cbtChannel.postMessage({
-                        type: 'FORCE_SUBMIT_STUDENT',
-                        sessionId: sessionId
-                    });
-                }
-                // Send via WebRTC PeerJS connection
-                if (peerConns[sessionId]) {
-                    try {
-                        peerConns[sessionId].send({
-                            type: 'FORCE_SUBMIT_STUDENT',
-                            sessionId: sessionId
-                        });
-                    } catch(e) { console.error(e); }
-                }
-
-                if (activeStudentsMap[sessionId]) {
-                    delete activeStudentsMap[sessionId];
-                    saveActiveStudentsToStorage();
-                    renderActiveStudentsLive();
-                }
-            });
-        }
-
-        function startStudentHeartbeat() {
-            stopStudentHeartbeat();
-            sendStudentHeartbeat();
-
-            heartbeatInterval = setInterval(() => {
-                if (isExamActive) {
-                    sendStudentHeartbeat();
-                }
-            }, 2000);
-        }
-
-        function stopStudentHeartbeat() {
-            if (heartbeatInterval) clearInterval(heartbeatInterval);
-        }
-
-        function sendStudentHeartbeat() {
-            if (!isExamActive || !currentSessionId) return;
-
-            // Otomatis pastikan terkoneksi ke room proktor jika koneksi terputus
-            if (!studentConnToTeacher || !studentConnToTeacher.open) {
-                initStudentPeerClient(getPeerRoomIdForSubject(currentSubjectKey));
-            }
-
-            const payload = {
-                sessionId: currentSessionId,
-                studentName: studentData.name,
-                studentId: studentData.id,
-                studentClass: studentData.class,
-                subjectKey: currentSubjectKey,
-                subjectTitle: DEFAULT_QUIZ_BANKS[currentSubjectKey]?.title || "Ujian",
-                timeRemaining: timeRemaining,
-                answeredCount: Object.keys(userAnswers).length,
-                totalQuestions: currentQuestions.length,
-                currentQuestionIndex: currentQuestionIndex,
-                violations: antiCheatViolations
-            };
-
-            // 1. BroadcastChannel local (Tab lokal pada device yang sama)
-            if (cbtChannel) {
-                cbtChannel.postMessage({
-                    type: 'ACTIVE_STUDENT_HEARTBEAT',
-                    payload: payload
-                });
-            }
-
-            // 2. PeerJS WebRTC multi-device (Siswa HP -> Laptop Guru)
-            if (studentConnToTeacher && studentConnToTeacher.open) {
-                try {
-                    studentConnToTeacher.send({
-                        type: 'ACTIVE_STUDENT_HEARTBEAT',
-                        payload: payload
-                    });
-                } catch(e) { console.error(e); }
-            }
-
-            handleIncomingHeartbeat(payload);
-        }
-
-        function switchMainRole(role) {
-            currentRole = role;
-            loadSavedQuizBanks();
-            loadSavedExamLogs();
-            populateSubjectSelects();
-
-            const teacherView = document.getElementById("view-teacher-dashboard");
-            const studentView = document.getElementById("view-student-container");
-
-            if (role === 'teacher') {
-                if (!isTeacherAuthenticated) {
-                    openPinModal();
-                    return;
-                }
-                teacherView.classList.remove("hidden");
-                studentView.classList.add("hidden");
-                initTeacherPeerServer();
-                renderStudentResultsRekap();
-                setupProjectorQr();
-            } else {
-                teacherView.classList.add("hidden");
-                studentView.classList.remove("hidden");
-                if (roomCode) {
-                    initStudentPeerClient(roomCode);
-                }
-            }
-        }
-
-        function triggerProctorPinAccess() {
-            openPinModal();
-        }
-
-        function openPinModal() {
-            document.getElementById("modal-teacher-pin").classList.remove("hidden");
-            const input = document.getElementById("input-teacher-pin");
-            if (input) {
-                input.value = "";
-                input.focus();
-            }
-        }
-
-        function closePinModal() {
-            document.getElementById("modal-teacher-pin").classList.add("hidden");
-        }
-
-        function handleTeacherPinSubmit(e) {
-            e.preventDefault();
-            const inputPin = document.getElementById("input-teacher-pin").value.trim();
-            if (inputPin === teacherPin) {
-                isTeacherAuthenticated = true;
-                closePinModal();
-                switchMainRole('teacher');
-            } else {
-                showCustomDialog("PIN Salah", "PIN Keamanan yang Anda masukkan tidak valid.", null, true);
-            }
-        }
-
-        function switchTeacherTab(tabName) {
-            activeTeacherTab = tabName;
-            const tabIds = ['rekap', 'soal', 'projector', 'settings'];
-            
-            tabIds.forEach(id => {
-                const contentEl = document.getElementById(`ttab-${id}`);
-                const btnEl = document.getElementById(`ttab-${id}-btn`);
-                
-                if (id === tabName) {
-                    contentEl.classList.remove("hidden");
-                    if (id === 'soal') contentEl.classList.add("grid");
-                    btnEl.className = "py-3 px-4 text-indigo-600 border-b-2 border-indigo-600 flex items-center gap-2 shrink-0 transition font-bold";
-                } else {
-                    contentEl.classList.add("hidden");
-                    if (id === 'soal') contentEl.classList.remove("grid");
-                    btnEl.className = "py-3 px-4 text-slate-500 hover:text-slate-800 flex items-center gap-2 shrink-0 transition font-bold";
-                }
-            });
-
-            if (tabName === 'soal') {
-                loadAdminQuestionsForSubject();
-            } else if (tabName === 'projector') {
-                setupProjectorQr();
-            } else if (tabName === 'rekap') {
-                renderStudentResultsRekap();
-            }
-        }
-
-        function loadSavedQuizBanks() {
-            try {
-                const saved = localStorage.getItem("cbt_stemga_quiz_banks_data");
-                if (saved) {
-                    const parsed = JSON.parse(saved);
-                    if (Object.keys(parsed).length > 0) DEFAULT_QUIZ_BANKS = parsed;
-                }
-            } catch (e) { console.error(e); }
-        }
-
-        function saveQuizBanksToStorage() {
-            try {
-                localStorage.setItem("cbt_stemga_quiz_banks_data", JSON.stringify(DEFAULT_QUIZ_BANKS));
-                if (cbtChannel) cbtChannel.postMessage({ type: 'QUIZ_BANKS_UPDATED' });
-            } catch (e) { console.error(e); }
-        }
-
-        function loadSavedExamLogs() {
-            try {
-                const saved = localStorage.getItem("cbt_stemga_exam_logs_data");
-                if (saved) examResultsLog = JSON.parse(saved);
-            } catch (e) { console.error(e); }
-        }
-
-        function saveExamLogsToStorage() {
-            try {
-                localStorage.setItem("cbt_stemga_exam_logs_data", JSON.stringify(examResultsLog));
-                if (cbtChannel) cbtChannel.postMessage({ type: 'NEW_EXAM_RESULT' });
-            } catch (e) { console.error(e); }
-        }
-
-        function loadSavedSettings() {
-            try {
-                const pinSaved = localStorage.getItem("cbt_stemga_teacher_pin");
-                if (pinSaved) teacherPin = pinSaved;
-                const kkmSaved = localStorage.getItem("cbt_stemga_kkm");
-                if (kkmSaved) globalKkmTarget = parseInt(kkmSaved) || 75;
-                const antiCheatSaved = localStorage.getItem("cbt_stemga_anticheat");
-                if (antiCheatSaved) antiCheatConfig = antiCheatSaved;
-                const shuffleSaved = localStorage.getItem("cbt_stemga_shuffle");
-                if (shuffleSaved) shuffleOptionsConfig = shuffleSaved;
-
-                document.getElementById("setting-teacher-pin").value = teacherPin;
-                document.getElementById("setting-kkm-value").value = globalKkmTarget;
-                document.getElementById("setting-anti-cheat").value = antiCheatConfig;
-                document.getElementById("setting-shuffle-options").value = shuffleOptionsConfig;
-            } catch (e) { console.error(e); }
-        }
-
-        function saveGlobalSettings() {
-            const newPin = document.getElementById("setting-teacher-pin").value.trim();
-            if (newPin) {
-                teacherPin = newPin;
-                localStorage.setItem("cbt_stemga_teacher_pin", teacherPin);
-            }
-            globalKkmTarget = parseInt(document.getElementById("setting-kkm-value").value) || 75;
-            localStorage.setItem("cbt_stemga_kkm", globalKkmTarget);
-
-            antiCheatConfig = document.getElementById("setting-anti-cheat").value;
-            localStorage.setItem("cbt_stemga_anticheat", antiCheatConfig);
-
-            shuffleOptionsConfig = document.getElementById("setting-shuffle-options").value;
-            localStorage.setItem("cbt_stemga_shuffle", shuffleOptionsConfig);
-
-            showCustomDialog("Pengaturan Tersimpan", "Konfigurasi KKM, Anti-Cheat, dan PIN Guru berhasil diperbarui.", null, true);
+            return roomCode ? `cbt_room_${roomCode}` : `cbt_room_${currentTeacherRoomCode}`;
         }
 
         function checkUrlSubjectParam() {
@@ -1452,7 +1123,9 @@
 
                 if (roomParam) {
                     roomCode = roomParam;
-                    initStudentPeerClient(roomCode);
+                    const roomInput = document.getElementById("input-student-room");
+                    if (roomInput) roomInput.value = roomParam;
+                    initStudentPeerClient(`cbt_room_${roomParam}`);
                 }
 
                 if (qdataParam) {
@@ -1499,391 +1172,11 @@
             } catch (e) { console.error(e); }
         }
 
-        function populateSubjectSelects() {
-            const studentSelect = document.getElementById("select-subject-student");
-            const teacherSelect = document.getElementById("admin-soal-subject-select");
-            const projectorSelect = document.getElementById("projector-mapel-select");
-            const filterSelect = document.getElementById("rekap-filter-mapel");
-
-            if (studentSelect) studentSelect.innerHTML = "";
-            if (teacherSelect) teacherSelect.innerHTML = "";
-            if (projectorSelect) projectorSelect.innerHTML = "";
-            if (filterSelect) filterSelect.innerHTML = `<option value="all">Semua Mata Pelajaran</option>`;
-
-            const keys = Object.keys(DEFAULT_QUIZ_BANKS);
-            if (keys.length === 0) return;
-
-            if (!DEFAULT_QUIZ_BANKS[currentSubjectKey]) currentSubjectKey = keys[0];
-
-            keys.forEach(key => {
-                const bank = DEFAULT_QUIZ_BANKS[key];
-                const title = bank.title;
-                const count = bank.questions ? bank.questions.length : 0;
-                const dur = bank.durationMinutes || 15;
-                
-                const labelText = `${title} (${count} Soal - ${dur} Min)`;
-
-                const opt1 = document.createElement("option");
-                opt1.value = key; opt1.textContent = labelText;
-                if (key === currentSubjectKey) opt1.selected = true;
-                if (studentSelect) studentSelect.appendChild(opt1);
-
-                const opt2 = document.createElement("option");
-                opt2.value = key; opt2.textContent = title;
-                if (key === currentSubjectKey) opt2.selected = true;
-                if (teacherSelect) teacherSelect.appendChild(opt2);
-
-                const opt3 = document.createElement("option");
-                opt3.value = key; opt3.textContent = title;
-                if (key === currentSubjectKey) opt3.selected = true;
-                if (projectorSelect) projectorSelect.appendChild(opt3);
-
-                const opt4 = document.createElement("option");
-                opt4.value = key; opt4.textContent = title;
-                if (filterSelect) filterSelect.appendChild(opt4);
-            });
-
-            handleStudentSubjectChange();
-            loadAdminQuestionsForSubject();
-        }
-
-        function handleStudentSubjectChange() {
-            const select = document.getElementById("select-subject-student");
-            if (!select || !select.value) return;
-            currentSubjectKey = select.value;
-            const bank = DEFAULT_QUIZ_BANKS[currentSubjectKey];
-            if (bank) {
-                document.getElementById("student-exam-duration").textContent = `${bank.durationMinutes || 15} Menit`;
-                document.getElementById("student-header-mapel").textContent = bank.title;
-            }
-
-            // Inisialisasi koneksi WebRTC ke room mata pelajaran terpilih
-            if (currentRole === 'student') {
-                initStudentPeerClient(getPeerRoomIdForSubject(currentSubjectKey));
-            }
-        }
-
-        function loadAdminQuestionsForSubject() {
-            const selectEl = document.getElementById("admin-soal-subject-select");
-            const container = document.getElementById("admin-questions-list");
-            const countBadge = document.getElementById("admin-q-count");
-
-            if (!selectEl || !container) return;
-            const key = selectEl.value || currentSubjectKey;
-            const bank = DEFAULT_QUIZ_BANKS[key];
-
-            container.innerHTML = "";
-
-            if (!bank || !bank.questions || bank.questions.length === 0) {
-                countBadge.textContent = "0";
-                container.innerHTML = `
-                    <div class="text-center py-12 text-slate-400 text-xs bg-slate-50 rounded-3xl border border-dashed border-slate-200 space-y-2">
-                        <i class="fa-solid fa-folder-open text-3xl block text-slate-300"></i>
-                        <span class="font-bold block text-slate-600">Belum ada soal pada mapel ini.</span>
-                        <span class="text-slate-400">Gunakan form di sebelah kiri atau klik "Import Banyak Soal".</span>
-                    </div>
-                `;
-                return;
-            }
-
-            countBadge.textContent = bank.questions.length;
-            const durationInput = document.getElementById("input-soal-duration");
-            if (durationInput) durationInput.value = bank.durationMinutes || 15;
-
-            const labels = ["A", "B", "C", "D"];
-
-            bank.questions.forEach((q, idx) => {
-                const card = document.createElement("div");
-                card.className = "bg-white border border-slate-200 p-4 rounded-2xl space-y-2.5 text-xs shadow-sm";
-                card.innerHTML = `
-                    <div class="flex items-start justify-between gap-3">
-                        <span class="font-bold text-slate-800 flex-1 leading-relaxed">
-                            <span class="bg-indigo-50 text-indigo-700 px-2 py-0.5 rounded-md mr-1 font-extrabold">#${idx + 1}</span> ${q.question}
-                        </span>
-                        <button onclick="deleteQuestion(${idx})" class="text-rose-500 hover:text-rose-700 p-1.5 rounded-lg hover:bg-rose-50 transition shrink-0">
-                            <i class="fa-solid fa-trash-can"></i>
-                        </button>
-                    </div>
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-1.5 text-[11px] text-slate-600 bg-slate-50 p-2.5 rounded-xl border border-slate-100">
-                        ${q.options.map((opt, oIdx) => `
-                            <div class="p-1.5 rounded-lg flex items-center gap-1.5 ${oIdx === q.answer ? 'font-bold text-emerald-800 bg-emerald-100/70 border border-emerald-200' : 'bg-white border border-slate-200'}">
-                                <span class="w-4 h-4 rounded-md flex items-center justify-center font-bold text-[10px] ${oIdx === q.answer ? 'bg-emerald-600 text-white' : 'bg-slate-200 text-slate-600'}">${labels[oIdx]}</span>
-                                <span class="truncate">${opt}</span>
-                            </div>
-                        `).join('')}
-                    </div>
-                    ${q.explanation ? `<div class="text-[11px] text-slate-500 bg-indigo-50/50 p-2 rounded-xl border border-indigo-100"><b class="text-indigo-700">Pembahasan:</b> ${q.explanation}</div>` : ''}
-                `;
-                container.appendChild(card);
-            });
-        }
-
-        function saveNewQuestion() {
-            const selectEl = document.getElementById("admin-soal-subject-select");
-            const key = selectEl ? selectEl.value : currentSubjectKey;
-
-            if (!DEFAULT_QUIZ_BANKS[key]) {
-                showCustomDialog("Pilih Mapel", "Silakan buat atau pilih mata pelajaran terlebih dahulu.", null, true);
-                return;
-            }
-
-            const qText = document.getElementById("input-new-q-text").value.trim();
-            const opt0 = document.getElementById("input-opt-0").value.trim();
-            const opt1 = document.getElementById("input-opt-1").value.trim();
-            const opt2 = document.getElementById("input-opt-2").value.trim();
-            const opt3 = document.getElementById("input-opt-3").value.trim();
-            const correctAns = parseInt(document.getElementById("input-correct-answer").value);
-            const durationMin = parseInt(document.getElementById("input-soal-duration").value) || 15;
-            const expText = document.getElementById("input-new-q-exp").value.trim();
-
-            if (!qText || !opt0 || !opt1 || !opt2 || !opt3) {
-                showCustomDialog("Form Belum Lengkap", "Harap isi pertanyaan soal dan seluruh pilihan jawaban A, B, C, D.", null, true);
-                return;
-            }
-
-            const newQ = {
-                id: Date.now() + Math.floor(Math.random() * 1000),
-                question: qText,
-                options: [opt0, opt1, opt2, opt3],
-                answer: correctAns,
-                explanation: expText || "Pembahasan belum dimasukkan."
-            };
-
-            if (!DEFAULT_QUIZ_BANKS[key].questions) DEFAULT_QUIZ_BANKS[key].questions = [];
-            DEFAULT_QUIZ_BANKS[key].questions.push(newQ);
-            DEFAULT_QUIZ_BANKS[key].durationMinutes = durationMin;
-
-            saveQuizBanksToStorage();
-
-            document.getElementById("input-new-q-text").value = "";
-            document.getElementById("input-opt-0").value = "";
-            document.getElementById("input-opt-1").value = "";
-            document.getElementById("input-opt-2").value = "";
-            document.getElementById("input-opt-3").value = "";
-            document.getElementById("input-new-q-exp").value = "";
-
-            loadAdminQuestionsForSubject();
-            populateSubjectSelects();
-
-            showCustomDialog("Berhasil", "Soal baru berhasil disimpan ke bank soal!", null, true);
-        }
-
-        function openBulkImportModal() {
-            document.getElementById("modal-bulk-import").classList.remove("hidden");
-        }
-
-        function closeBulkImportModal() {
-            document.getElementById("modal-bulk-import").classList.add("hidden");
-        }
-
-        function processBulkImport() {
-            const selectEl = document.getElementById("admin-soal-subject-select");
-            const key = selectEl ? selectEl.value : currentSubjectKey;
-
-            if (!DEFAULT_QUIZ_BANKS[key]) {
-                showCustomDialog("Pilih Mapel", "Pilih mata pelajaran target terlebih dahulu.", null, true);
-                return;
-            }
-
-            const rawText = document.getElementById("input-bulk-text").value.trim();
-            if (!rawText) {
-                showCustomDialog("Teks Kosong", "Masukkan teks soal masal terlebih dahulu.", null, true);
-                return;
-            }
-
-            const lines = rawText.split('\n');
-            let successCount = 0;
-
-            lines.forEach(line => {
-                if (!line.trim()) return;
-                const parts = line.split(';').map(p => p.trim());
-                
-                if (parts.length >= 6) {
-                    const qText = parts[0];
-                    const opt0 = parts[1];
-                    const opt1 = parts[2];
-                    const opt2 = parts[3];
-                    const opt3 = parts[4];
-                    const keyChar = parts[5].toUpperCase();
-                    const exp = parts[6] || "Pembahasan belum dimasukkan.";
-
-                    let ansIdx = 0;
-                    if (keyChar === 'B' || keyChar === '1') ansIdx = 1;
-                    if (keyChar === 'C' || keyChar === '2') ansIdx = 2;
-                    if (keyChar === 'D' || keyChar === '3') ansIdx = 3;
-
-                    const newQ = {
-                        id: Date.now() + Math.floor(Math.random() * 10000),
-                        question: qText,
-                        options: [opt0, opt1, opt2, opt3],
-                        answer: ansIdx,
-                        explanation: exp
-                    };
-
-                    if (!DEFAULT_QUIZ_BANKS[key].questions) DEFAULT_QUIZ_BANKS[key].questions = [];
-                    DEFAULT_QUIZ_BANKS[key].questions.push(newQ);
-                    successCount++;
-                }
-            });
-
-            if (successCount > 0) {
-                saveQuizBanksToStorage();
-                document.getElementById("input-bulk-text").value = "";
-                closeBulkImportModal();
-                loadAdminQuestionsForSubject();
-                populateSubjectSelects();
-                showCustomDialog("Import Berhasil", `Berhasil mengimport <b>${successCount} soal</b> ke bank soal!`, null, true);
-            } else {
-                showCustomDialog("Format Salah", "Format teks tidak sesuai. Pastikan menggunakan pemisah titik koma `;` seperti petunjuk.", null, true);
-            }
-        }
-
-        function deleteQuestion(qIndex) {
-            const selectEl = document.getElementById("admin-soal-subject-select");
-            const key = selectEl ? selectEl.value : currentSubjectKey;
-
-            if (DEFAULT_QUIZ_BANKS[key] && DEFAULT_QUIZ_BANKS[key].questions[qIndex]) {
-                DEFAULT_QUIZ_BANKS[key].questions.splice(qIndex, 1);
-                saveQuizBanksToStorage();
-                loadAdminQuestionsForSubject();
-                populateSubjectSelects();
-            }
-        }
-
-        function renderStudentResultsRekap() {
-            const tbody = document.getElementById("table-rekap-body");
-            const emptyState = document.getElementById("rekap-empty-state");
-            const searchTerm = (document.getElementById("rekap-search-laptop")?.value || "").toLowerCase().trim();
-            const filterSubject = document.getElementById("rekap-filter-mapel")?.value || "all";
-
-            if (!tbody) return;
-            tbody.innerHTML = "";
-
-            const totalStudents = examResultsLog.length;
-            const avgScore = totalStudents > 0 
-                ? Math.round(examResultsLog.reduce((acc, curr) => acc + curr.score, 0) / totalStudents) 
-                : 0;
-            const passedStudents = examResultsLog.filter(s => s.status === "LULUS").length;
-            const passRate = totalStudents > 0 ? Math.round((passedStudents / totalStudents) * 100) : 0;
-            const totalViolations = examResultsLog.reduce((acc, curr) => acc + (curr.violations || 0), 0);
-
-            document.getElementById("stat-total-students-laptop").textContent = totalStudents;
-            document.getElementById("badge-total-students").textContent = totalStudents;
-            document.getElementById("stat-avg-score-laptop").textContent = avgScore;
-            document.getElementById("stat-total-violations").textContent = totalViolations;
-            document.getElementById("display-kkm-target").textContent = globalKkmTarget;
-
-            const filteredLog = examResultsLog.filter(log => {
-                const matchSearch = log.studentName.toLowerCase().includes(searchTerm) || 
-                                    log.studentId.toLowerCase().includes(searchTerm) || 
-                                    log.studentClass.toLowerCase().includes(searchTerm);
-                const matchSubject = filterSubject === 'all' || log.subjectKey === filterSubject;
-                return matchSearch && matchSubject;
-            });
-
-            if (filteredLog.length === 0) {
-                emptyState.classList.remove("hidden");
-                return;
-            } else {
-                emptyState.classList.add("hidden");
-            }
-
-            filteredLog.forEach((log, index) => {
-                const tr = document.createElement("tr");
-                const isPass = log.status === "LULUS";
-                tr.className = "hover:bg-slate-50/80 transition";
-
-                tr.innerHTML = `
-                    <td class="py-3 px-3 font-bold text-slate-400">${index + 1}</td>
-                    <td class="py-3 px-4 font-bold text-slate-800">${log.studentName}</td>
-                    <td class="py-3 px-3 text-slate-500 font-mono">${log.studentId}</td>
-                    <td class="py-3 px-3"><span class="bg-slate-100 font-bold text-slate-700 px-2 py-0.5 rounded-md">${log.studentClass}</span></td>
-                    <td class="py-3 px-3 font-semibold text-indigo-700">${log.subjectTitle}</td>
-                    <td class="py-3 px-3 text-center">
-                        <span class="text-emerald-600 font-bold">${log.correctCount}</span> / 
-                        <span class="text-rose-600 font-bold">${log.wrongCount}</span> / 
-                        <span class="text-slate-400">${log.emptyCount}</span>
-                    </td>
-                    <td class="py-3 px-3 text-center">
-                        ${log.violations > 0 
-                            ? `<span class="bg-rose-100 text-rose-800 font-bold px-2 py-0.5 rounded-md"><i class="fa-solid fa-triangle-exclamation mr-1"></i>${log.violations}x</span>` 
-                            : `<span class="text-emerald-600 font-semibold"><i class="fa-solid fa-check"></i> Tertib</span>`}
-                    </td>
-                    <td class="py-3 px-4 text-center">
-                        <span class="text-base font-black ${isPass ? 'text-emerald-600' : 'text-rose-600'}">${log.score}</span>
-                    </td>
-                    <td class="py-3 px-3 text-center">
-                        <span class="font-extrabold text-[10px] px-2 py-1 rounded-lg ${isPass ? 'bg-emerald-100 text-emerald-800 border border-emerald-200' : 'bg-rose-100 text-rose-800 border border-rose-200'}">
-                            ${log.status}
-                        </span>
-                    </td>
-                    <td class="py-3 px-3 text-right text-slate-400 text-[11px] no-print">${log.timestamp}</td>
-                `;
-                tbody.appendChild(tr);
-            });
-        }
-
-        function exportRekapToCSV() {
-            if (examResultsLog.length === 0) {
-                showCustomDialog("Tidak Ada Data", "Belum ada rekap nilai siswa.", null, true);
-                return;
-            }
-
-            let csvContent = "data:text/csv;charset=utf-8,";
-            csvContent += "No,Nama Siswa,NIS,Kelas,Mata Pelajaran,Nilai,Benar,Salah,Kosong,Kecurangan_Pindah_Tab,Status_KKM,Waktu_Selesai\n";
-
-            examResultsLog.forEach((log, index) => {
-                const row = [
-                    index + 1,
-                    `"${log.studentName}"`,
-                    `"${log.studentId}"`,
-                    `"${log.studentClass}"`,
-                    `"${log.subjectTitle}"`,
-                    log.score,
-                    log.correctCount,
-                    log.wrongCount,
-                    log.emptyCount,
-                    log.violations,
-                    log.status,
-                    `"${log.timestamp}"`
-                ].join(",");
-                csvContent += row + "\n";
-            });
-
-            const encodedUri = encodeURI(csvContent);
-            const link = document.createElement("a");
-            link.setAttribute("href", encodedUri);
-            link.setAttribute("download", `Rekap_Nilai_CBT_${Date.now()}.csv`);
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-        }
-
-        function clearRekapData() {
-            showCustomDialog("Hapus Semua Rekap Nilai?", "Semua data nilai siswa akan dihapus permanen.", () => {
-                examResultsLog = [];
-                saveExamLogsToStorage();
-                renderStudentResultsRekap();
-            });
-        }
-
-        function setupProjectorQr() {
-            const selectEl = document.getElementById("projector-mapel-select");
-            const key = selectEl ? selectEl.value : currentSubjectKey;
-            updateProjectorQrForSubject(key);
-        }
-
-        function updateProjectorSubject(key) {
-            currentSubjectKey = key;
-            updateProjectorQrForSubject(key);
-        }
-
         function updateProjectorQrForSubject(key) {
             const bank = DEFAULT_QUIZ_BANKS[key];
             if (!bank) return;
 
             const baseUrl = window.location.href.split('?')[0].split('#')[0];
-            const roomPeerId = getPeerRoomIdForSubject(key);
             
             const compactBank = {
                 title: bank.title,
@@ -1898,7 +1191,7 @@
             };
 
             const qdataJson = JSON.stringify(compactBank);
-            let qrUrl = `${baseUrl}?mapel=${encodeURIComponent(key)}&room=${encodeURIComponent(roomPeerId)}`;
+            let qrUrl = `${baseUrl}?mapel=${encodeURIComponent(key)}&room=${encodeURIComponent(currentTeacherRoomCode)}`;
             
             if (qdataJson.length < 350) {
                 qrUrl += `&qdata=${encodeURIComponent(qdataJson)}`;
