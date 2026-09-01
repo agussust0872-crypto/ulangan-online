@@ -17,6 +17,34 @@
     <!-- PeerJS for Multi-Device Realtime WebRTC Sync -->
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
 
+    <!-- Firebase Cloud Realtime DB Engine for Quizizz-like Sync -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, setDoc, getDoc, collection, onSnapshot, updateDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'cbt-stemga-app';
+        let firebaseConfig;
+        try {
+            firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {
+                apiKey: "AIzaSyCBTStemgaDefaultKeyFallback",
+                authDomain: "cbt-stemga.firebaseapp.com",
+                projectId: "cbt-stemga",
+                storageBucket: "cbt-stemga.appspot.com",
+                messagingSenderId: "1029384756",
+                appId: "1:1029384756:web:cbtstemga123"
+            };
+        } catch(e) {
+            firebaseConfig = { projectId: "cbt-stemga-demo" };
+        }
+
+        window.CBT_CLOUD = {
+            initializeApp, getAuth, signInAnonymously, signInWithCustomToken,
+            getFirestore, doc, setDoc, getDoc, collection, onSnapshot, updateDoc, deleteDoc,
+            appId, firebaseConfig, isReady: false, db: null, auth: null, user: null
+        };
+    </script>
+
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -197,12 +225,12 @@
                             <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
                             <span class="relative inline-flex rounded-full h-3 w-3 bg-emerald-500"></span>
                         </span>
-                        <h3 class="font-black text-base tracking-wide text-white">Pemantauan Siswa Aktif (Real-Time Live)</h3>
+                        <h3 class="font-black text-base tracking-wide text-white">Pemantauan Siswa Aktif (Real-Time Live Cloud)</h3>
                         <span class="bg-emerald-500/20 text-emerald-300 text-[10px] font-extrabold px-2.5 py-0.5 rounded-full border border-emerald-500/30">
                             <span id="live-active-counter">0</span> Aktif
                         </span>
-                        <span id="teacher-peer-status" class="bg-slate-800 text-amber-300 text-[10px] font-bold px-2 py-0.5 rounded-full border border-slate-700 flex items-center gap-1">
-                            <i class="fa-solid fa-signal text-[9px]"></i> WebRTC Ready
+                        <span id="teacher-peer-status" class="bg-slate-800 text-emerald-400 text-[10px] font-bold px-2 py-0.5 rounded-full border border-slate-700 flex items-center gap-1">
+                            <i class="fa-solid fa-cloud-bolt text-[9px] text-emerald-400"></i> Cloud Sync Ready
                         </span>
                     </div>
                     <p class="text-xs text-slate-400">Pantau progres, waktu tersisa, dan kecurangan siswa secara langsung.</p>
@@ -831,6 +859,15 @@
         let currentSessionId = null;
         let heartbeatInterval = null;
 
+        // Firebase Cloud references
+        let db = null;
+        let auth = null;
+        let cloudUser = null;
+        let isCloudConnected = false;
+        let activeStudentsUnsubscribe = null;
+        let examResultsUnsubscribe = null;
+        let myStudentSessionUnsubscribe = null;
+
         // PeerJS Instance variables
         let teacherPeer = null;
         let studentPeer = null;
@@ -850,6 +887,121 @@
                 ]
             }
         };
+
+        // --- FIREBASE REALTIME CLOUD ENGINE ---
+        async function initCloudSync() {
+            if (!window.CBT_CLOUD) return;
+            try {
+                const { initializeApp, getAuth, signInAnonymously, signInWithCustomToken, getFirestore, appId, firebaseConfig } = window.CBT_CLOUD;
+                const app = initializeApp(firebaseConfig);
+                db = getFirestore(app);
+                auth = getAuth(app);
+
+                // Auth Before Firestore Operations
+                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                    const userCred = await signInWithCustomToken(auth, __initial_auth_token);
+                    cloudUser = userCred.user;
+                } else {
+                    const userCred = await signInAnonymously(auth);
+                    cloudUser = userCred.user;
+                }
+
+                isCloudConnected = true;
+                window.CBT_CLOUD.db = db;
+                window.CBT_CLOUD.auth = auth;
+                window.CBT_CLOUD.user = cloudUser;
+                window.CBT_CLOUD.isReady = true;
+
+                updateTeacherPeerStatus("connected", "Quizizz-Mode Cloud Sync Active");
+                updateStudentPeerStatusUI(true);
+
+                // Start global real-time listeners
+                subscribeToActiveStudentsCloud();
+                subscribeToExamResultsCloud();
+
+            } catch (err) {
+                console.warn("Cloud Sync init notice, operating in offline/P2P mode:", err);
+            }
+        }
+
+        function subscribeToActiveStudentsCloud() {
+            if (!db || !isCloudConnected) return;
+            const { collection, onSnapshot, appId } = window.CBT_CLOUD;
+            
+            if (activeStudentsUnsubscribe) activeStudentsUnsubscribe();
+
+            try {
+                const activeCol = collection(db, 'artifacts', appId, 'public', 'data', 'active_students');
+                activeStudentsUnsubscribe = onSnapshot(activeCol, (snapshot) => {
+                    const now = Date.now();
+                    let updatedMap = {};
+                    snapshot.forEach(doc => {
+                        const data = doc.data();
+                        // Only keep heartbeats received in last 20 seconds
+                        if (data && data.sessionId && (now - (data.lastSeen || 0) < 20000)) {
+                            updatedMap[data.sessionId] = data;
+                        }
+                    });
+                    activeStudentsMap = updatedMap;
+                    saveActiveStudentsToStorage();
+                    renderActiveStudentsLive();
+                }, (error) => {
+                    console.error("Error listening to active students:", error);
+                });
+            } catch(e) { console.error("Cloud listener error:", e); }
+        }
+
+        function subscribeToExamResultsCloud() {
+            if (!db || !isCloudConnected) return;
+            const { collection, onSnapshot, appId } = window.CBT_CLOUD;
+
+            if (examResultsUnsubscribe) examResultsUnsubscribe();
+
+            try {
+                const resultsCol = collection(db, 'artifacts', appId, 'public', 'data', 'exam_results');
+                examResultsUnsubscribe = onSnapshot(resultsCol, (snapshot) => {
+                    let cloudResults = [];
+                    snapshot.forEach(doc => {
+                        const data = doc.data();
+                        if (data && data.id) {
+                            cloudResults.push(data);
+                        }
+                    });
+                    
+                    // Sort descending by timestamp/id
+                    cloudResults.sort((a, b) => (b.timestamp || '').localeCompare(a.timestamp || ''));
+
+                    if (cloudResults.length > 0) {
+                        examResultsLog = cloudResults;
+                        saveExamLogsToStorage();
+                        renderStudentResultsRekap();
+                    }
+                }, (error) => {
+                    console.error("Error listening to exam results:", error);
+                });
+            } catch(e) { console.error("Cloud exam result listener error:", e); }
+        }
+
+        function subscribeToMyStudentSession(sessionId) {
+            if (!db || !isCloudConnected || !sessionId) return;
+            const { doc, onSnapshot, appId } = window.CBT_CLOUD;
+
+            if (myStudentSessionUnsubscribe) myStudentSessionUnsubscribe();
+
+            try {
+                const myDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'active_students', sessionId);
+                myStudentSessionUnsubscribe = onSnapshot(myDocRef, (docSnap) => {
+                    if (docSnap.exists()) {
+                        const data = docSnap.data();
+                        if (data && data.forceSubmit && isExamActive) {
+                            showCustomDialog("Dihentikan oleh Guru", "Ujian Anda telah dikumpulkan secara langsung oleh Guru/Proktor.", () => {
+                                finalizeExamSubmit(false);
+                            }, true);
+                        }
+                    }
+                }, (err) => { console.error("Student doc listener error:", err); });
+            } catch(e) { console.error("Error setting student session listener", e); }
+        }
 
         if ('BroadcastChannel' in window) {
             try {
@@ -1126,15 +1278,22 @@
         function startStudentHeartbeat() {
             stopStudentHeartbeat();
             sendStudentHeartbeat();
-            heartbeatInterval = setInterval(sendStudentHeartbeat, 2500);
+            heartbeatInterval = setInterval(sendStudentHeartbeat, 2000);
+            if (currentSessionId) {
+                subscribeToMyStudentSession(currentSessionId);
+            }
         }
 
         function stopStudentHeartbeat() {
             if (heartbeatInterval) clearInterval(heartbeatInterval);
             heartbeatInterval = null;
+            if (myStudentSessionUnsubscribe) {
+                myStudentSessionUnsubscribe();
+                myStudentSessionUnsubscribe = null;
+            }
         }
 
-        function sendStudentHeartbeat() {
+        async function sendStudentHeartbeat() {
             if (!isExamActive || !currentSessionId) return;
 
             const payload = {
@@ -1151,6 +1310,16 @@
                 lastSeen: Date.now()
             };
 
+            // 1. Cloud Firebase Sync (Works 100% across different devices & networks like Quizizz)
+            if (db && isCloudConnected) {
+                try {
+                    const { doc, setDoc, appId } = window.CBT_CLOUD;
+                    const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'active_students', currentSessionId);
+                    await setDoc(docRef, payload, { merge: true });
+                } catch(e) { console.error("Firestore heartbeat error:", e); }
+            }
+
+            // 2. Local P2P & Broadcast Fallbacks
             if (cbtChannel) {
                 try {
                     cbtChannel.postMessage({
@@ -1180,11 +1349,19 @@
             renderActiveStudentsLive();
         }
 
-        function handleStudentFinishedEvent(sessionId) {
+        async function handleStudentFinishedEvent(sessionId) {
             if (activeStudentsMap[sessionId]) {
                 delete activeStudentsMap[sessionId];
                 saveActiveStudentsToStorage();
                 renderActiveStudentsLive();
+            }
+
+            if (db && isCloudConnected && sessionId) {
+                try {
+                    const { doc, deleteDoc, appId } = window.CBT_CLOUD;
+                    const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'active_students', sessionId);
+                    await deleteDoc(docRef);
+                } catch(e) { console.error("Error deleting student cloud session:", e); }
             }
         }
 
@@ -1205,7 +1382,7 @@
             const now = Date.now();
             let changed = false;
             Object.keys(activeStudentsMap).forEach(sessId => {
-                if (now - activeStudentsMap[sessId].lastSeen > 8000) {
+                if (now - activeStudentsMap[sessId].lastSeen > 12000) {
                     delete activeStudentsMap[sessId];
                     changed = true;
                 }
@@ -1216,8 +1393,17 @@
             }
         }
 
-        function forceSubmitStudent(sessionId) {
-            showCustomDialog("Hentikan Ujian Siswa?", "Ujian siswa akan dihentikan dan dikumpulkan secara paksa.", () => {
+        async function forceSubmitStudent(sessionId) {
+            showCustomDialog("Hentikan Ujian Siswa?", "Ujian siswa akan dihentikan dan dikumpulkan secara paksa.", async () => {
+                // 1. Update in Cloud Firestore so HP receives forceSubmit immediately
+                if (db && isCloudConnected && sessionId) {
+                    try {
+                        const { doc, updateDoc, appId } = window.CBT_CLOUD;
+                        const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'active_students', sessionId);
+                        await updateDoc(docRef, { forceSubmit: true });
+                    } catch(e) { console.error("Error force submitting in cloud:", e); }
+                }
+
                 if (peerConns[sessionId] && peerConns[sessionId].open) {
                     try {
                         peerConns[sessionId].send({
@@ -1747,6 +1933,7 @@
         }
 
         window.onload = function() {
+            initCloudSync();
             loadSavedQuizBanks();
             loadSavedExamLogs();
             loadSavedSettings();
@@ -2410,35 +2597,13 @@
         function showCheatToast() {
             const toast = document.getElementById("toast-cheat");
             const countSpan = document.getElementById("toast-cheat-count");
-            if (toast && countSpan) {
-                countSpan.textContent = antiCheatViolations;
-                toast.classList.remove("hidden");
-                setTimeout(() => { toast.classList.add("hidden"); }, 5000);
-            }
-            sendStudentHeartbeat();
-        }
-
-        function dismissCheatToast() {
-            document.getElementById("toast-cheat")?.classList.add("hidden");
-        }
-
-        function finalizeExamSubmit(isAutoTimeout = false) {
+        async function finalizeExamSubmit(isAutoTimeout = false) {
             closeSubmitConfirmModal();
             toggleQuestionGridModal(false);
 
             isExamActive = false;
             clearInterval(timerInterval);
             stopStudentHeartbeat();
-
-            if (cbtChannel && currentSessionId) {
-                try {
-                    cbtChannel.postMessage({
-                        type: 'STUDENT_EXAM_FINISHED',
-                        sessionId: currentSessionId
-                    });
-                } catch(e){}
-            }
-            handleStudentFinishedEvent(currentSessionId);
 
             let correctCount = 0;
             currentQuestions.forEach(q => {
@@ -2472,9 +2637,31 @@
                 timestamp: timeStr
             };
             
+            // Save locally
             examResultsLog.unshift(newLog);
             saveExamLogsToStorage();
             renderStudentResultsRekap();
+
+            // 1. Sync result directly to Firestore Cloud (Instant Quizizz-like update for Teacher)
+            if (db && isCloudConnected) {
+                try {
+                    const { doc, setDoc, appId } = window.CBT_CLOUD;
+                    const resDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'exam_results', newLog.id);
+                    await setDoc(resDocRef, newLog);
+                } catch(e) { console.error("Error saving result to cloud:", e); }
+            }
+
+            // Cleanup student active session
+            handleStudentFinishedEvent(currentSessionId);
+
+            if (cbtChannel && currentSessionId) {
+                try {
+                    cbtChannel.postMessage({
+                        type: 'STUDENT_EXAM_FINISHED',
+                        sessionId: currentSessionId
+                    });
+                } catch(e){}
+            }
 
             if (studentConnToTeacher && studentConnToTeacher.open) {
                 try {
