@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<A!DOCTYPE html>
 <html lang="id">
 <head>
     <meta charset="UTF-8">
@@ -237,7 +237,6 @@
 
         <!-- TAB 2: KELOLA & IMPORT SOAL -->
         <div id="ttab-soal" class="hidden grid grid-cols-1 lg:grid-cols-12 gap-6">
-            <!-- Left: Form Single & Bulk Import -->
             <div class="lg:col-span-5 bg-white p-5 rounded-3xl border border-slate-200 shadow-sm space-y-4">
                 <div class="flex items-center justify-between border-b border-slate-100 pb-3">
                     <div>
@@ -249,7 +248,6 @@
                     </div>
                 </div>
 
-                <!-- Action Button Import Bulk -->
                 <div class="bg-indigo-600 text-white p-3.5 rounded-2xl flex items-center justify-between">
                     <div>
                         <span class="font-bold text-xs block"><i class="fa-solid fa-file-import mr-1"></i> Mode Import Masal</span>
@@ -271,7 +269,6 @@
                     </div>
                 </div>
 
-                <!-- Single Question Input -->
                 <div class="space-y-1">
                     <label class="block font-bold text-slate-700 text-xs">Pertanyaan / Soal Single</label>
                     <textarea id="input-new-q-text" rows="3" placeholder="Tuliskan pertanyaan soal di sini..." class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition"></textarea>
@@ -324,7 +321,6 @@
                 </button>
             </div>
 
-            <!-- Right: List Soal -->
             <div class="lg:col-span-7 bg-white p-5 rounded-3xl border border-slate-200 shadow-sm space-y-4">
                 <div class="flex items-center justify-between border-b border-slate-100 pb-3">
                     <div>
@@ -354,7 +350,6 @@
                 <p class="text-xs sm:text-sm text-slate-500">Siswa silakan buka Kamera HP atau Google Lens, lalu arahkan ke kode QR di bawah ini.</p>
             </div>
 
-            <!-- Pilih Mapel Aktif untuk Proyektor -->
             <div class="max-w-md mx-auto bg-indigo-50/70 p-3.5 rounded-2xl border border-indigo-100 space-y-1.5 text-left">
                 <label class="block font-bold text-indigo-900 text-xs"><i class="fa-solid fa-book-open mr-1"></i> Pilih Mata Pelajaran Ujian Proyektor:</label>
                 <select id="projector-mapel-select" onchange="updateProjectorSubject(this.value)" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl font-bold text-indigo-700 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500">
@@ -378,7 +373,7 @@
             </div>
         </div>
 
-        <!-- TAB 4: PENGATURAN & PIN KEAMANAN GURU -->
+        <!-- TAB 4: PENGATURAN -->
         <div id="ttab-settings" class="hidden bg-white p-6 rounded-3xl border border-slate-200 shadow-sm max-w-2xl mx-auto space-y-5 text-xs">
             <div class="border-b border-slate-100 pb-3">
                 <h3 class="font-extrabold text-slate-800 text-sm">Pengaturan Ujian & Keamanan</h3>
@@ -426,7 +421,6 @@
     <!-- ========================================================================= -->
     <div id="view-student-container" class="w-full flex-grow flex flex-col justify-between">
         
-        <!-- Clean Student Header (No Teacher Mode Button) -->
         <header class="bg-indigo-600 text-white shadow-md sticky top-[53px] z-30">
             <div class="max-w-md mx-auto px-4 py-3 flex items-center justify-between">
                 <div class="flex items-center space-x-3">
@@ -445,6 +439,18 @@
 
             <!-- FORM LOGIN SISWA -->
             <section id="view-student-login" class="space-y-4">
+                
+                <!-- NOTIFIKASI HASIL SCAN QR CODE -->
+                <div id="student-qr-notice" class="hidden bg-emerald-500 text-white p-3.5 rounded-2xl shadow-md border border-emerald-400 flex items-center gap-3">
+                    <div class="w-8 h-8 rounded-xl bg-white/20 flex items-center justify-center shrink-0">
+                        <i class="fa-solid fa-qrcode text-lg"></i>
+                    </div>
+                    <div class="text-xs leading-snug">
+                        <span class="font-bold block text-emerald-100 text-[10px] uppercase tracking-wider">Terdeteksi dari QR Code Proyektor</span>
+                        <span class="font-black text-sm block" id="student-qr-notice-title">Mata Pelajaran</span>
+                    </div>
+                </div>
+
                 <div class="bg-white rounded-3xl p-6 shadow-sm border border-slate-200 space-y-4">
                     <div class="text-center space-y-1">
                         <span class="inline-block p-3.5 bg-indigo-50 text-indigo-600 rounded-2xl mb-1">
@@ -472,8 +478,8 @@
                         </div>
 
                         <div>
-                            <label class="block text-xs font-bold text-slate-700 mb-1">Pilihan Mata Pelajaran</label>
-                            <select id="select-subject-student" onchange="handleStudentSubjectChange()" class="w-full px-3.5 py-2.5 bg-indigo-50/60 border border-indigo-200 rounded-xl text-xs font-bold text-indigo-900 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                            <label class="block text-xs font-bold text-slate-700 mb-1">Pilihan Mata Pelajaran Ujian</label>
+                            <select id="select-subject-student" onchange="handleStudentSubjectChange()" class="w-full px-3.5 py-2.5 bg-indigo-50/80 border border-indigo-200 rounded-xl text-xs font-extrabold text-indigo-900 focus:outline-none focus:ring-2 focus:ring-indigo-500">
                             </select>
                         </div>
 
@@ -597,7 +603,9 @@
         </main>
     </div>
 
-    <!-- MODAL 1: IMPORT BANYAK SOAL (BULK IMPORT) -->
+    <!-- MODALS SECTION -->
+
+    <!-- MODAL 1: BULK IMPORT -->
     <div id="modal-bulk-import" class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
         <div class="bg-white w-full max-w-2xl rounded-3xl p-6 space-y-4 max-h-[90vh] flex flex-col shadow-2xl">
             <div class="flex items-center justify-between border-b border-slate-100 pb-3">
@@ -704,7 +712,7 @@
         </div>
     </div>
 
-    <!-- MODAL 5: CUSTOM DIALOG NOTIFIKASI & INPUT -->
+    <!-- MODAL 5: CUSTOM DIALOG NOTIFIKASI -->
     <div id="modal-custom-dialog" class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
         <div class="bg-white w-full max-w-sm rounded-3xl p-5 space-y-3.5 shadow-2xl text-center">
             <div id="dialog-icon-container" class="w-12 h-12 bg-indigo-50 text-indigo-600 rounded-2xl flex items-center justify-center mx-auto text-xl">
@@ -721,7 +729,7 @@
         </div>
     </div>
 
-    <!-- MODAL 6: PIN SECURITY ACCESS FOR TEACHER DASHBOARD -->
+    <!-- MODAL 6: PIN SECURITY FOR TEACHER -->
     <div id="modal-teacher-pin" class="hidden fixed inset-0 z-50 bg-slate-900/70 backdrop-blur-md flex items-center justify-center p-4">
         <div class="bg-white w-full max-w-sm rounded-3xl p-6 space-y-4 shadow-2xl text-center">
             <div class="w-14 h-14 bg-indigo-100 text-indigo-600 rounded-3xl flex items-center justify-center mx-auto text-2xl shadow-inner">
@@ -801,7 +809,7 @@
         let globalKkmTarget = 75;
         let antiCheatConfig = "enabled";
         let shuffleOptionsConfig = "enabled";
-        let teacherPin = "1234"; // Default PIN Keamanan Guru
+        let teacherPin = "1234";
         let isTeacherAuthenticated = false;
 
         let currentQuestions = [];
@@ -826,11 +834,10 @@
             renderStudentResultsRekap();
             setupProjectorQr();
 
-            // Default ke Layar Siswa (CBT STemga Informatika)
+            // Default ke Layar Siswa
             switchMainRole('student');
         };
 
-        // FUNGSI UTAMA: AKSES MODAL PIN GURU & PERPINDAHAN Halaman (ROLE SWITCHING)
         let proctorClickCount = 0;
         let proctorClickTimer = null;
 
@@ -867,7 +874,7 @@
                 switchMainRole('teacher');
                 showCustomDialog("Akses Diterima", "Selamat datang di Panel Kendali Guru & Proktor.", null, true);
             } else {
-                showCustomDialog("PIN Salah", "PIN Keamanan yang Anda masukkan tidak sesuai. PIN Default adalah <b>1234</b>.", null, true);
+                showCustomDialog("PIN Salah", "PIN Keamanan yang Anda masukkan tidak sesuai. Silakan coba lagi.", null, true);
                 document.getElementById("input-teacher-pin").value = "";
             }
         }
@@ -922,17 +929,20 @@
             }
         }
 
-        function checkUrlSubjectParam() {
+        function shuffleArray(arr) {
+            for (let i = arr.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [arr[i], arr[j]] = [arr[j], arr[i]];
+            }
+            return arr;
+        }
+
+        function loadSavedQuizBanks() {
             try {
-                const urlParams = new URLSearchParams(window.location.search);
-                const mapelParam = urlParams.get('mapel');
-                if (mapelParam && DEFAULT_QUIZ_BANKS[mapelParam]) {
-                    currentSubjectKey = mapelParam;
-                    const studentSelect = document.getElementById("select-subject-student");
-                    if (studentSelect) {
-                        studentSelect.value = mapelParam;
-                        handleStudentSubjectChange();
-                    }
+                const saved = localStorage.getItem("cbt_stemga_quiz_banks_data");
+                if (saved) {
+                    const parsed = JSON.parse(saved);
+                    if (Object.keys(parsed).length > 0) DEFAULT_QUIZ_BANKS = parsed;
                 }
             } catch (e) { console.error(e); }
         }
@@ -961,6 +971,45 @@
                 const savedPin = localStorage.getItem("cbt_stemga_teacher_pin");
                 if (savedPin) teacherPin = savedPin;
                 document.getElementById("setting-teacher-pin").value = teacherPin;
+            } catch (e) { console.error(e); }
+        }
+
+        // DETEKSI OTOMATIS MAPEL DARI QR CODE / BARCODE PARAMETER URL
+        function checkUrlSubjectParam() {
+            try {
+                const urlParams = new URLSearchParams(window.location.search);
+                const mapelParam = urlParams.get('mapel');
+                const titleParam = urlParams.get('title');
+                const durParam = urlParams.get('dur');
+
+                if (mapelParam) {
+                    // Jika mapel dari QR belum ada di browser siswa, buatkan otomatis dari data URL
+                    if (!DEFAULT_QUIZ_BANKS[mapelParam] && titleParam) {
+                        DEFAULT_QUIZ_BANKS[mapelParam] = {
+                            title: decodeURIComponent(titleParam),
+                            durationMinutes: parseInt(durParam) || 15,
+                            questions: []
+                        };
+                        saveQuizBanksToStorage();
+                        populateSubjectSelects();
+                    }
+
+                    if (DEFAULT_QUIZ_BANKS[mapelParam]) {
+                        currentSubjectKey = mapelParam;
+                        const studentSelect = document.getElementById("select-subject-student");
+                        if (studentSelect) {
+                            studentSelect.value = mapelParam;
+                            handleStudentSubjectChange();
+                        }
+
+                        const qrNotice = document.getElementById("student-qr-notice");
+                        const qrNoticeTitle = document.getElementById("student-qr-notice-title");
+                        if (qrNotice && qrNoticeTitle) {
+                            qrNoticeTitle.textContent = DEFAULT_QUIZ_BANKS[mapelParam].title;
+                            qrNotice.classList.remove("hidden");
+                        }
+                    }
+                }
             } catch (e) { console.error(e); }
         }
 
@@ -1020,9 +1069,12 @@
             if (!select) return;
             
             const selectedVal = select.value;
+            const qrNotice = document.getElementById("student-qr-notice");
+
             if (!selectedVal || !DEFAULT_QUIZ_BANKS[selectedVal]) {
                 document.getElementById("student-exam-duration").textContent = `- Menit`;
                 document.getElementById("student-header-mapel").textContent = "Pilih Mata Pelajaran Ujian";
+                if (qrNotice) qrNotice.classList.add("hidden");
                 return;
             }
             
@@ -1031,6 +1083,9 @@
             if (bank) {
                 document.getElementById("student-exam-duration").textContent = `${bank.durationMinutes || 15} Menit`;
                 document.getElementById("student-header-mapel").textContent = bank.title;
+
+                const qrNoticeTitle = document.getElementById("student-qr-notice-title");
+                if (qrNoticeTitle) qrNoticeTitle.textContent = bank.title;
             }
         }
 
@@ -1425,22 +1480,32 @@
             updateProjectorQrForSubject(key);
         }
 
+        // MEMBUAT URL DENGAN PARAMETER LENGKAP UNTUK OTOMATISASI BARCODE
         function updateProjectorQrForSubject(key) {
-            const baseUrl = window.location.href.split('?')[0];
-            const qrUrl = `${baseUrl}?mapel=${encodeURIComponent(key)}`;
+            const bank = DEFAULT_QUIZ_BANKS[key];
+            if (!bank) return;
+
+            const baseUrl = window.location.href.split('?')[0].split('#')[0];
+            const titleEnc = encodeURIComponent(bank.title);
+            const durEnc = bank.durationMinutes || 15;
+            const qrUrl = `${baseUrl}?mapel=${encodeURIComponent(key)}&title=${titleEnc}&dur=${durEnc}`;
             
             const imgEl = document.getElementById("projector-qr-img");
             const textEl = document.getElementById("projector-url-text");
 
             if (imgEl) imgEl.src = `https://api.qrserver.com/v1/create-qr-code/?size=350x350&data=${encodeURIComponent(qrUrl)}`;
-            if (textEl) textEl.textContent = qrUrl.length > 45 ? qrUrl.substring(0, 43) + "..." : qrUrl;
+            if (textEl) textEl.textContent = qrUrl.length > 50 ? qrUrl.substring(0, 48) + "..." : qrUrl;
         }
 
         function copyExamUrl() {
             const selectEl = document.getElementById("projector-mapel-select");
             const key = selectEl ? selectEl.value : currentSubjectKey;
-            const baseUrl = window.location.href.split('?')[0];
-            const qrUrl = `${baseUrl}?mapel=${encodeURIComponent(key)}`;
+            const bank = DEFAULT_QUIZ_BANKS[key];
+
+            const baseUrl = window.location.href.split('?')[0].split('#')[0];
+            const titleEnc = bank ? encodeURIComponent(bank.title) : "";
+            const durEnc = bank ? bank.durationMinutes || 15 : 15;
+            const qrUrl = `${baseUrl}?mapel=${encodeURIComponent(key)}&title=${titleEnc}&dur=${durEnc}`;
 
             const tempInput = document.createElement("input");
             tempInput.value = qrUrl;
