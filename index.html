@@ -830,6 +830,98 @@
             switchMainRole('student');
         };
 
+        // FUNGSI UTAMA: AKSES MODAL PIN GURU & PERPINDAHAN Halaman (ROLE SWITCHING)
+        let proctorClickCount = 0;
+        let proctorClickTimer = null;
+
+        function triggerProctorPinAccess() {
+            proctorClickCount++;
+            clearTimeout(proctorClickTimer);
+            if (proctorClickCount >= 3) {
+                proctorClickCount = 0;
+                openPinModal();
+            } else {
+                proctorClickTimer = setTimeout(() => { proctorClickCount = 0; }, 1000);
+            }
+        }
+
+        function openPinModal() {
+            const pinInput = document.getElementById("input-teacher-pin");
+            if (pinInput) pinInput.value = "";
+            document.getElementById("modal-teacher-pin").classList.remove("hidden");
+            setTimeout(() => {
+                if (pinInput) pinInput.focus();
+            }, 100);
+        }
+
+        function closePinModal() {
+            document.getElementById("modal-teacher-pin").classList.add("hidden");
+        }
+
+        function handleTeacherPinSubmit(event) {
+            event.preventDefault();
+            const inputPin = document.getElementById("input-teacher-pin").value.trim();
+            if (inputPin === teacherPin) {
+                isTeacherAuthenticated = true;
+                closePinModal();
+                switchMainRole('teacher');
+                showCustomDialog("Akses Diterima", "Selamat datang di Panel Kendali Guru & Proktor.", null, true);
+            } else {
+                showCustomDialog("PIN Salah", "PIN Keamanan yang Anda masukkan tidak sesuai. PIN Default adalah <b>1234</b>.", null, true);
+                document.getElementById("input-teacher-pin").value = "";
+            }
+        }
+
+        function switchMainRole(role) {
+            currentRole = role;
+            const teacherView = document.getElementById("view-teacher-dashboard");
+            const studentView = document.getElementById("view-student-container");
+
+            if (role === 'teacher') {
+                if (!isTeacherAuthenticated) {
+                    openPinModal();
+                    return;
+                }
+                teacherView.classList.remove("hidden");
+                studentView.classList.add("hidden");
+                renderStudentResultsRekap();
+                setupProjectorQr();
+            } else {
+                teacherView.classList.add("hidden");
+                studentView.classList.remove("hidden");
+            }
+        }
+
+        function switchTeacherTab(tabName) {
+            activeTeacherTab = tabName;
+            const tabIds = ['rekap', 'soal', 'projector', 'settings'];
+            
+            tabIds.forEach(id => {
+                const contentEl = document.getElementById(`ttab-${id}`);
+                const btnEl = document.getElementById(`ttab-${id}-btn`);
+                
+                if (contentEl && btnEl) {
+                    if (id === tabName) {
+                        contentEl.classList.remove("hidden");
+                        if (id === 'soal') contentEl.classList.add("grid");
+                        btnEl.className = "py-3 px-4 text-indigo-600 border-b-2 border-indigo-600 flex items-center gap-2 shrink-0 transition font-bold";
+                    } else {
+                        contentEl.classList.add("hidden");
+                        if (id === 'soal') contentEl.classList.remove("grid");
+                        btnEl.className = "py-3 px-4 text-slate-500 hover:text-slate-800 flex items-center gap-2 shrink-0 transition font-bold";
+                    }
+                }
+            });
+
+            if (tabName === 'soal') {
+                loadAdminQuestionsForSubject();
+            } else if (tabName === 'projector') {
+                setupProjectorQr();
+            } else if (tabName === 'rekap') {
+                renderStudentResultsRekap();
+            }
+        }
+
         function checkUrlSubjectParam() {
             try {
                 const urlParams = new URLSearchParams(window.location.search);
