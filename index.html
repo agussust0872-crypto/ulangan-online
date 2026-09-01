@@ -354,6 +354,13 @@
                 <p class="text-xs sm:text-sm text-slate-500">Siswa silakan buka Kamera HP atau Google Lens, lalu arahkan ke kode QR di bawah ini.</p>
             </div>
 
+            <!-- Pilih Mapel Aktif untuk Proyektor -->
+            <div class="max-w-md mx-auto bg-indigo-50/70 p-3.5 rounded-2xl border border-indigo-100 space-y-1.5 text-left">
+                <label class="block font-bold text-indigo-900 text-xs"><i class="fa-solid fa-book-open mr-1"></i> Pilih Mata Pelajaran Ujian Proyektor:</label>
+                <select id="projector-mapel-select" onchange="updateProjectorSubject(this.value)" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl font-bold text-indigo-700 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                </select>
+            </div>
+
             <div class="bg-gradient-to-br from-indigo-50 to-slate-50 p-6 sm:p-8 rounded-3xl border border-indigo-100 max-w-md mx-auto shadow-inner space-y-4">
                 <div class="bg-white p-4 rounded-3xl shadow-xl border border-slate-200 inline-block">
                     <img id="projector-qr-img" src="" alt="QR Code Ujian" class="w-60 h-60 sm:w-72 sm:h-72 object-contain mx-auto rounded-2xl">
@@ -814,6 +821,7 @@
             loadSavedExamLogs();
             loadSavedSettings();
             populateSubjectSelects();
+            checkUrlSubjectParam();
             initAntiCheatListener();
             renderStudentResultsRekap();
             setupProjectorQr();
@@ -822,98 +830,17 @@
             switchMainRole('student');
         };
 
-        let logoClickCounter = 0;
-        function triggerProctorPinAccess() {
-            logoClickCounter++;
-            if (logoClickCounter >= 3) {
-                logoClickCounter = 0;
-                openPinModal();
-            }
-        }
-
-        function openPinModal() {
-            document.getElementById("input-teacher-pin").value = "";
-            document.getElementById("modal-teacher-pin").classList.remove("hidden");
-        }
-
-        function closePinModal() {
-            document.getElementById("modal-teacher-pin").classList.add("hidden");
-        }
-
-        function handleTeacherPinSubmit(e) {
-            e.preventDefault();
-            const enteredPin = document.getElementById("input-teacher-pin").value.trim();
-            if (enteredPin === teacherPin) {
-                isTeacherAuthenticated = true;
-                closePinModal();
-                switchMainRole('teacher');
-            } else {
-                showCustomDialog("PIN Salah", "PIN Keamanan yang Anda masukkan tidak cocok.", null, true);
-            }
-        }
-
-        function switchMainRole(role) {
-            currentRole = role;
-            const teacherView = document.getElementById("view-teacher-dashboard");
-            const studentView = document.getElementById("view-student-container");
-
-            if (role === 'teacher') {
-                if (!isTeacherAuthenticated) {
-                    openPinModal();
-                    return;
-                }
-                teacherView.classList.remove("hidden");
-                studentView.classList.add("hidden");
-                renderStudentResultsRekap();
-                setupProjectorQr();
-            } else {
-                teacherView.classList.add("hidden");
-                studentView.classList.remove("hidden");
-            }
-        }
-
-        function switchTeacherTab(tabName) {
-            activeTeacherTab = tabName;
-            const tabIds = ['rekap', 'soal', 'projector', 'settings'];
-            
-            tabIds.forEach(id => {
-                const contentEl = document.getElementById(`ttab-${id}`);
-                const btnEl = document.getElementById(`ttab-${id}-btn`);
-                
-                if (id === tabName) {
-                    contentEl.classList.remove("hidden");
-                    if (id === 'soal') contentEl.classList.add("grid");
-                    btnEl.className = "py-3 px-4 text-indigo-600 border-b-2 border-indigo-600 flex items-center gap-2 shrink-0 transition font-bold";
-                } else {
-                    contentEl.classList.add("hidden");
-                    if (id === 'soal') contentEl.classList.remove("grid");
-                    btnEl.className = "py-3 px-4 text-slate-500 hover:text-slate-800 flex items-center gap-2 shrink-0 transition font-bold";
-                }
-            });
-
-            if (tabName === 'soal') {
-                loadAdminQuestionsForSubject();
-            } else if (tabName === 'projector') {
-                setupProjectorQr();
-            } else if (tabName === 'rekap') {
-                renderStudentResultsRekap();
-            }
-        }
-
-        function shuffleArray(arr) {
-            for (let i = arr.length - 1; i > 0; i--) {
-                const j = Math.floor(Math.random() * (i + 1));
-                [arr[i], arr[j]] = [arr[j], arr[i]];
-            }
-            return arr;
-        }
-
-        function loadSavedQuizBanks() {
+        function checkUrlSubjectParam() {
             try {
-                const saved = localStorage.getItem("cbt_stemga_quiz_banks_data");
-                if (saved) {
-                    const parsed = JSON.parse(saved);
-                    if (Object.keys(parsed).length > 0) DEFAULT_QUIZ_BANKS = parsed;
+                const urlParams = new URLSearchParams(window.location.search);
+                const mapelParam = urlParams.get('mapel');
+                if (mapelParam && DEFAULT_QUIZ_BANKS[mapelParam]) {
+                    currentSubjectKey = mapelParam;
+                    const studentSelect = document.getElementById("select-subject-student");
+                    if (studentSelect) {
+                        studentSelect.value = mapelParam;
+                        handleStudentSubjectChange();
+                    }
                 }
             } catch (e) { console.error(e); }
         }
@@ -1386,23 +1313,50 @@
         }
 
         function setupProjectorQr() {
-            const currentUrl = window.location.href;
+            const selectEl = document.getElementById("projector-mapel-select");
+            if (selectEl) {
+                selectEl.innerHTML = "";
+                Object.keys(DEFAULT_QUIZ_BANKS).forEach(key => {
+                    const bank = DEFAULT_QUIZ_BANKS[key];
+                    const opt = document.createElement("option");
+                    opt.value = key;
+                    opt.textContent = `${bank.title} (${bank.questions ? bank.questions.length : 0} Soal - ${bank.durationMinutes || 15} Menit)`;
+                    if (key === currentSubjectKey) opt.selected = true;
+                    selectEl.appendChild(opt);
+                });
+            }
+            updateProjectorQrForSubject(currentSubjectKey);
+        }
+
+        function updateProjectorSubject(key) {
+            currentSubjectKey = key;
+            updateProjectorQrForSubject(key);
+        }
+
+        function updateProjectorQrForSubject(key) {
+            const baseUrl = window.location.href.split('?')[0];
+            const qrUrl = `${baseUrl}?mapel=${encodeURIComponent(key)}`;
+            
             const imgEl = document.getElementById("projector-qr-img");
             const textEl = document.getElementById("projector-url-text");
 
-            if (imgEl) imgEl.src = `https://api.qrserver.com/v1/create-qr-code/?size=350x350&data=${encodeURIComponent(currentUrl)}`;
-            if (textEl) textEl.textContent = currentUrl.length > 40 ? currentUrl.substring(0, 38) + "..." : currentUrl;
+            if (imgEl) imgEl.src = `https://api.qrserver.com/v1/create-qr-code/?size=350x350&data=${encodeURIComponent(qrUrl)}`;
+            if (textEl) textEl.textContent = qrUrl.length > 45 ? qrUrl.substring(0, 43) + "..." : qrUrl;
         }
 
         function copyExamUrl() {
-            const currentUrl = window.location.href;
+            const selectEl = document.getElementById("projector-mapel-select");
+            const key = selectEl ? selectEl.value : currentSubjectKey;
+            const baseUrl = window.location.href.split('?')[0];
+            const qrUrl = `${baseUrl}?mapel=${encodeURIComponent(key)}`;
+
             const tempInput = document.createElement("input");
-            tempInput.value = currentUrl;
+            tempInput.value = qrUrl;
             document.body.appendChild(tempInput);
             tempInput.select();
             try {
                 document.execCommand("copy");
-                showCustomDialog("Link Tersalin", "Tautan ujian berhasil disalin ke clipboard.", null, true);
+                showCustomDialog("Link Tersalin", "Tautan ujian mata pelajaran ini berhasil disalin ke clipboard.", null, true);
             } catch (err) { console.error(err); }
             document.body.removeChild(tempInput);
         }
