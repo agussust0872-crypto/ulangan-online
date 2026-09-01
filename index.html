@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>CBT EduExam - System Ujian Online Siswa & Guru</title>
+    <title>CBT STemga Informatika - Sistem Ujian Online Siswa & Guru</title>
 
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -68,7 +68,7 @@
 </head>
 <body class="bg-slate-100 text-slate-800 min-h-screen flex flex-col justify-between antialiased selection:bg-indigo-500 selection:text-white">
 
-    <!-- TOP NAVIGATION BAR: LAPTOP PROCTOR NAVIGATION & DISCREET ACCESS -->
+    <!-- TOP NAVIGATION BAR: PROCTOR ACCESS ON LAPTOP -->
     <header class="no-print bg-slate-900 text-white sticky top-0 z-40 shadow-lg border-b border-slate-800">
         <div class="max-w-7xl mx-auto px-4 py-2.5 flex items-center justify-between gap-3">
             <div class="flex items-center space-x-3 cursor-pointer select-none" onclick="triggerProctorPinAccess()">
@@ -84,7 +84,7 @@
                 </div>
             </div>
 
-            <!-- Dashboard Guru Button - Visible on Laptop & Discreet for Proctor -->
+            <!-- Dashboard Guru Button - Visible for Proctor / Laptop View -->
             <div class="flex items-center gap-2">
                 <button id="btn-mode-teacher" onclick="openPinModal()" class="px-3.5 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700 text-xs font-bold transition flex items-center gap-2 shadow-sm">
                     <i class="fa-solid fa-user-shield text-indigo-400"></i>
@@ -123,49 +123,22 @@
                 </button>
             </div>
         </div>
-    </header>
-
-    <!-- ========================================================================= -->
-    <!-- 1. DASHBOARD GURU / PROKTOR (LAPTOP)                                      -->
-    <!-- ========================================================================= -->
-    <div id="view-teacher-dashboard" class="max-w-7xl w-full mx-auto p-4 sm:p-6 flex-grow space-y-6">
-        
-        <div class="no-print bg-gradient-to-r from-indigo-700 via-indigo-800 to-slate-900 rounded-3xl p-6 text-white shadow-xl flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-            <div class="space-y-1">
-                <div class="inline-flex items-center gap-2 bg-white/10 px-3 py-1 rounded-full text-xs font-semibold backdrop-blur-md">
-                    <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-                    <span>Modul Proktor & Guru Aktif</span>
-                </div>
-                <h2 class="text-2xl font-black tracking-tight">Panel Kendali Guru & Rekap Nilai Ujian</h2>
-                <p class="text-xs sm:text-sm text-indigo-200">Kelola bank soal, import masal banyak soal, pantau hasil ujian siswa secara real-time.</p>
-            </div>
-            <div class="flex flex-wrap items-center gap-2">
-                <button onclick="switchTeacherTab('projector')" class="bg-amber-400 hover:bg-amber-300 text-slate-950 px-4 py-2.5 rounded-2xl text-xs font-extrabold shadow-md transition flex items-center gap-2">
-                    <i class="fa-solid fa-qrcode"></i>
-                    <span>Layar QR Proyektor</span>
-                </button>
-                <button onclick="exportRekapToCSV()" class="bg-emerald-500 hover:bg-emerald-600 text-white px-4 py-2.5 rounded-2xl text-xs font-bold shadow-md transition flex items-center gap-2">
-                    <i class="fa-solid fa-file-excel"></i>
-                    <span>Export Excel</span>
-                </button>
-            </div>
-        </div>
 
         <div class="no-print flex border-b border-slate-200 space-x-2 sm:space-x-4 text-xs sm:text-sm font-bold overflow-x-auto custom-scroll">
-            <button id="ttab-rekap-btn" onclick="switchTeacherTab('rekap')" class="py-3 px-4 text-indigo-600 border-b-2 border-indigo-600 flex items-center gap-2 shrink-0 transition">
+            <button id="ttab-rekap-btn" onclick="switchTeacherTab('rekap')" class="py-3 px-4 text-indigo-600 border-b-2 border-indigo-600 flex items-center gap-2 shrink-0 transition font-bold">
                 <i class="fa-solid fa-chart-pie text-base"></i>
                 <span>Rekap Nilai Siswa</span>
                 <span id="badge-total-students" class="bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded-full text-[11px] font-extrabold">0</span>
             </button>
-            <button id="ttab-soal-btn" onclick="switchTeacherTab('soal')" class="py-3 px-4 text-slate-500 hover:text-slate-800 flex items-center gap-2 shrink-0 transition">
+            <button id="ttab-soal-btn" onclick="switchTeacherTab('soal')" class="py-3 px-4 text-slate-500 hover:text-slate-800 flex items-center gap-2 shrink-0 transition font-bold">
                 <i class="fa-solid fa-book-open-reader text-base"></i>
                 <span>Kelola & Buat Bank Soal</span>
             </button>
-            <button id="ttab-projector-btn" onclick="switchTeacherTab('projector')" class="py-3 px-4 text-slate-500 hover:text-slate-800 flex items-center gap-2 shrink-0 transition">
+            <button id="ttab-projector-btn" onclick="switchTeacherTab('projector')" class="py-3 px-4 text-slate-500 hover:text-slate-800 flex items-center gap-2 shrink-0 transition font-bold">
                 <i class="fa-solid fa-qrcode text-base"></i>
                 <span>Layar Proyektor (QR Gabung)</span>
             </button>
-            <button id="ttab-settings-btn" onclick="switchTeacherTab('settings')" class="py-3 px-4 text-slate-500 hover:text-slate-800 flex items-center gap-2 shrink-0 transition">
+            <button id="ttab-settings-btn" onclick="switchTeacherTab('settings')" class="py-3 px-4 text-slate-500 hover:text-slate-800 flex items-center gap-2 shrink-0 transition font-bold">
                 <i class="fa-solid fa-sliders text-base"></i>
                 <span>Pengaturan Ujian & KKM</span>
             </button>
@@ -407,9 +380,9 @@
 
             <div class="space-y-4">
                 <div class="bg-indigo-50/60 p-3.5 rounded-2xl border border-indigo-100 space-y-2">
-                    <label class="block font-bold text-indigo-900">PIN Keamanan Modul Guru (Default: 1234)</label>
+                    <label class="block font-bold text-indigo-900">PIN Keamanan Modul Guru</label>
                     <input type="password" id="setting-teacher-pin" maxlength="10" value="1234" placeholder="Ubah PIN Guru" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl font-mono font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                    <p class="text-[11px] text-indigo-600">PIN ini digunakan untuk memproteksi Dashboard Admin dari akses siswa.</p>
+                    <p class="text-[11px] text-indigo-600">PIN ini digunakan untuk memproteksi Dashboard Admin dari akses siswa di HP.</p>
                 </div>
 
                 <div>
@@ -446,6 +419,7 @@
     <!-- ========================================================================= -->
     <div id="view-student-container" class="w-full flex-grow flex flex-col justify-between">
         
+        <!-- Clean Student Header (No Teacher Mode Button) -->
         <header class="bg-indigo-600 text-white shadow-md sticky top-[53px] z-30">
             <div class="max-w-md mx-auto px-4 py-3 flex items-center justify-between">
                 <div class="flex items-center space-x-3">
@@ -491,7 +465,7 @@
                         </div>
 
                         <div>
-                            <label class="block text-xs font-bold text-slate-700 mb-1">Pilihan Mata Pelajaran (Kelola Soal)</label>
+                            <label class="block text-xs font-bold text-slate-700 mb-1">Pilihan Mata Pelajaran</label>
                             <select id="select-subject-student" onchange="handleStudentSubjectChange()" class="w-full px-3.5 py-2.5 bg-indigo-50/60 border border-indigo-200 rounded-xl text-xs font-bold text-indigo-900 focus:outline-none focus:ring-2 focus:ring-indigo-500">
                             </select>
                         </div>
@@ -723,7 +697,7 @@
         </div>
     </div>
 
-    <!-- MODAL 5: CUSTOM DIALOG NOTIFIKASI -->
+    <!-- MODAL 5: CUSTOM DIALOG NOTIFIKASI & INPUT -->
     <div id="modal-custom-dialog" class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
         <div class="bg-white w-full max-w-sm rounded-3xl p-5 space-y-3.5 shadow-2xl text-center">
             <div id="dialog-icon-container" class="w-12 h-12 bg-indigo-50 text-indigo-600 rounded-2xl flex items-center justify-center mx-auto text-xl">
@@ -781,7 +755,7 @@
     </div>
 
     <footer class="no-print py-3 text-center text-slate-400 text-[11px]">
-        &copy; CBT EduExam Multi-Device - Laptop Guru & HP Siswa
+        &copy; CBT STemga Informatika Multi-Device - Laptop Guru & HP Siswa
     </footer>
 
     <!-- JAVASCRIPT LOGIC -->
@@ -815,7 +789,7 @@
         };
 
         let currentSubjectKey = "informatika";
-        let currentRole = "teacher";
+        let currentRole = "student";
         let activeTeacherTab = 'rekap';
         let globalKkmTarget = 75;
         let antiCheatConfig = "enabled";
@@ -878,6 +852,26 @@
             }
         }
 
+        function switchMainRole(role) {
+            currentRole = role;
+            const teacherView = document.getElementById("view-teacher-dashboard");
+            const studentView = document.getElementById("view-student-container");
+
+            if (role === 'teacher') {
+                if (!isTeacherAuthenticated) {
+                    openPinModal();
+                    return;
+                }
+                teacherView.classList.remove("hidden");
+                studentView.classList.add("hidden");
+                renderStudentResultsRekap();
+                setupProjectorQr();
+            } else {
+                teacherView.classList.add("hidden");
+                studentView.classList.remove("hidden");
+            }
+        }
+
         function switchTeacherTab(tabName) {
             activeTeacherTab = tabName;
             const tabIds = ['rekap', 'soal', 'projector', 'settings'];
@@ -916,7 +910,7 @@
 
         function loadSavedQuizBanks() {
             try {
-                const saved = localStorage.getItem("cbt_quiz_banks_v4");
+                const saved = localStorage.getItem("cbt_quiz_banks_v5");
                 if (saved) {
                     const parsed = JSON.parse(saved);
                     if (Object.keys(parsed).length > 0) DEFAULT_QUIZ_BANKS = parsed;
@@ -926,20 +920,20 @@
 
         function saveQuizBanksToStorage() {
             try {
-                localStorage.setItem("cbt_quiz_banks_v4", JSON.stringify(DEFAULT_QUIZ_BANKS));
+                localStorage.setItem("cbt_quiz_banks_v5", JSON.stringify(DEFAULT_QUIZ_BANKS));
             } catch (e) { console.error(e); }
         }
 
         function loadSavedExamLogs() {
             try {
-                const saved = localStorage.getItem("cbt_exam_logs_v4");
+                const saved = localStorage.getItem("cbt_exam_logs_v5");
                 if (saved) examResultsLog = JSON.parse(saved);
             } catch (e) { console.error(e); }
         }
 
         function saveExamLogsToStorage() {
             try {
-                localStorage.setItem("cbt_exam_logs_v4", JSON.stringify(examResultsLog));
+                localStorage.setItem("cbt_exam_logs_v5", JSON.stringify(examResultsLog));
             } catch (e) { console.error(e); }
         }
 
