@@ -156,7 +156,7 @@
             <div class="no-print grid grid-cols-2 md:grid-cols-4 gap-4">
                 <div class="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm space-y-1">
                     <div class="flex items-center justify-between text-slate-400 text-xs font-bold uppercase">
-                        <span>Total Peserta</span>
+                        <span>Total Peserta Selesai</span>
                         <i class="fa-solid fa-users text-indigo-500 text-base"></i>
                     </div>
                     <div class="text-3xl font-black text-slate-800" id="stat-total-students-laptop">0</div>
@@ -164,19 +164,19 @@
                 </div>
                 <div class="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm space-y-1">
                     <div class="flex items-center justify-between text-slate-400 text-xs font-bold uppercase">
-                        <span>Rata-Rata Nilai</span>
-                        <i class="fa-solid fa-chart-line text-emerald-500 text-base"></i>
+                        <span>Siswa Sedang Ujian</span>
+                        <i class="fa-solid fa-tower-broadcast text-emerald-500 text-base animate-pulse"></i>
                     </div>
-                    <div class="text-3xl font-black text-emerald-600" id="stat-avg-score-laptop">0</div>
-                    <span class="text-[11px] text-slate-500">KKM Target: <b id="display-kkm-target">75</b></span>
+                    <div class="text-3xl font-black text-emerald-600" id="stat-active-students-count">0</div>
+                    <span class="text-[11px] text-emerald-600 font-semibold"><span class="w-2 h-2 rounded-full bg-emerald-500 inline-block mr-1"></span>Monitoring Live</span>
                 </div>
                 <div class="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm space-y-1">
                     <div class="flex items-center justify-between text-slate-400 text-xs font-bold uppercase">
-                        <span>Tuntas KKM</span>
-                        <i class="fa-solid fa-circle-check text-indigo-500 text-base"></i>
+                        <span>Rata-Rata Nilai</span>
+                        <i class="fa-solid fa-chart-line text-indigo-500 text-base"></i>
                     </div>
-                    <div class="text-3xl font-black text-indigo-600" id="stat-pass-rate-laptop">0%</div>
-                    <span class="text-[11px] text-slate-500"><span id="stat-pass-count">0</span> siswa lulus</span>
+                    <div class="text-3xl font-black text-indigo-600" id="stat-avg-score-laptop">0</div>
+                    <span class="text-[11px] text-slate-500">KKM Target: <b id="display-kkm-target">75</b></span>
                 </div>
                 <div class="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm space-y-1">
                     <div class="flex items-center justify-between text-slate-400 text-xs font-bold uppercase">
@@ -185,6 +185,33 @@
                     </div>
                     <div class="text-3xl font-black text-rose-600" id="stat-total-violations">0</div>
                     <span class="text-[11px] text-slate-500">Deteksi pindah tab</span>
+                </div>
+            </div>
+
+            <!-- PANEL PEMANTAUAN SISWA REAL-TIME (LIVE MONITORING) -->
+            <div class="bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 rounded-3xl p-5 text-white shadow-xl space-y-4 border border-indigo-900/50">
+                <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 border-b border-slate-800 pb-3">
+                    <div class="flex items-center gap-2.5">
+                        <span class="relative flex h-3 w-3">
+                            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                            <span class="relative inline-flex rounded-full h-3 w-3 bg-emerald-500"></span>
+                        </span>
+                        <h3 class="font-black text-base tracking-wide text-white">Pemantauan Siswa Aktif (Real-Time Live)</h3>
+                        <span class="bg-emerald-500/20 text-emerald-300 text-[10px] font-extrabold px-2.5 py-0.5 rounded-full border border-emerald-500/30">
+                            <span id="live-active-counter">0</span> Aktif
+                        </span>
+                    </div>
+                    <p class="text-xs text-slate-400">Pantau progres, waktu tersisa, dan kecurangan siswa secara langsung.</p>
+                </div>
+
+                <div id="active-students-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                    <!-- Live Cards active students rendered by JS -->
+                </div>
+
+                <div id="active-students-empty" class="text-center py-8 text-slate-400 text-xs space-y-1">
+                    <i class="fa-solid fa-wifi text-2xl text-slate-600 block mb-1"></i>
+                    <p class="font-bold text-slate-300">Belum ada siswa yang sedang mengerjakan ujian saat ini.</p>
+                    <p class="text-[11px] text-slate-500">Siswa yang membuka ujian di HP akan otomatis terpantau di sini secara real-time.</p>
                 </div>
             </div>
 
@@ -789,6 +816,10 @@
     <script>
         // BroadcastChannel & Storage Sync for cross-tab or single browser sync
         let cbtChannel = null;
+        let activeStudentsMap = {}; // Real-time active student sessions
+        let currentSessionId = null;
+        let heartbeatInterval = null;
+
         if ('BroadcastChannel' in window) {
             cbtChannel = new BroadcastChannel('cbt_stemga_channel');
             cbtChannel.onmessage = function(event) {
@@ -798,6 +829,16 @@
                 } else if (event.data && event.data.type === 'QUIZ_BANKS_UPDATED') {
                     loadSavedQuizBanks();
                     populateSubjectSelects();
+                } else if (event.data && event.data.type === 'ACTIVE_STUDENT_HEARTBEAT') {
+                    handleIncomingHeartbeat(event.data.payload);
+                } else if (event.data && event.data.type === 'STUDENT_EXAM_FINISHED') {
+                    handleStudentFinishedEvent(event.data.sessionId);
+                } else if (event.data && event.data.type === 'FORCE_SUBMIT_STUDENT') {
+                    if (isExamActive && currentSessionId === event.data.sessionId) {
+                        showCustomDialog("Dihentikan oleh Guru", "Ujian Anda telah dikumpulkan secara langsung oleh Guru/Proktor.", () => {
+                            finalizeExamSubmit(false);
+                        }, true);
+                    }
                 }
             };
         }
@@ -809,6 +850,9 @@
             } else if (e.key === 'cbt_stemga_quiz_banks_data') {
                 loadSavedQuizBanks();
                 populateSubjectSelects();
+            } else if (e.key === 'cbt_stemga_active_students_sync') {
+                loadActiveStudentsFromStorage();
+                renderActiveStudentsLive();
             }
         });
 
@@ -865,15 +909,198 @@
             loadSavedQuizBanks();
             loadSavedExamLogs();
             loadSavedSettings();
+            loadActiveStudentsFromStorage();
             checkUrlSubjectParam();
             populateSubjectSelects();
             initAntiCheatListener();
             renderStudentResultsRekap();
+            renderActiveStudentsLive();
             setupProjectorQr();
+
+            // Interval pembersih siswa inaktif (jika siswa menutup tab tanpa submit > 15 detik)
+            setInterval(cleanUpInactiveStudents, 4000);
 
             // Default ke Layar Siswa HP
             switchMainRole('student');
         };
+
+        function loadActiveStudentsFromStorage() {
+            try {
+                const saved = localStorage.getItem("cbt_stemga_active_students_sync");
+                if (saved) activeStudentsMap = JSON.parse(saved);
+            } catch(e) { console.error(e); }
+        }
+
+        function saveActiveStudentsToStorage() {
+            try {
+                localStorage.setItem("cbt_stemga_active_students_sync", JSON.stringify(activeStudentsMap));
+            } catch(e) { console.error(e); }
+        }
+
+        function handleIncomingHeartbeat(payload) {
+            if (!payload || !payload.sessionId) return;
+            activeStudentsMap[payload.sessionId] = {
+                ...payload,
+                lastSeen: Date.now()
+            };
+            saveActiveStudentsToStorage();
+            renderActiveStudentsLive();
+        }
+
+        function handleStudentFinishedEvent(sessionId) {
+            if (sessionId && activeStudentsMap[sessionId]) {
+                delete activeStudentsMap[sessionId];
+                saveActiveStudentsToStorage();
+                renderActiveStudentsLive();
+            }
+        }
+
+        function cleanUpInactiveStudents() {
+            const now = Date.now();
+            let changed = false;
+            Object.keys(activeStudentsMap).forEach(sId => {
+                const student = activeStudentsMap[sId];
+                if (now - (student.lastSeen || 0) > 15000) { // 15 detik tidak bereaksi
+                    delete activeStudentsMap[sId];
+                    changed = true;
+                }
+            });
+            if (changed) {
+                saveActiveStudentsToStorage();
+                renderActiveStudentsLive();
+            }
+        }
+
+        function renderActiveStudentsLive() {
+            const container = document.getElementById("active-students-container");
+            const emptyEl = document.getElementById("active-students-empty");
+            const counterEl = document.getElementById("live-active-counter");
+            const statCounter = document.getElementById("stat-active-students-count");
+
+            if (!container) return;
+
+            const activeList = Object.values(activeStudentsMap);
+            if (counterEl) counterEl.textContent = activeList.length;
+            if (statCounter) statCounter.textContent = activeList.length;
+
+            if (activeList.length === 0) {
+                container.innerHTML = "";
+                if (emptyEl) emptyEl.classList.remove("hidden");
+                return;
+            }
+
+            if (emptyEl) emptyEl.classList.add("hidden");
+            container.innerHTML = "";
+
+            activeList.forEach(st => {
+                const answeredPct = st.totalQuestions > 0 ? Math.round((st.answeredCount / st.totalQuestions) * 100) : 0;
+                const minutesLeft = Math.floor(st.timeRemaining / 60);
+                const secondsLeft = st.timeRemaining % 60;
+                const formattedTime = `${String(minutesLeft).padStart(2, '0')}:${String(secondsLeft).padStart(2, '0')}`;
+                const hasViolations = st.violations > 0;
+
+                const card = document.createElement("div");
+                card.className = `p-3.5 rounded-2xl border transition shadow-sm space-y-2.5 ${
+                    hasViolations 
+                    ? 'bg-rose-950/40 border-rose-600/70 text-rose-100 ring-1 ring-rose-500/50' 
+                    : 'bg-slate-800/80 border-slate-700 text-slate-100'
+                }`;
+
+                card.innerHTML = `
+                    <div class="flex items-start justify-between gap-2">
+                        <div>
+                            <span class="font-extrabold text-xs block text-white">${st.studentName}</span>
+                            <span class="text-[11px] text-slate-400 font-mono">${st.studentId} &bull; ${st.studentClass}</span>
+                        </div>
+                        <span class="text-[10px] font-bold px-2 py-0.5 rounded-md ${
+                            hasViolations 
+                            ? 'bg-rose-600 text-white animate-pulse' 
+                            : 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
+                        }">
+                            ${hasViolations ? `<i class="fa-solid fa-triangle-exclamation mr-1"></i>Curang (${st.violations}x)` : 'Mengerjakan'}
+                        </span>
+                    </div>
+
+                    <div class="space-y-1">
+                        <div class="flex items-center justify-between text-[11px] font-semibold text-slate-300">
+                            <span>Soal #${st.currentQuestionIndex + 1} (${st.answeredCount}/${st.totalQuestions} Diisi)</span>
+                            <span class="font-mono text-indigo-300 font-bold"><i class="fa-regular fa-clock mr-1"></i>${formattedTime}</span>
+                        </div>
+                        <div class="w-full bg-slate-700 h-2 rounded-full overflow-hidden">
+                            <div class="bg-indigo-500 h-full transition-all duration-300" style="width: ${answeredPct}%"></div>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center justify-between pt-1 border-t border-slate-700/60 text-[11px]">
+                        <span class="text-slate-400 truncate max-w-[170px]">${st.subjectTitle}</span>
+                        <button onclick="teacherForceSubmitStudent('${st.sessionId}')" class="bg-rose-600 hover:bg-rose-700 active:scale-95 text-white font-bold px-2.5 py-1 rounded-lg transition text-[10px] flex items-center gap-1 shadow-sm">
+                            <i class="fa-solid fa-hand"></i>
+                            <span>Paksa Submit</span>
+                        </button>
+                    </div>
+                `;
+
+                container.appendChild(card);
+            });
+        }
+
+        function teacherForceSubmitStudent(sessionId) {
+            showCustomDialog("Paksa Kumpulkan Ujian?", "Langkah ini akan langsung menyelesaikan dan mengumpulkan ujian siswa yang bersangkutan.", () => {
+                if (cbtChannel) {
+                    cbtChannel.postMessage({
+                        type: 'FORCE_SUBMIT_STUDENT',
+                        sessionId: sessionId
+                    });
+                }
+                if (activeStudentsMap[sessionId]) {
+                    delete activeStudentsMap[sessionId];
+                    saveActiveStudentsToStorage();
+                    renderActiveStudentsLive();
+                }
+            });
+        }
+
+        function startStudentHeartbeat() {
+            stopStudentHeartbeat();
+            sendStudentHeartbeat();
+
+            heartbeatInterval = setInterval(() => {
+                if (isExamActive) {
+                    sendStudentHeartbeat();
+                }
+            }, 2000);
+        }
+
+        function stopStudentHeartbeat() {
+            if (heartbeatInterval) clearInterval(heartbeatInterval);
+        }
+
+        function sendStudentHeartbeat() {
+            if (!isExamActive || !currentSessionId) return;
+
+            const payload = {
+                sessionId: currentSessionId,
+                studentName: studentData.name,
+                studentId: studentData.id,
+                studentClass: studentData.class,
+                subjectKey: currentSubjectKey,
+                subjectTitle: DEFAULT_QUIZ_BANKS[currentSubjectKey]?.title || "Ujian",
+                timeRemaining: timeRemaining,
+                answeredCount: Object.keys(userAnswers).length,
+                totalQuestions: currentQuestions.length,
+                currentQuestionIndex: currentQuestionIndex,
+                violations: antiCheatViolations
+            };
+
+            if (cbtChannel) {
+                cbtChannel.postMessage({
+                    type: 'ACTIVE_STUDENT_HEARTBEAT',
+                    payload: payload
+                });
+            }
+
+            handleIncomingHeartbeat(payload);
+        }
 
         function switchMainRole(role) {
             currentRole = role;
@@ -1668,6 +1895,7 @@
             userAnswers = {};
             flaggedQuestions = {};
             antiCheatViolations = 0;
+            currentSessionId = "SES-" + Date.now() + "-" + Math.floor(Math.random() * 1000);
 
             const durationMin = bank.durationMinutes || 15;
             timeRemaining = durationMin * 60;
@@ -1682,82 +1910,7 @@
             renderQuestion();
             updateProgressBar();
             startTimer();
-        }
-
-        function renderQuestion() {
-            if (currentQuestions.length === 0) return;
-
-            const q = currentQuestions[currentQuestionIndex];
-            const qNum = currentQuestionIndex + 1;
-
-            document.getElementById("q-number-title").textContent = qNum;
-            document.getElementById("exam-q-current-badge").textContent = qNum;
-            document.getElementById("question-text").textContent = q.question;
-
-            const isFlagged = !!flaggedQuestions[q.id];
-            const flagIcon = document.getElementById("flag-icon");
-            const flagText = document.getElementById("flag-text");
-            const flagBtnLabel = document.getElementById("flag-btn-label");
-
-            if (isFlagged) {
-                flagIcon.className = "fa-solid fa-bookmark text-amber-500";
-                flagText.textContent = "Ragu-ragu";
-                flagText.className = "text-amber-600 font-bold";
-                flagBtnLabel.textContent = "Telah Ragu";
-            } else {
-                flagIcon.className = "fa-regular fa-bookmark text-slate-400";
-                flagText.textContent = "Tandai Ragu";
-                flagText.className = "text-slate-400 font-semibold";
-                flagBtnLabel.textContent = "Ragu";
-            }
-
-            const container = document.getElementById("options-container");
-            container.innerHTML = "";
-            const labels = ["A", "B", "C", "D", "E"];
-
-            q.options.forEach((optText, optIdx) => {
-                const isSelected = userAnswers[q.id] === optIdx;
-                const optBtn = document.createElement("button");
-                optBtn.type = "button";
-                optBtn.onclick = () => selectOption(optIdx);
-
-                optBtn.className = `w-full text-left p-3 rounded-2xl border transition-all flex items-center space-x-3 active:scale-[0.99] ${
-                    isSelected 
-                    ? 'bg-indigo-50 border-indigo-600 ring-2 ring-indigo-500/20 text-indigo-900 shadow-sm' 
-                    : 'bg-slate-50 hover:bg-slate-100 border-slate-200 text-slate-700'
-                }`;
-
-                optBtn.innerHTML = `
-                    <span class="w-8 h-8 rounded-xl font-bold flex items-center justify-center shrink-0 text-xs transition ${
-                        isSelected 
-                        ? 'bg-indigo-600 text-white shadow-sm' 
-                        : 'bg-white border border-slate-200 text-slate-600'
-                    }">
-                        ${labels[optIdx]}
-                    </span>
-                    <span class="text-xs sm:text-sm font-medium flex-grow leading-snug allow-select">${optText}</span>
-                    ${isSelected ? '<i class="fa-solid fa-check text-indigo-600 text-xs mr-1"></i>' : ''}
-                `;
-
-                container.appendChild(optBtn);
-            });
-
-            document.getElementById("btn-prev-q").disabled = currentQuestionIndex === 0;
-
-            const isLast = currentQuestionIndex === currentQuestions.length - 1;
-            const nextText = document.getElementById("btn-next-text");
-            const nextIcon = document.getElementById("btn-next-icon");
-            const nextBtn = document.getElementById("btn-next-q");
-
-            if (isLast) {
-                nextText.textContent = "Kumpulkan";
-                nextIcon.className = "fa-solid fa-check-double";
-                nextBtn.className = "bg-emerald-600 hover:bg-emerald-700 text-white py-3 rounded-2xl text-xs font-bold transition flex items-center justify-center gap-1.5 shadow-sm shadow-emerald-200";
-            } else {
-                nextText.textContent = "Selanjutnya";
-                nextIcon.className = "fa-solid fa-arrow-right";
-                nextBtn.className = "bg-indigo-600 hover:bg-indigo-700 text-white py-3 rounded-2xl text-xs font-bold transition flex items-center justify-center gap-1.5 shadow-sm shadow-indigo-200";
-            }
+            startStudentHeartbeat();
         }
 
         function selectOption(index) {
@@ -1765,90 +1918,7 @@
             userAnswers[q.id] = index;
             renderQuestion();
             updateProgressBar();
-        }
-
-        function toggleFlagCurrentQuestion() {
-            const q = currentQuestions[currentQuestionIndex];
-            if (flaggedQuestions[q.id]) {
-                delete flaggedQuestions[q.id];
-            } else {
-                flaggedQuestions[q.id] = true;
-            }
-            renderQuestion();
-        }
-
-        function navigateQuestion(step) {
-            const newIndex = currentQuestionIndex + step;
-            if (newIndex >= 0 && newIndex < currentQuestions.length) {
-                currentQuestionIndex = newIndex;
-                renderQuestion();
-            }
-        }
-
-        function handleNextOrFinish() {
-            if (currentQuestionIndex === currentQuestions.length - 1) {
-                confirmSubmitExam();
-            } else {
-                navigateQuestion(1);
-            }
-        }
-
-        function jumpToQuestion(index) {
-            if (index >= 0 && index < currentQuestions.length) {
-                currentQuestionIndex = index;
-                renderQuestion();
-                toggleQuestionGridModal(false);
-            }
-        }
-
-        function updateProgressBar() {
-            const answeredCount = Object.keys(userAnswers).length;
-            const total = currentQuestions.length;
-            const pct = total > 0 ? (answeredCount / total) * 100 : 0;
-            const bar = document.getElementById("exam-progress-fill");
-            if (bar) bar.style.width = `${pct}%`;
-        }
-
-        function startTimer() {
-            clearInterval(timerInterval);
-            updateTimerDisplay();
-
-            timerInterval = setInterval(() => {
-                timeRemaining--;
-                updateTimerDisplay();
-
-                if (timeRemaining <= 0) {
-                    clearInterval(timerInterval);
-                    finalizeExamSubmit(true);
-                }
-            }, 1000);
-        }
-
-        function updateTimerDisplay() {
-            const minutes = Math.floor(timeRemaining / 60);
-            const seconds = timeRemaining % 60;
-            const timeStr = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
-            
-            const timerText = document.getElementById("exam-timer-text");
-            const timerBox = document.getElementById("exam-timer-box");
-            if (!timerText || !timerBox) return;
-
-            timerText.textContent = timeStr;
-
-            if (timeRemaining <= 180) {
-                timerBox.className = "px-3 py-1.5 rounded-xl border border-rose-300 time-warning flex items-center gap-2 font-mono font-bold text-xs text-rose-600";
-            } else {
-                timerBox.className = "px-3 py-1.5 rounded-xl border border-slate-200 bg-slate-50 flex items-center gap-2 font-mono font-bold text-xs text-slate-700";
-            }
-        }
-
-        function initAntiCheatListener() {
-            document.addEventListener("visibilitychange", () => {
-                if (isExamActive && antiCheatConfig === "enabled" && document.hidden) {
-                    antiCheatViolations++;
-                    showCheatToast();
-                }
-            });
+            sendStudentHeartbeat();
         }
 
         function showCheatToast() {
@@ -1859,67 +1929,7 @@
                 toast.classList.remove("hidden");
                 setTimeout(() => { toast.classList.add("hidden"); }, 5000);
             }
-        }
-
-        function dismissCheatToast() {
-            const toast = document.getElementById("toast-cheat");
-            if (toast) toast.classList.add("hidden");
-        }
-
-        function toggleQuestionGridModal(forceState) {
-            const modal = document.getElementById("modal-grid");
-            if (!modal) return;
-
-            const isCurrentlyHidden = modal.classList.contains("hidden");
-            const shouldShow = typeof forceState === 'boolean' ? forceState : isCurrentlyHidden;
-
-            if (shouldShow) {
-                const gridContainer = document.getElementById("grid-numbers-container");
-                gridContainer.innerHTML = "";
-
-                currentQuestions.forEach((q, idx) => {
-                    const isCurrent = idx === currentQuestionIndex;
-                    const isAnswered = userAnswers[q.id] !== undefined;
-                    const isFlagged = !!flaggedQuestions[q.id];
-
-                    let colorClasses = "bg-slate-100 text-slate-600 border-slate-200";
-                    if (isAnswered) colorClasses = "bg-indigo-600 text-white border-indigo-600 font-bold";
-                    if (isFlagged) colorClasses = "bg-amber-400 text-slate-900 border-amber-400 font-bold";
-
-                    const ringClass = isCurrent ? "ring-2 ring-offset-2 ring-indigo-600" : "";
-
-                    const btn = document.createElement("button");
-                    btn.type = "button";
-                    btn.className = `h-11 rounded-2xl border text-xs font-bold transition flex items-center justify-center active:scale-95 ${colorClasses} ${ringClass}`;
-                    btn.textContent = idx + 1;
-                    btn.onclick = () => jumpToQuestion(idx);
-
-                    gridContainer.appendChild(btn);
-                });
-
-                modal.classList.remove("hidden");
-            } else {
-                modal.classList.add("hidden");
-            }
-        }
-
-        function confirmSubmitExam() {
-            const total = currentQuestions.length;
-            const answered = Object.keys(userAnswers).length;
-            const unanswered = total - answered;
-
-            let msg = `Anda telah menjawab <b>${answered} dari ${total} soal</b>.`;
-            if (unanswered > 0) {
-                msg += `<br><span class="text-rose-600 font-semibold">Terdapat ${unanswered} soal yang belum terisi!</span>`;
-            }
-            msg += `<br>Apakah Anda yakin ingin mengumpulkan ujian sekarang?`;
-
-            document.getElementById("confirm-submit-desc").innerHTML = msg;
-            document.getElementById("modal-confirm-submit").classList.remove("hidden");
-        }
-
-        function closeSubmitConfirmModal() {
-            document.getElementById("modal-confirm-submit").classList.add("hidden");
+            sendStudentHeartbeat();
         }
 
         function finalizeExamSubmit(isAutoTimeout = false) {
@@ -1928,6 +1938,15 @@
 
             isExamActive = false;
             clearInterval(timerInterval);
+            stopStudentHeartbeat();
+
+            if (cbtChannel && currentSessionId) {
+                cbtChannel.postMessage({
+                    type: 'STUDENT_EXAM_FINISHED',
+                    sessionId: currentSessionId
+                });
+            }
+            handleStudentFinishedEvent(currentSessionId);
 
             let correctCount = 0;
             currentQuestions.forEach(q => {
