@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>CBT STemga Informatika - Sistem Ujian Online Siswa & Guru</title>
+    <title>CBT STemga Informatika - Sistem Ujian Online</title>
 
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -80,7 +80,7 @@
                         <h1 class="font-extrabold text-sm sm:text-base leading-none">CBT STemga Informatika</h1>
                         <span class="bg-indigo-500/20 text-indigo-300 text-[10px] px-2 py-0.5 rounded-full font-bold border border-indigo-500/30">Official</span>
                     </div>
-                    <p class="text-[11px] text-slate-400">Sistem Ujian Online SMK Negeri</p>
+                    <p class="text-[11px] text-slate-400">Sistem Ujian Online</p>
                 </div>
             </div>
 
@@ -235,7 +235,7 @@
             </div>
         </div>
 
-        <!-- TAB 2: KELOLA & IMPORT SOAL (DUAL COLUMN) -->
+        <!-- TAB 2: KELOLA & IMPORT SOAL -->
         <div id="ttab-soal" class="hidden grid grid-cols-1 lg:grid-cols-12 gap-6">
             <!-- Left: Form Single & Bulk Import -->
             <div class="lg:col-span-5 bg-white p-5 rounded-3xl border border-slate-200 shadow-sm space-y-4">
@@ -779,7 +779,7 @@
                     },
                     {
                         id: 102,
-                        question: "Perangkat keras (Hardware) yang berfungsi sebagai pemroses instruksi utama dan dijuluki sebagai 'Otak Komputer' adalah...",
+                        question: "Perangkat keras (Hardware) yang berfungsi sebagai pemproses instruksi utama dan dijuluki sebagai 'Otak Komputer' adalah...",
                         options: ["RAM", "Central Processing Unit (CPU)", "Hard Disk / SSD", "Power Supply Unit"],
                         answer: 1,
                         explanation: "CPU (Central Processing Unit) bertugas mengeksekusi perhitungan logika dan instruksi sistem komputer."
@@ -910,7 +910,7 @@
 
         function loadSavedQuizBanks() {
             try {
-                const saved = localStorage.getItem("cbt_quiz_banks_v5");
+                const saved = localStorage.getItem("cbt_stemga_quiz_banks_data");
                 if (saved) {
                     const parsed = JSON.parse(saved);
                     if (Object.keys(parsed).length > 0) DEFAULT_QUIZ_BANKS = parsed;
@@ -920,26 +920,26 @@
 
         function saveQuizBanksToStorage() {
             try {
-                localStorage.setItem("cbt_quiz_banks_v5", JSON.stringify(DEFAULT_QUIZ_BANKS));
+                localStorage.setItem("cbt_stemga_quiz_banks_data", JSON.stringify(DEFAULT_QUIZ_BANKS));
             } catch (e) { console.error(e); }
         }
 
         function loadSavedExamLogs() {
             try {
-                const saved = localStorage.getItem("cbt_exam_logs_v5");
+                const saved = localStorage.getItem("cbt_stemga_exam_logs_data");
                 if (saved) examResultsLog = JSON.parse(saved);
             } catch (e) { console.error(e); }
         }
 
         function saveExamLogsToStorage() {
             try {
-                localStorage.setItem("cbt_exam_logs_v5", JSON.stringify(examResultsLog));
+                localStorage.setItem("cbt_stemga_exam_logs_data", JSON.stringify(examResultsLog));
             } catch (e) { console.error(e); }
         }
 
         function loadSavedSettings() {
             try {
-                const savedPin = localStorage.getItem("cbt_teacher_pin");
+                const savedPin = localStorage.getItem("cbt_stemga_teacher_pin");
                 if (savedPin) teacherPin = savedPin;
                 document.getElementById("setting-teacher-pin").value = teacherPin;
             } catch (e) { console.error(e); }
@@ -950,21 +950,21 @@
             const teacherSelect = document.getElementById("admin-soal-subject-select");
             const filterSelect = document.getElementById("rekap-filter-mapel");
 
-            if (studentSelect) studentSelect.innerHTML = "";
+            if (studentSelect) {
+                studentSelect.innerHTML = `<option value="">-- Pilih Mata Pelajaran --</option>`;
+            }
             if (teacherSelect) teacherSelect.innerHTML = "";
             if (filterSelect) filterSelect.innerHTML = `<option value="all">Semua Mata Pelajaran</option>`;
 
             const keys = Object.keys(DEFAULT_QUIZ_BANKS);
             if (keys.length === 0) return;
 
-            if (!DEFAULT_QUIZ_BANKS[currentSubjectKey]) currentSubjectKey = keys[0];
-
             keys.forEach(key => {
                 const title = DEFAULT_QUIZ_BANKS[key].title;
                 
                 const opt1 = document.createElement("option");
                 opt1.value = key; opt1.textContent = title;
-                if (key === currentSubjectKey) opt1.selected = true;
+                if (key === currentSubjectKey && studentSelect.value === "") opt1.selected = true;
                 if (studentSelect) studentSelect.appendChild(opt1);
 
                 const opt2 = document.createElement("option");
@@ -983,8 +983,16 @@
 
         function handleStudentSubjectChange() {
             const select = document.getElementById("select-subject-student");
-            if (!select || !select.value) return;
-            currentSubjectKey = select.value;
+            if (!select) return;
+            
+            const selectedVal = select.value;
+            if (!selectedVal || !DEFAULT_QUIZ_BANKS[selectedVal]) {
+                document.getElementById("student-exam-duration").textContent = `- Menit`;
+                document.getElementById("student-header-mapel").textContent = "Pilih Mata Pelajaran Ujian";
+                return;
+            }
+            
+            currentSubjectKey = selectedVal;
             const bank = DEFAULT_QUIZ_BANKS[currentSubjectKey];
             if (bank) {
                 document.getElementById("student-exam-duration").textContent = `${bank.durationMinutes || 15} Menit`;
@@ -1328,7 +1336,7 @@
             const newPin = document.getElementById("setting-teacher-pin").value.trim();
             if (newPin) {
                 teacherPin = newPin;
-                localStorage.setItem("cbt_teacher_pin", teacherPin);
+                localStorage.setItem("cbt_stemga_teacher_pin", teacherPin);
             }
 
             showCustomDialog("Pengaturan Tersimpan", "Konfigurasi KKM, keamanan, dan PIN Guru berhasil diperbarui.", () => {
@@ -1366,14 +1374,23 @@
             studentData.id = document.getElementById("input-student-id").value.trim();
             studentData.class = document.getElementById("input-student-class").value.trim();
 
+            const subjectSelect = document.getElementById("select-subject-student");
+            const selectedSubjectKey = subjectSelect ? subjectSelect.value : "";
+
             if (!studentData.name || !studentData.id || !studentData.class) {
                 showCustomDialog("Data Belum Lengkap", "Silakan lengkapi nama, NIS, dan kelas terlebih dahulu.", null, true);
                 return;
             }
 
+            if (!selectedSubjectKey) {
+                showCustomDialog("Pilih Mata Pelajaran", "Silakan pilih mata pelajaran yang akan diujikan.", null, true);
+                return;
+            }
+
+            currentSubjectKey = selectedSubjectKey;
             const bank = DEFAULT_QUIZ_BANKS[currentSubjectKey];
             if (!bank || !bank.questions || bank.questions.length === 0) {
-                showCustomDialog("Soal Kosong", "Belum ada soal pada mata pelajaran ini. Buat/import soal di Modul Guru Laptop terlebih dahulu.", null, true);
+                showCustomDialog("Soal Kosong", "Belum ada soal pada mata pelajaran ini. Silakan hubungi Guru/Proktor.", null, true);
                 return;
             }
 
