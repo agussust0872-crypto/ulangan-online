@@ -365,6 +365,7 @@
 
             <div class="bg-gradient-to-br from-indigo-50 to-slate-50 p-6 sm:p-8 rounded-3xl border border-indigo-100 max-w-md mx-auto shadow-inner space-y-4">
                 <div class="bg-white p-4 rounded-3xl shadow-xl border border-slate-200 inline-block">
+                    <!-- Container for QRCode.js canvas/img rendering -->
                     <div id="projector-qr-container" class="w-60 h-60 sm:w-72 sm:h-72 flex items-center justify-center mx-auto"></div>
                 </div>
                 <div>
@@ -1487,10 +1488,13 @@
             updateProjectorQrForSubject(key);
         }
 
+        // DOUBLE-ENGINE BULLETPROOF QR CODE GENERATOR
         function updateProjectorQrForSubject(key) {
             const bank = DEFAULT_QUIZ_BANKS[key];
             if (!bank) return;
 
+            const baseUrl = window.location.href.split('?')[0].split('#')[0];
+            
             const compactBank = {
                 title: bank.title,
                 durationMinutes: bank.durationMinutes || 15,
@@ -1503,20 +1507,29 @@
                 }))
             };
 
-            const baseUrl = window.location.href.split('?')[0].split('#')[0];
             const qdataJson = JSON.stringify(compactBank);
             let qrUrl = `${baseUrl}?mapel=${encodeURIComponent(key)}`;
             
-            // Masukkan data soal ke URL jika ukuran wajar agar QR tidak terlalu padat
-            if (qdataJson.length < 1800) {
+            // Sertakan qdata hanya jika ukurannya aman (< 350 karakter) agar QR Code tidak terlalu padat
+            if (qdataJson.length < 350) {
                 qrUrl += `&qdata=${encodeURIComponent(qdataJson)}`;
             }
 
             const container = document.getElementById("projector-qr-container");
             const textEl = document.getElementById("projector-url-text");
 
-            if (container) {
-                container.innerHTML = "";
+            if (textEl) {
+                textEl.textContent = qrUrl;
+                textEl.setAttribute("data-full-url", qrUrl);
+            }
+
+            if (!container) return;
+            container.innerHTML = "";
+
+            let qrRendered = false;
+
+            // Engine 1: QRCode.js Client Library
+            if (typeof QRCode !== 'undefined') {
                 try {
                     new QRCode(container, {
                         text: qrUrl,
@@ -1526,23 +1539,20 @@
                         colorLight: "#ffffff",
                         correctLevel: QRCode.CorrectLevel.L
                     });
+                    qrRendered = true;
                 } catch (err) {
-                    // Fallback URL ringkas jika data soal sangat besar
-                    const simpleUrl = `${baseUrl}?mapel=${encodeURIComponent(key)}`;
-                    new QRCode(container, {
-                        text: simpleUrl,
-                        width: 250,
-                        height: 250,
-                        colorDark: "#1e1b4b",
-                        colorLight: "#ffffff",
-                        correctLevel: QRCode.CorrectLevel.L
-                    });
+                    console.warn("QRCode.js client error, fallback to QuickChart API", err);
+                    container.innerHTML = "";
                 }
             }
 
-            if (textEl) {
-                textEl.textContent = qrUrl;
-                textEl.setAttribute("data-full-url", qrUrl);
+            // Engine 2: QuickChart Fallback
+            if (!qrRendered) {
+                const img = document.createElement("img");
+                img.src = `https://quickchart.io/qr?size=300&text=${encodeURIComponent(qrUrl)}`;
+                img.alt = "QR Code Ujian";
+                img.className = "w-60 h-60 sm:w-64 sm:h-64 object-contain mx-auto rounded-xl shadow-sm";
+                container.appendChild(img);
             }
         }
 
@@ -1556,7 +1566,7 @@
             tempInput.select();
             try {
                 document.execCommand("copy");
-                showCustomDialog("Tautan Ujian Tersalin", "Tautan ujian lengkap dengan paket soal telah disalin ke clipboard.", null, true);
+                showCustomDialog("Tautan Ujian Tersalin", "Tautan ujian lengkap telah disalin ke clipboard.", null, true);
             } catch (err) { console.error(err); }
             document.body.removeChild(tempInput);
         }
