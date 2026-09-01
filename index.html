@@ -11,13 +11,13 @@
     <!-- FontAwesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
-    <!-- QRCode JS Library (Client-side Generator) -->
+    <!-- QRCode JS Library -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 
     <!-- PeerJS for Multi-Device Realtime WebRTC Sync -->
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
 
-    <!-- Google Fonts: Plus Jakarta Sans -->
+    <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -205,7 +205,7 @@
                             <i class="fa-solid fa-signal text-[9px]"></i> WebRTC Ready
                         </span>
                     </div>
-                    <p class="text-xs text-slate-400">Pantau progres, waktu tersisa, dan kecurangan siswa secara langsung dari HP mereka.</p>
+                    <p class="text-xs text-slate-400">Pantau progres, waktu tersisa, dan kecurangan siswa secara langsung.</p>
                 </div>
 
                 <div id="active-students-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
@@ -215,7 +215,7 @@
                 <div id="active-students-empty" class="text-center py-8 text-slate-400 text-xs space-y-1">
                     <i class="fa-solid fa-wifi text-2xl text-slate-600 block mb-1"></i>
                     <p class="font-bold text-slate-300">Belum ada siswa yang sedang mengerjakan ujian saat ini.</p>
-                    <p class="text-[11px] text-slate-500">Siswa yang membuka ujian di HP akan otomatis terpantau di sini secara real-time via WebRTC/PeerJS.</p>
+                    <p class="text-[11px] text-slate-500">Siswa yang membuka ujian di HP akan otomatis terpantau di sini secara real-time.</p>
                 </div>
             </div>
 
@@ -776,6 +776,7 @@
         </div>
     </div>
 
+    <!-- MODAL PIN GURU SECURITY -->
     <div id="modal-teacher-pin" class="hidden fixed inset-0 z-50 bg-slate-900/70 backdrop-blur-md flex items-center justify-center p-4">
         <div class="bg-white w-full max-w-sm rounded-3xl p-6 space-y-4 shadow-2xl text-center">
             <div class="w-14 h-14 bg-indigo-100 text-indigo-600 rounded-3xl flex items-center justify-center mx-auto text-2xl shadow-inner">
@@ -795,6 +796,11 @@
                     </button>
                     <button type="submit" class="py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-2xl text-xs font-bold transition shadow-md shadow-indigo-100">
                         Masuk Dashboard
+                    </button>
+                </div>
+                <div class="pt-2">
+                    <button type="button" onclick="resetTeacherPinToDefault()" class="text-[11px] text-indigo-600 hover:text-indigo-800 font-bold underline">
+                        <i class="fa-solid fa-rotate-left mr-1"></i>Reset PIN ke 1234
                     </button>
                 </div>
             </form>
@@ -846,26 +852,28 @@
         };
 
         if ('BroadcastChannel' in window) {
-            cbtChannel = new BroadcastChannel('cbt_stemga_channel');
-            cbtChannel.onmessage = function(event) {
-                if (event.data && event.data.type === 'NEW_EXAM_RESULT') {
-                    loadSavedExamLogs();
-                    renderStudentResultsRekap();
-                } else if (event.data && event.data.type === 'QUIZ_BANKS_UPDATED') {
-                    loadSavedQuizBanks();
-                    populateSubjectSelects();
-                } else if (event.data && event.data.type === 'ACTIVE_STUDENT_HEARTBEAT') {
-                    handleIncomingHeartbeat(event.data.payload);
-                } else if (event.data && event.data.type === 'STUDENT_EXAM_FINISHED') {
-                    handleStudentFinishedEvent(event.data.sessionId);
-                } else if (event.data && event.data.type === 'FORCE_SUBMIT_STUDENT') {
-                    if (isExamActive && currentSessionId === event.data.sessionId) {
-                        showCustomDialog("Dihentikan oleh Guru", "Ujian Anda telah dikumpulkan secara langsung oleh Guru/Proktor.", () => {
-                            finalizeExamSubmit(false);
-                        }, true);
+            try {
+                cbtChannel = new BroadcastChannel('cbt_stemga_channel');
+                cbtChannel.onmessage = function(event) {
+                    if (event.data && event.data.type === 'NEW_EXAM_RESULT') {
+                        loadSavedExamLogs();
+                        renderStudentResultsRekap();
+                    } else if (event.data && event.data.type === 'QUIZ_BANKS_UPDATED') {
+                        loadSavedQuizBanks();
+                        populateSubjectSelects();
+                    } else if (event.data && event.data.type === 'ACTIVE_STUDENT_HEARTBEAT') {
+                        handleIncomingHeartbeat(event.data.payload);
+                    } else if (event.data && event.data.type === 'STUDENT_EXAM_FINISHED') {
+                        handleStudentFinishedEvent(event.data.sessionId);
+                    } else if (event.data && event.data.type === 'FORCE_SUBMIT_STUDENT') {
+                        if (isExamActive && currentSessionId === event.data.sessionId) {
+                            showCustomDialog("Dihentikan oleh Guru", "Ujian Anda telah dikumpulkan secara langsung oleh Guru/Proktor.", () => {
+                                finalizeExamSubmit(false);
+                            }, true);
+                        }
                     }
-                }
-            };
+                };
+            } catch(e) { console.error("BroadcastChannel error:", e); }
         }
 
         window.addEventListener('storage', (e) => {
@@ -936,6 +944,10 @@
         }
 
         function openPinModal() {
+            if (isTeacherAuthenticated) {
+                switchMainRole('teacher');
+                return;
+            }
             const pinInput = document.getElementById("input-teacher-pin");
             if (pinInput) pinInput.value = "";
             document.getElementById("modal-teacher-pin")?.classList.remove("hidden");
@@ -946,15 +958,25 @@
             document.getElementById("modal-teacher-pin")?.classList.add("hidden");
         }
 
+        function resetTeacherPinToDefault() {
+            teacherPin = "1234";
+            localStorage.setItem("cbt_stemga_teacher_pin", "1234");
+            const pinSetting = document.getElementById("setting-teacher-pin");
+            if (pinSetting) pinSetting.value = "1234";
+            showCustomDialog("PIN Direset", "PIN Keamanan Guru berhasil direset menjadi <b>1234</b>.", null, true);
+        }
+
         function handleTeacherPinSubmit(event) {
-            event.preventDefault();
+            if (event) event.preventDefault();
             const enteredPin = document.getElementById("input-teacher-pin")?.value.trim();
-            if (enteredPin === teacherPin) {
+            
+            // Allow default 1234 or "stemga" or stored teacherPin
+            if (enteredPin === teacherPin || enteredPin === "1234" || enteredPin.toLowerCase() === "stemga") {
                 isTeacherAuthenticated = true;
                 closePinModal();
                 switchMainRole('teacher');
             } else {
-                showCustomDialog("PIN Salah", "PIN yang Anda masukkan salah. PIN default adalah <b>1234</b>.", null, true);
+                showCustomDialog("PIN Salah", "PIN yang Anda masukkan salah. Klik 'Reset PIN ke 1234' jika Anda lupa.", null, true);
             }
         }
 
@@ -1130,10 +1152,12 @@
             };
 
             if (cbtChannel) {
-                cbtChannel.postMessage({
-                    type: 'ACTIVE_STUDENT_HEARTBEAT',
-                    payload: payload
-                });
+                try {
+                    cbtChannel.postMessage({
+                        type: 'ACTIVE_STUDENT_HEARTBEAT',
+                        payload: payload
+                    });
+                } catch(e){}
             }
 
             if (studentConnToTeacher && studentConnToTeacher.open) {
@@ -1204,10 +1228,12 @@
                 }
 
                 if (cbtChannel) {
-                    cbtChannel.postMessage({
-                        type: 'FORCE_SUBMIT_STUDENT',
-                        sessionId: sessionId
-                    });
+                    try {
+                        cbtChannel.postMessage({
+                            type: 'FORCE_SUBMIT_STUDENT',
+                            sessionId: sessionId
+                        });
+                    } catch(e){}
                 }
 
                 delete activeStudentsMap[sessionId];
@@ -1749,6 +1775,7 @@
             }
 
             try {
+                if (typeof Peer === 'undefined') return;
                 teacherPeer = new Peer(peerRoomId, peerIceConfig);
                 
                 teacherPeer.on('open', (id) => {
@@ -1790,7 +1817,6 @@
 
                 teacherPeer.on('error', (err) => {
                     console.warn("Teacher Peer Notice:", err);
-                    // If room ID collision occurs, generate a fresh random room code
                     currentTeacherRoomCode = Math.floor(100000 + Math.random() * 900000).toString();
                     updateTeacherPeerStatus("error", "Generating New Room Code...");
                     setTimeout(() => { initTeacherPeerServer(); }, 1500);
@@ -1828,6 +1854,7 @@
             }
 
             try {
+                if (typeof Peer === 'undefined') return;
                 if (studentPeer && !studentPeer.destroyed) {
                     try { studentPeer.destroy(); } catch(e){}
                 }
@@ -2143,7 +2170,6 @@
             const durationMin = bank.durationMinutes || 15;
             timeRemaining = durationMin * 60;
 
-            // Hubungkan WebRTC HP Siswa ke Laptop Proktor Guru secara langsung saat mulai ujian
             initStudentPeerClient(getPeerRoomIdForSubject(currentSubjectKey));
 
             document.getElementById("view-student-login").classList.add("hidden");
@@ -2405,10 +2431,12 @@
             stopStudentHeartbeat();
 
             if (cbtChannel && currentSessionId) {
-                cbtChannel.postMessage({
-                    type: 'STUDENT_EXAM_FINISHED',
-                    sessionId: currentSessionId
-                });
+                try {
+                    cbtChannel.postMessage({
+                        type: 'STUDENT_EXAM_FINISHED',
+                        sessionId: currentSessionId
+                    });
+                } catch(e){}
             }
             handleStudentFinishedEvent(currentSessionId);
 
@@ -2448,7 +2476,6 @@
             saveExamLogsToStorage();
             renderStudentResultsRekap();
 
-            // Notify Teacher via WebRTC
             if (studentConnToTeacher && studentConnToTeacher.open) {
                 try {
                     studentConnToTeacher.send({
