@@ -68,30 +68,58 @@
 </head>
 <body class="bg-slate-100 text-slate-800 min-h-screen flex flex-col justify-between antialiased selection:bg-indigo-500 selection:text-white">
 
-    <!-- TOP NAVIGATION BAR: ROLE SWITCHER -->
+    <!-- TOP NAVIGATION BAR: LAPTOP PROCTOR NAVIGATION & DISCREET ACCESS -->
     <header class="no-print bg-slate-900 text-white sticky top-0 z-40 shadow-lg border-b border-slate-800">
-        <div class="max-w-7xl mx-auto px-4 py-2.5 flex flex-wrap items-center justify-between gap-3">
-            <div class="flex items-center space-x-3">
+        <div class="max-w-7xl mx-auto px-4 py-2.5 flex items-center justify-between gap-3">
+            <div class="flex items-center space-x-3 cursor-pointer select-none" onclick="triggerProctorPinAccess()">
                 <div class="w-9 h-9 rounded-xl bg-indigo-600 flex items-center justify-center shadow-md shadow-indigo-500/20">
                     <i class="fa-solid fa-graduation-cap text-lg text-white"></i>
                 </div>
                 <div>
                     <div class="flex items-center gap-2">
-                        <h1 class="font-extrabold text-sm sm:text-base leading-none">CBT EduExam</h1>
-                        <span class="bg-indigo-500/20 text-indigo-300 text-[10px] px-2 py-0.5 rounded-full font-bold border border-indigo-500/30">v3.2 Secure</span>
+                        <h1 class="font-extrabold text-sm sm:text-base leading-none">CBT STemga Informatika</h1>
+                        <span class="bg-indigo-500/20 text-indigo-300 text-[10px] px-2 py-0.5 rounded-full font-bold border border-indigo-500/30">Official</span>
                     </div>
-                    <p class="text-[11px] text-slate-400">Multi-Device Ujian Online dengan PIN Pengaman Guru</p>
+                    <p class="text-[11px] text-slate-400">Sistem Ujian Online SMK Negeri</p>
                 </div>
             </div>
 
-            <div class="flex items-center gap-2 bg-slate-800 p-1 rounded-xl border border-slate-700 text-xs font-bold">
-                <button id="btn-mode-teacher" onclick="switchMainRole('teacher')" class="px-3.5 py-1.5 rounded-lg bg-indigo-600 text-white shadow-sm transition flex items-center gap-2">
-                    <i class="fa-solid fa-laptop"></i>
-                    <span>Dashboard Guru (Laptop)</span>
+            <!-- Dashboard Guru Button - Visible on Laptop & Discreet for Proctor -->
+            <div class="flex items-center gap-2">
+                <button id="btn-mode-teacher" onclick="openPinModal()" class="px-3.5 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700 text-xs font-bold transition flex items-center gap-2 shadow-sm">
+                    <i class="fa-solid fa-user-shield text-indigo-400"></i>
+                    <span class="hidden sm:inline">Panel Guru / Proktor</span>
                 </button>
-                <button id="btn-mode-student" onclick="switchMainRole('student')" class="px-3.5 py-1.5 rounded-lg text-slate-400 hover:text-white transition flex items-center gap-2">
-                    <i class="fa-solid fa-mobile-screen-button"></i>
-                    <span>Layar Siswa (HP)</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- ========================================================================= -->
+    <!-- 1. DASHBOARD GURU / PROKTOR (LAPTOP GURU)                                 -->
+    <!-- ========================================================================= -->
+    <div id="view-teacher-dashboard" class="hidden max-w-7xl w-full mx-auto p-4 sm:p-6 flex-grow space-y-6">
+        
+        <div class="no-print bg-gradient-to-r from-indigo-700 via-indigo-800 to-slate-900 rounded-3xl p-6 text-white shadow-xl flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+            <div class="space-y-1">
+                <div class="inline-flex items-center gap-2 bg-white/10 px-3 py-1 rounded-full text-xs font-semibold backdrop-blur-md">
+                    <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                    <span>Modul Proktor & Guru Aktif</span>
+                </div>
+                <h2 class="text-2xl font-black tracking-tight">Panel Kendali Guru & Rekap Nilai Ujian</h2>
+                <p class="text-xs sm:text-sm text-indigo-200">Kelola bank soal, import masal banyak soal, pantau hasil ujian siswa secara real-time.</p>
+            </div>
+            <div class="flex flex-wrap items-center gap-2">
+                <button onclick="switchTeacherTab('projector')" class="bg-amber-400 hover:bg-amber-300 text-slate-950 px-4 py-2.5 rounded-2xl text-xs font-extrabold shadow-md transition flex items-center gap-2">
+                    <i class="fa-solid fa-qrcode"></i>
+                    <span>Layar QR Proyektor</span>
+                </button>
+                <button onclick="exportRekapToCSV()" class="bg-emerald-500 hover:bg-emerald-600 text-white px-4 py-2.5 rounded-2xl text-xs font-bold shadow-md transition flex items-center gap-2">
+                    <i class="fa-solid fa-file-excel"></i>
+                    <span>Export Excel</span>
+                </button>
+                <button onclick="switchMainRole('student')" class="bg-slate-700 hover:bg-slate-600 text-white px-3.5 py-2.5 rounded-2xl text-xs font-bold transition flex items-center gap-1.5">
+                    <i class="fa-solid fa-mobile-screen"></i>
+                    <span>Tampilan Siswa</span>
                 </button>
             </div>
         </div>
@@ -416,23 +444,19 @@
     <!-- ========================================================================= -->
     <!-- 2. LAYAR SISWA SMARTPHONE / HP                                           -->
     <!-- ========================================================================= -->
-    <div id="view-student-container" class="hidden w-full flex-grow flex flex-col justify-between">
+    <div id="view-student-container" class="w-full flex-grow flex flex-col justify-between">
         
         <header class="bg-indigo-600 text-white shadow-md sticky top-[53px] z-30">
             <div class="max-w-md mx-auto px-4 py-3 flex items-center justify-between">
-                <div class="flex items-center space-x-2.5">
+                <div class="flex items-center space-x-3">
                     <div class="bg-white/20 p-2 rounded-xl backdrop-blur-md">
-                        <i class="fa-solid fa-mobile-screen text-base"></i>
+                        <i class="fa-solid fa-laptop-code text-base text-white"></i>
                     </div>
                     <div>
-                        <h1 class="font-bold text-sm leading-tight">CBT Ulangan Online Siswa</h1>
-                        <p class="text-[11px] text-indigo-200" id="student-header-mapel">Informatika</p>
+                        <h1 class="font-extrabold text-sm leading-tight tracking-wide">CBT STemga Informatika</h1>
+                        <p class="text-[11px] text-indigo-200" id="student-header-mapel">Pilih Mata Pelajaran Ujian</p>
                     </div>
                 </div>
-                <button onclick="switchMainRole('teacher')" class="text-xs bg-white/10 hover:bg-white/20 active:scale-95 px-2.5 py-1.5 rounded-lg border border-white/20 font-bold transition flex items-center gap-1">
-                    <i class="fa-solid fa-laptop"></i>
-                    <span>Mode Guru</span>
-                </button>
             </div>
         </header>
 
@@ -442,49 +466,49 @@
             <section id="view-student-login" class="space-y-4">
                 <div class="bg-white rounded-3xl p-6 shadow-sm border border-slate-200 space-y-4">
                     <div class="text-center space-y-1">
-                        <span class="inline-block p-3 bg-indigo-50 text-indigo-600 rounded-2xl mb-1">
-                            <i class="fa-solid fa-file-signature text-2xl"></i>
+                        <span class="inline-block p-3.5 bg-indigo-50 text-indigo-600 rounded-2xl mb-1">
+                            <i class="fa-solid fa-id-card text-2xl"></i>
                         </span>
-                        <h2 class="text-xl font-extrabold text-slate-800">Formulir Peserta Ujian</h2>
-                        <p class="text-xs text-slate-500">Lengkapi data diri sebelum mengerjakan soal di HP.</p>
+                        <h2 class="text-xl font-black text-slate-800">CBT STemga Informatika</h2>
+                        <p class="text-xs text-slate-500">Isi Nama, NIS, Kelas & Pilih Mata Pelajaran Ujian</p>
                     </div>
 
                     <form onsubmit="handleStartExam(event)" class="space-y-3 pt-1">
                         <div>
                             <label class="block text-xs font-bold text-slate-700 mb-1">Nama Lengkap Siswa</label>
-                            <input type="text" id="input-student-name" required placeholder="Contoh: Budi Santoso" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                            <input type="text" id="input-student-name" required placeholder="Masukkan Nama Lengkap" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500">
                         </div>
 
                         <div class="grid grid-cols-2 gap-2">
                             <div>
                                 <label class="block text-xs font-bold text-slate-700 mb-1">NIS / NISN</label>
-                                <input type="number" id="input-student-id" required placeholder="10245" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                                <input type="number" id="input-student-id" required placeholder="Nomor NIS" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500">
                             </div>
                             <div>
                                 <label class="block text-xs font-bold text-slate-700 mb-1">Kelas / Rombel</label>
-                                <input type="text" id="input-student-class" required placeholder="X-RPL-1" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                                <input type="text" id="input-student-class" required placeholder="Contoh: X-RPL-1" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500">
                             </div>
                         </div>
 
                         <div>
-                            <label class="block text-xs font-bold text-slate-700 mb-1">Mata Pelajaran Ujian</label>
-                            <select id="select-subject-student" onchange="handleStudentSubjectChange()" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                            <label class="block text-xs font-bold text-slate-700 mb-1">Pilihan Mata Pelajaran (Kelola Soal)</label>
+                            <select id="select-subject-student" onchange="handleStudentSubjectChange()" class="w-full px-3.5 py-2.5 bg-indigo-50/60 border border-indigo-200 rounded-xl text-xs font-bold text-indigo-900 focus:outline-none focus:ring-2 focus:ring-indigo-500">
                             </select>
                         </div>
 
                         <div class="bg-amber-50 border border-amber-200 rounded-2xl p-3 text-[11px] text-amber-900 space-y-1">
                             <div class="font-bold flex items-center gap-1.5 text-amber-800">
                                 <i class="fa-solid fa-shield-halved"></i>
-                                <span>Aturan Ujian:</span>
+                                <span>Ketentuan Ujian:</span>
                             </div>
                             <ul class="list-disc list-inside space-y-0.5 text-amber-800/90 pl-1">
-                                <li>Durasi: <b id="student-exam-duration">15 Menit</b>.</li>
-                                <li>Pilihan A, B, C, D diacak otomatis per HP.</li>
-                                <li>Dilarang berpindah tab/aplikasi selama ujian.</li>
+                                <li>Durasi Ujian: <b id="student-exam-duration">15 Menit</b>.</li>
+                                <li>Pilihan A, B, C, D diacak otomatis.</li>
+                                <li>Dilarang mengeluarkannya / pindah tab browser.</li>
                             </ul>
                         </div>
 
-                        <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 active:scale-[0.98] text-white font-bold py-3 rounded-2xl text-xs sm:text-sm shadow-md shadow-indigo-200 transition flex items-center justify-center gap-2">
+                        <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 active:scale-[0.98] text-white font-bold py-3.5 rounded-2xl text-xs sm:text-sm shadow-md shadow-indigo-200 transition flex items-center justify-center gap-2">
                             <span>Mulai Kerjakan Ujian</span>
                             <i class="fa-solid fa-arrow-right"></i>
                         </button>
@@ -820,39 +844,16 @@
             renderStudentResultsRekap();
             setupProjectorQr();
 
-            // Skenario awal: Jika belum otentikasi PIN, tampilkan layar siswa lebih dulu
-            if (!isTeacherAuthenticated) {
-                switchMainRole('student');
-            } else {
-                switchMainRole('teacher');
-            }
+            // Default ke Layar Siswa (CBT STemga Informatika)
+            switchMainRole('student');
         };
 
-        // SWITCH ROLE: LAPTOP GURU VS HP SISWA WITH SECURITY PIN
-        function switchMainRole(role) {
-            if (role === 'teacher' && !isTeacherAuthenticated) {
+        let logoClickCounter = 0;
+        function triggerProctorPinAccess() {
+            logoClickCounter++;
+            if (logoClickCounter >= 3) {
+                logoClickCounter = 0;
                 openPinModal();
-                return;
-            }
-
-            currentRole = role;
-            const teacherView = document.getElementById("view-teacher-dashboard");
-            const studentView = document.getElementById("view-student-container");
-            const teacherBtn = document.getElementById("btn-mode-teacher");
-            const studentBtn = document.getElementById("btn-mode-student");
-
-            if (role === 'teacher') {
-                teacherView.classList.remove("hidden");
-                studentView.classList.add("hidden");
-                teacherBtn.className = "px-3.5 py-1.5 rounded-lg bg-indigo-600 text-white shadow-sm transition flex items-center gap-2";
-                studentBtn.className = "px-3.5 py-1.5 rounded-lg text-slate-400 hover:text-white transition flex items-center gap-2";
-                renderStudentResultsRekap();
-                setupProjectorQr();
-            } else {
-                teacherView.classList.add("hidden");
-                studentView.classList.remove("hidden");
-                studentBtn.className = "px-3.5 py-1.5 rounded-lg bg-indigo-600 text-white shadow-sm transition flex items-center gap-2";
-                teacherBtn.className = "px-3.5 py-1.5 rounded-lg text-slate-400 hover:text-white transition flex items-center gap-2";
             }
         }
 
