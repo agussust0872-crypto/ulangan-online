@@ -201,6 +201,9 @@
                         <span class="bg-emerald-500/20 text-emerald-300 text-[10px] font-extrabold px-2.5 py-0.5 rounded-full border border-emerald-500/30">
                             <span id="live-active-counter">0</span> Aktif
                         </span>
+                        <span id="teacher-peer-status" class="bg-slate-800 text-amber-300 text-[10px] font-bold px-2 py-0.5 rounded-full border border-slate-700 flex items-center gap-1">
+                            <i class="fa-solid fa-signal text-[9px]"></i> WebRTC Ready
+                        </span>
                     </div>
                     <p class="text-xs text-slate-400">Pantau progres, waktu tersisa, dan kecurangan siswa secara langsung dari HP mereka.</p>
                 </div>
@@ -461,7 +464,12 @@
                         <i class="fa-solid fa-laptop-code text-base text-white"></i>
                     </div>
                     <div>
-                        <h1 class="font-extrabold text-sm leading-tight tracking-wide">CBT STemga Informatika</h1>
+                        <div class="flex items-center gap-2">
+                            <h1 class="font-extrabold text-sm leading-tight tracking-wide">CBT STemga Informatika</h1>
+                            <span id="student-peer-status" class="hidden bg-emerald-500/30 text-emerald-200 text-[9px] font-extrabold px-1.5 py-0.5 rounded border border-emerald-400/40">
+                                <i class="fa-solid fa-wifi mr-0.5"></i> Live Sync
+                            </span>
+                        </div>
                         <p class="text-[11px] text-indigo-200" id="student-header-mapel">Pilih Mata Pelajaran Ujian</p>
                     </div>
                 </div>
@@ -815,6 +823,18 @@
         let studentConnToTeacher = null; // Single active Peer connection on Student side
         let roomCode = null;
 
+        // Configuration WebRTC Google Public STUN Servers
+        const peerIceConfig = {
+            config: {
+                iceServers: [
+                    { urls: 'stun:stun.l.google.com:19302' },
+                    { urls: 'stun:stun1.l.google.com:19302' },
+                    { urls: 'stun:stun2.l.google.com:19302' },
+                    { urls: 'stun:stun3.l.google.com:19302' }
+                ]
+            }
+        };
+
         if ('BroadcastChannel' in window) {
             cbtChannel = new BroadcastChannel('cbt_stemga_channel');
             cbtChannel.onmessage = function(event) {
@@ -920,17 +940,26 @@
         };
 
         function initTeacherPeerServer() {
-            if (teacherPeer) return;
             const peerRoomId = getPeerRoomIdForSubject(currentSubjectKey);
+            if (teacherPeer && teacherPeer.id === peerRoomId && !teacherPeer.destroyed) return;
             
+            if (teacherPeer) {
+                try { teacherPeer.destroy(); } catch(e){}
+            }
+
             try {
-                teacherPeer = new Peer(peerRoomId);
+                teacherPeer = new Peer(peerRoomId, peerIceConfig);
                 
                 teacherPeer.on('open', (id) => {
-                    console.log("Teacher Proctor Peer Live Room:", id);
+                    console.log("Teacher Proctor Peer Live Room Active:", id);
+                    updateTeacherPeerStatus("connected", "Live Room Online");
                 });
 
                 teacherPeer.on('connection', (conn) => {
+                    conn.on('open', () => {
+                        console.log("Siswa terhubung via WebRTC:", conn.peer);
+                    });
+
                     conn.on('data', (data) => {
                         if (data && data.type === 'ACTIVE_STUDENT_HEARTBEAT') {
                             peerConns[data.payload.sessionId] = conn;
@@ -948,44 +977,108 @@
                     });
 
                     conn.on('close', () => {
-                        // Handle peer disconnect if needed
+                        console.log("Koneksi siswa terputus:", conn.peer);
                     });
                 });
 
+                teacherPeer.on('disconnected', () => {
+                    updateTeacherPeerStatus("connecting", "Reconnecting...");
+                    setTimeout(() => { if (teacherPeer && !teacherPeer.destroyed) teacherPeer.reconnect(); }, 2000);
+                });
+
                 teacherPeer.on('error', (err) => {
-                    console.warn("PeerJS Teacher Notice:", err);
+                    console.warn("Teacher Peer Notice:", err);
+                    updateTeacherPeerStatus("error", "Server Busy - Auto Retry");
+                    setTimeout(() => { initTeacherPeerServer(); }, 4000);
                 });
             } catch (err) {
                 console.error("PeerJS Init Error", err);
             }
         }
 
+        function updateTeacherPeerStatus(type, text) {
+            const el = document.getElementById("teacher-peer-status");
+            if (!el) return;
+            el.innerHTML = `<i class="fa-solid fa-signal text-[9px]"></i> ${text}`;
+            if (type === "connected") {
+                el.className = "bg-emerald-500/20 text-emerald-300 text-[10px] font-bold px-2 py-0.5 rounded-full border border-emerald-500/30";
+            } else if (type === "connecting") {
+                el.className = "bg-amber-500/20 text-amber-300 text-[10px] font-bold px-2 py-0.5 rounded-full border border-amber-500/30 animate-pulse";
+            } else {
+                el.className = "bg-rose-500/20 text-rose-300 text-[10px] font-bold px-2 py-0.5 rounded-full border border-rose-500/30";
+            }
+        }
+
         function initStudentPeerClient(targetRoomId) {
-            if (!targetRoomId) return;
+            if (!targetRoomId) targetRoomId = getPeerRoomIdForSubject(currentSubjectKey);
+
+            if (studentConnToTeacher && studentConnToTeacher.open && studentConnToTeacher.peer === targetRoomId) {
+                return;
+            }
+
             try {
-                if (studentPeer) studentPeer.destroy();
-                studentPeer = new Peer();
+                if (studentPeer && !studentPeer.destroyed) {
+                    try { studentPeer.destroy(); } catch(e){}
+                }
+
+                studentPeer = new Peer(peerIceConfig);
 
                 studentPeer.on('open', (id) => {
-                    studentConnToTeacher = studentPeer.connect(targetRoomId);
+                    console.log("Student Peer Ready:", id, "Connecting to room:", targetRoomId);
+                    connectStudentToTeacherConn(targetRoomId);
+                });
 
-                    studentConnToTeacher.on('open', () => {
-                        console.log("Connected to Teacher Room:", targetRoomId);
-                        if (isExamActive) sendStudentHeartbeat();
-                    });
+                studentPeer.on('disconnected', () => {
+                    setTimeout(() => { if (studentPeer && !studentPeer.destroyed) studentPeer.reconnect(); }, 2000);
+                });
 
-                    studentConnToTeacher.on('data', (data) => {
-                        if (data && data.type === 'FORCE_SUBMIT_STUDENT') {
-                            if (isExamActive && currentSessionId === data.sessionId) {
-                                showCustomDialog("Dihentikan oleh Guru", "Ujian Anda telah dikumpulkan secara langsung oleh Guru/Proktor.", () => {
-                                    finalizeExamSubmit(false);
-                                }, true);
-                            }
-                        }
-                    });
+                studentPeer.on('error', (err) => {
+                    console.warn("Student Peer Error:", err);
+                    updateStudentPeerStatusUI(false);
                 });
             } catch (err) {
                 console.error("Student Peer Connection Error", err);
+            }
+        }
+
+        function connectStudentToTeacherConn(targetRoomId) {
+            if (!studentPeer || studentPeer.destroyed) return;
+            try {
+                studentConnToTeacher = studentPeer.connect(targetRoomId, { reliable: true });
+
+                studentConnToTeacher.on('open', () => {
+                    console.log("Connected to Teacher Room:", targetRoomId);
+                    updateStudentPeerStatusUI(true);
+                    if (isExamActive) sendStudentHeartbeat();
+                });
+
+                studentConnToTeacher.on('close', () => {
+                    console.warn("Koneksi ke guru terputus, merekontruksi...");
+                    updateStudentPeerStatusUI(false);
+                    setTimeout(() => { connectStudentToTeacherConn(targetRoomId); }, 3000);
+                });
+
+                studentConnToTeacher.on('data', (data) => {
+                    if (data && data.type === 'FORCE_SUBMIT_STUDENT') {
+                        if (isExamActive && currentSessionId === data.sessionId) {
+                            showCustomDialog("Dihentikan oleh Guru", "Ujian Anda telah dikumpulkan secara langsung oleh Guru/Proktor.", () => {
+                                finalizeExamSubmit(false);
+                            }, true);
+                        }
+                    }
+                });
+            } catch(e) {
+                console.error("Error connecting to teacher peer", e);
+            }
+        }
+
+        function updateStudentPeerStatusUI(isConnected) {
+            const el = document.getElementById("student-peer-status");
+            if (!el) return;
+            if (isConnected) {
+                el.classList.remove("hidden");
+            } else {
+                el.classList.add("hidden");
             }
         }
 
@@ -1158,6 +1251,11 @@
         function sendStudentHeartbeat() {
             if (!isExamActive || !currentSessionId) return;
 
+            // Otomatis pastikan terkoneksi ke room proktor jika koneksi terputus
+            if (!studentConnToTeacher || !studentConnToTeacher.open) {
+                initStudentPeerClient(getPeerRoomIdForSubject(currentSubjectKey));
+            }
+
             const payload = {
                 sessionId: currentSessionId,
                 studentName: studentData.name,
@@ -1172,7 +1270,7 @@
                 violations: antiCheatViolations
             };
 
-            // 1. BroadcastChannel local
+            // 1. BroadcastChannel local (Tab lokal pada device yang sama)
             if (cbtChannel) {
                 cbtChannel.postMessage({
                     type: 'ACTIVE_STUDENT_HEARTBEAT',
@@ -1180,7 +1278,7 @@
                 });
             }
 
-            // 2. PeerJS WebRTC multi-device
+            // 2. PeerJS WebRTC multi-device (Siswa HP -> Laptop Guru)
             if (studentConnToTeacher && studentConnToTeacher.open) {
                 try {
                     studentConnToTeacher.send({
@@ -1458,44 +1556,10 @@
                 document.getElementById("student-exam-duration").textContent = `${bank.durationMinutes || 15} Menit`;
                 document.getElementById("student-header-mapel").textContent = bank.title;
             }
-        }
 
-        function addNewSubjectPrompt() {
-            showCustomDialog("Buat Mapel Baru", `
-                <div class="space-y-3 text-left">
-                    <div>
-                        <label class="block text-xs font-bold text-slate-700 mb-1">Nama Mata Pelajaran & Kelas</label>
-                        <input type="text" id="prompt-subject-title" placeholder="Contoh: Pemrograman Web - XI RPL" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                    </div>
-                    <div>
-                        <label class="block text-xs font-bold text-slate-700 mb-1">Durasi Ujian (Menit)</label>
-                        <input type="number" id="prompt-subject-duration" min="1" max="180" value="15" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                    </div>
-                </div>
-            `, () => {
-                const titleVal = document.getElementById("prompt-subject-title")?.value.trim();
-                const durVal = parseInt(document.getElementById("prompt-subject-duration")?.value) || 15;
-                if (!titleVal) return;
-
-                const key = "mapel_" + Date.now();
-                DEFAULT_QUIZ_BANKS[key] = { title: titleVal, durationMinutes: durVal, questions: [] };
-
-                currentSubjectKey = key;
-                saveQuizBanksToStorage();
-                populateSubjectSelects();
-                switchTeacherTab('soal');
-            });
-        }
-
-        function saveSubjectDuration() {
-            const selectEl = document.getElementById("admin-soal-subject-select");
-            const key = selectEl ? selectEl.value : currentSubjectKey;
-            const durationVal = parseInt(document.getElementById("input-soal-duration").value) || 15;
-
-            if (DEFAULT_QUIZ_BANKS[key]) {
-                DEFAULT_QUIZ_BANKS[key].durationMinutes = durationVal;
-                saveQuizBanksToStorage();
-                populateSubjectSelects();
+            // Inisialisasi koneksi WebRTC ke room mata pelajaran terpilih
+            if (currentRole === 'student') {
+                initStudentPeerClient(getPeerRoomIdForSubject(currentSubjectKey));
             }
         }
 
@@ -1995,6 +2059,9 @@
 
             const durationMin = bank.durationMinutes || 15;
             timeRemaining = durationMin * 60;
+
+            // Hubungkan WebRTC HP Siswa ke Laptop Proktor Guru secara langsung saat mulai ujian
+            initStudentPeerClient(getPeerRoomIdForSubject(currentSubjectKey));
 
             document.getElementById("view-student-login").classList.add("hidden");
             document.getElementById("view-student-result").classList.add("hidden");
