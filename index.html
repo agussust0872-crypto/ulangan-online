@@ -11,6 +11,9 @@
     <!-- FontAwesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
+    <!-- QRCode JS Library (Client-side Generator) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
     <!-- Google Fonts: Plus Jakarta Sans -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -362,13 +365,13 @@
 
             <div class="bg-gradient-to-br from-indigo-50 to-slate-50 p-6 sm:p-8 rounded-3xl border border-indigo-100 max-w-md mx-auto shadow-inner space-y-4">
                 <div class="bg-white p-4 rounded-3xl shadow-xl border border-slate-200 inline-block">
-                    <img id="projector-qr-img" src="" alt="QR Code Ujian" class="w-60 h-60 sm:w-72 sm:h-72 object-contain mx-auto rounded-2xl">
+                    <div id="projector-qr-container" class="w-60 h-60 sm:w-72 sm:h-72 flex items-center justify-center mx-auto"></div>
                 </div>
                 <div>
                     <span class="text-xs font-bold text-slate-500 block mb-1">Tautan Ujian Langsung:</span>
                     <div class="flex items-center justify-center gap-2">
-                        <span class="text-xs font-mono font-bold text-indigo-700 bg-white px-3 py-1.5 rounded-xl border border-slate-200 break-all" id="projector-url-text">https://...</span>
-                        <button onclick="copyExamUrl()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1 shadow-sm">
+                        <span class="text-xs font-mono font-bold text-indigo-700 bg-white px-3 py-1.5 rounded-xl border border-slate-200 break-all max-w-[280px] truncate" id="projector-url-text">https://...</span>
+                        <button onclick="copyExamUrl()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1 shadow-sm shrink-0">
                             <i class="fa-regular fa-copy"></i>
                             <span>Salin</span>
                         </button>
@@ -1501,19 +1504,51 @@
             };
 
             const baseUrl = window.location.href.split('?')[0].split('#')[0];
-            const qdataEnc = encodeURIComponent(JSON.stringify(compactBank));
-            const qrUrl = `${baseUrl}?mapel=${encodeURIComponent(key)}&qdata=${qdataEnc}`;
+            const qdataJson = JSON.stringify(compactBank);
+            let qrUrl = `${baseUrl}?mapel=${encodeURIComponent(key)}`;
             
-            const imgEl = document.getElementById("projector-qr-img");
+            // Masukkan data soal ke URL jika ukuran wajar agar QR tidak terlalu padat
+            if (qdataJson.length < 1800) {
+                qrUrl += `&qdata=${encodeURIComponent(qdataJson)}`;
+            }
+
+            const container = document.getElementById("projector-qr-container");
             const textEl = document.getElementById("projector-url-text");
 
-            if (imgEl) imgEl.src = `https://api.qrserver.com/v1/create-qr-code/?size=350x350&data=${encodeURIComponent(qrUrl)}`;
-            if (textEl) textEl.textContent = qrUrl.length > 50 ? qrUrl.substring(0, 48) + "..." : qrUrl;
+            if (container) {
+                container.innerHTML = "";
+                try {
+                    new QRCode(container, {
+                        text: qrUrl,
+                        width: 250,
+                        height: 250,
+                        colorDark: "#1e1b4b",
+                        colorLight: "#ffffff",
+                        correctLevel: QRCode.CorrectLevel.L
+                    });
+                } catch (err) {
+                    // Fallback URL ringkas jika data soal sangat besar
+                    const simpleUrl = `${baseUrl}?mapel=${encodeURIComponent(key)}`;
+                    new QRCode(container, {
+                        text: simpleUrl,
+                        width: 250,
+                        height: 250,
+                        colorDark: "#1e1b4b",
+                        colorLight: "#ffffff",
+                        correctLevel: QRCode.CorrectLevel.L
+                    });
+                }
+            }
+
+            if (textEl) {
+                textEl.textContent = qrUrl;
+                textEl.setAttribute("data-full-url", qrUrl);
+            }
         }
 
         function copyExamUrl() {
             const textEl = document.getElementById("projector-url-text");
-            const fullUrl = textEl ? textEl.textContent : window.location.href;
+            const fullUrl = textEl ? (textEl.getAttribute("data-full-url") || textEl.textContent) : window.location.href;
 
             const tempInput = document.createElement("textarea");
             tempInput.value = fullUrl;
