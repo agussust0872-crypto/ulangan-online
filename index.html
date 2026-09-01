@@ -157,6 +157,10 @@
                     <i class="fa-solid fa-mobile-screen"></i>
                     <span>Tampilan Siswa</span>
                 </button>
+                <button onclick="logoutTeacher()" class="bg-rose-600 hover:bg-rose-700 text-white px-3.5 py-2.5 rounded-2xl text-xs font-bold transition flex items-center gap-1.5 shadow-md">
+                    <i class="fa-solid fa-right-from-bracket"></i>
+                    <span>Keluar Guru</span>
+                </button>
             </div>
         </div>
 
@@ -1096,7 +1100,8 @@
         }
 
         function openPinModal() {
-            if (isTeacherAuthenticated) {
+            if (isTeacherAuthenticated || sessionStorage.getItem("cbt_teacher_logged_in") === "true") {
+                isTeacherAuthenticated = true;
                 switchMainRole('teacher');
                 return;
             }
@@ -1108,6 +1113,13 @@
 
         function closePinModal() {
             document.getElementById("modal-teacher-pin")?.classList.add("hidden");
+        }
+
+        function logoutTeacher() {
+            isTeacherAuthenticated = false;
+            sessionStorage.removeItem("cbt_teacher_logged_in");
+            switchMainRole('student');
+            showCustomDialog("Sesi Berakhir", "Anda telah keluar dari Panel Guru.", null, true);
         }
 
         function resetTeacherPinToDefault() {
@@ -1123,12 +1135,13 @@
             const enteredPin = document.getElementById("input-teacher-pin")?.value.trim();
             
             // Allow default 1234 or "stemga" or stored teacherPin
-            if (enteredPin === teacherPin || enteredPin === "1234" || enteredPin.toLowerCase() === "stemga") {
+            if (enteredPin === teacherPin || enteredPin === "1234" || enteredPin?.toLowerCase() === "stemga") {
                 isTeacherAuthenticated = true;
+                sessionStorage.setItem("cbt_teacher_logged_in", "true");
                 closePinModal();
                 switchMainRole('teacher');
             } else {
-                showCustomDialog("PIN Salah", "PIN yang Anda masukkan salah. Klik 'Reset PIN ke 1234' jika Anda lupa.", null, true);
+                showCustomDialog("PIN Salah", "PIN yang Anda masukkan salah. Gunakan PIN default <b>1234</b> atau 'stemga'.", null, true);
             }
         }
 
@@ -1138,10 +1151,11 @@
             const studentView = document.getElementById("view-student-container");
 
             if (role === 'teacher') {
-                if (!isTeacherAuthenticated) {
+                if (!isTeacherAuthenticated && sessionStorage.getItem("cbt_teacher_logged_in") !== "true") {
                     openPinModal();
                     return;
                 }
+                isTeacherAuthenticated = true;
                 teacherView?.classList.remove("hidden");
                 studentView?.classList.add("hidden");
                 initTeacherPeerServer();
@@ -2597,6 +2611,17 @@
         function showCheatToast() {
             const toast = document.getElementById("toast-cheat");
             const countSpan = document.getElementById("toast-cheat-count");
+            if (toast && countSpan) {
+                countSpan.textContent = antiCheatViolations;
+                toast.classList.remove("hidden");
+            }
+        }
+
+        function dismissCheatToast() {
+            const toast = document.getElementById("toast-cheat");
+            if (toast) toast.classList.add("hidden");
+        }
+
         async function finalizeExamSubmit(isAutoTimeout = false) {
             closeSubmitConfirmModal();
             toggleQuestionGridModal(false);
