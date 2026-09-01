@@ -14,6 +14,9 @@
     <!-- QRCode JS Library (Client-side Generator) -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 
+    <!-- PeerJS for Multi-Device Realtime WebRTC Sync -->
+    <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
+
     <!-- Google Fonts: Plus Jakarta Sans -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -71,7 +74,7 @@
 </head>
 <body class="bg-slate-100 text-slate-800 min-h-screen flex flex-col justify-between antialiased selection:bg-indigo-500 selection:text-white">
 
-    <!-- TOP NAVIGATION BAR: PROCTOR ACCESS ON LAPTOP -->
+    <!-- TOP NAVIGATION BAR -->
     <header class="no-print bg-slate-900 text-white sticky top-0 z-40 shadow-lg border-b border-slate-800">
         <div class="max-w-7xl mx-auto px-4 py-2.5 flex items-center justify-between gap-3">
             <div class="flex items-center space-x-3 cursor-pointer select-none" onclick="triggerProctorPinAccess()">
@@ -83,11 +86,11 @@
                         <h1 class="font-extrabold text-sm sm:text-base leading-none">CBT STemga Informatika</h1>
                         <span class="bg-indigo-500/20 text-indigo-300 text-[10px] px-2 py-0.5 rounded-full font-bold border border-indigo-500/30">Official</span>
                     </div>
-                    <p class="text-[11px] text-slate-400">Sistem Ujian Online</p>
+                    <p class="text-[11px] text-slate-400">Sistem Ujian Online Multi-Device</p>
                 </div>
             </div>
 
-            <!-- Dashboard Guru Button - Protected by PIN -->
+            <!-- Dashboard Guru Button -->
             <div class="flex items-center gap-2">
                 <button id="btn-mode-teacher" onclick="openPinModal()" class="px-3.5 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700 text-xs font-bold transition flex items-center gap-2 shadow-sm">
                     <i class="fa-solid fa-user-shield text-indigo-400"></i>
@@ -97,9 +100,7 @@
         </div>
     </header>
 
-    <!-- ========================================================================= -->
-    <!-- 1. DASHBOARD GURU / PROKTOR (LAPTOP GURU)                                 -->
-    <!-- ========================================================================= -->
+    <!-- 1. DASHBOARD GURU / PROKTOR -->
     <div id="view-teacher-dashboard" class="hidden max-w-7xl w-full mx-auto p-4 sm:p-6 flex-grow space-y-6">
         
         <div class="no-print bg-gradient-to-r from-indigo-700 via-indigo-800 to-slate-900 rounded-3xl p-6 text-white shadow-xl flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
@@ -151,7 +152,7 @@
             </button>
         </div>
 
-        <!-- TAB 1: REKAP SISWA -->
+        <!-- TAB 1: REKAP SISWA & LIVE MONITORING -->
         <div id="ttab-rekap" class="space-y-5">
             <div class="no-print grid grid-cols-2 md:grid-cols-4 gap-4">
                 <div class="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm space-y-1">
@@ -188,7 +189,7 @@
                 </div>
             </div>
 
-            <!-- PANEL PEMANTAUAN SISWA REAL-TIME (LIVE MONITORING) -->
+            <!-- PANEL PEMANTAUAN SISWA REAL-TIME -->
             <div class="bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 rounded-3xl p-5 text-white shadow-xl space-y-4 border border-indigo-900/50">
                 <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 border-b border-slate-800 pb-3">
                     <div class="flex items-center gap-2.5">
@@ -201,17 +202,17 @@
                             <span id="live-active-counter">0</span> Aktif
                         </span>
                     </div>
-                    <p class="text-xs text-slate-400">Pantau progres, waktu tersisa, dan kecurangan siswa secara langsung.</p>
+                    <p class="text-xs text-slate-400">Pantau progres, waktu tersisa, dan kecurangan siswa secara langsung dari HP mereka.</p>
                 </div>
 
                 <div id="active-students-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-                    <!-- Live Cards active students rendered by JS -->
+                    <!-- Live Cards active students -->
                 </div>
 
                 <div id="active-students-empty" class="text-center py-8 text-slate-400 text-xs space-y-1">
                     <i class="fa-solid fa-wifi text-2xl text-slate-600 block mb-1"></i>
                     <p class="font-bold text-slate-300">Belum ada siswa yang sedang mengerjakan ujian saat ini.</p>
-                    <p class="text-[11px] text-slate-500">Siswa yang membuka ujian di HP akan otomatis terpantau di sini secara real-time.</p>
+                    <p class="text-[11px] text-slate-500">Siswa yang membuka ujian di HP akan otomatis terpantau di sini secara real-time via WebRTC/PeerJS.</p>
                 </div>
             </div>
 
@@ -392,7 +393,6 @@
 
             <div class="bg-gradient-to-br from-indigo-50 to-slate-50 p-6 sm:p-8 rounded-3xl border border-indigo-100 max-w-md mx-auto shadow-inner space-y-4">
                 <div class="bg-white p-4 rounded-3xl shadow-xl border border-slate-200 inline-block">
-                    <!-- Container for QRCode.js canvas/img rendering -->
                     <div id="projector-qr-container" class="w-60 h-60 sm:w-72 sm:h-72 flex items-center justify-center mx-auto"></div>
                 </div>
                 <div>
@@ -451,9 +451,7 @@
 
     </div>
 
-    <!-- ========================================================================= -->
-    <!-- 2. LAYAR SISWA SMARTPHONE / HP                                           -->
-    <!-- ========================================================================= -->
+    <!-- 2. LAYAR SISWA SMARTPHONE / HP -->
     <div id="view-student-container" class="w-full flex-grow flex flex-col justify-between">
         
         <header class="bg-indigo-600 text-white shadow-md sticky top-[53px] z-30">
@@ -475,7 +473,6 @@
             <!-- FORM LOGIN SISWA -->
             <section id="view-student-login" class="space-y-4">
                 
-                <!-- NOTIFIKASI HASIL SCAN QR CODE -->
                 <div id="student-qr-notice" class="hidden bg-emerald-500 text-white p-3.5 rounded-2xl shadow-md border border-emerald-400 flex items-center gap-3">
                     <div class="w-8 h-8 rounded-xl bg-white/20 flex items-center justify-center shrink-0">
                         <i class="fa-solid fa-qrcode text-lg"></i>
@@ -643,8 +640,6 @@
     </div>
 
     <!-- MODALS SECTION -->
-
-    <!-- MODAL 1: BULK IMPORT -->
     <div id="modal-bulk-import" class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
         <div class="bg-white w-full max-w-2xl rounded-3xl p-6 space-y-4 max-h-[90vh] flex flex-col shadow-2xl">
             <div class="flex items-center justify-between border-b border-slate-100 pb-3">
@@ -685,7 +680,6 @@
         </div>
     </div>
 
-    <!-- MODAL 2: NAVIGASI SOAL -->
     <div id="modal-grid" class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4">
         <div class="bg-white w-full max-w-md rounded-t-3xl sm:rounded-3xl p-5 space-y-4 max-h-[85vh] flex flex-col shadow-2xl">
             <div class="flex items-center justify-between border-b border-slate-100 pb-3">
@@ -713,7 +707,6 @@
         </div>
     </div>
 
-    <!-- MODAL 3: CONFIRM SUBMIT -->
     <div id="modal-confirm-submit" class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
         <div class="bg-white w-full max-w-sm rounded-3xl p-5 space-y-4 shadow-2xl text-center">
             <div class="w-12 h-12 bg-amber-50 text-amber-600 rounded-2xl flex items-center justify-center mx-auto text-xl">
@@ -730,7 +723,6 @@
         </div>
     </div>
 
-    <!-- MODAL 4: PEMBAHASAN -->
     <div id="modal-review" class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
         <div class="bg-white w-full max-w-md rounded-3xl p-5 space-y-4 max-h-[90vh] flex flex-col shadow-2xl">
             <div class="flex items-center justify-between border-b border-slate-100 pb-3">
@@ -751,7 +743,6 @@
         </div>
     </div>
 
-    <!-- MODAL 5: CUSTOM DIALOG NOTIFIKASI -->
     <div id="modal-custom-dialog" class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
         <div class="bg-white w-full max-w-sm rounded-3xl p-5 space-y-3.5 shadow-2xl text-center">
             <div id="dialog-icon-container" class="w-12 h-12 bg-indigo-50 text-indigo-600 rounded-2xl flex items-center justify-center mx-auto text-xl">
@@ -768,7 +759,6 @@
         </div>
     </div>
 
-    <!-- MODAL 6: PIN SECURITY FOR TEACHER -->
     <div id="modal-teacher-pin" class="hidden fixed inset-0 z-50 bg-slate-900/70 backdrop-blur-md flex items-center justify-center p-4">
         <div class="bg-white w-full max-w-sm rounded-3xl p-6 space-y-4 shadow-2xl text-center">
             <div class="w-14 h-14 bg-indigo-100 text-indigo-600 rounded-3xl flex items-center justify-center mx-auto text-2xl shadow-inner">
@@ -794,7 +784,6 @@
         </div>
     </div>
 
-    <!-- TOAST CHEAT WARNING -->
     <div id="toast-cheat" class="hidden fixed top-16 left-1/2 -translate-x-1/2 z-50 w-[90%] max-w-md bg-rose-600 text-white p-3.5 rounded-2xl shadow-xl flex items-center justify-between gap-3 text-xs border border-rose-400 transition-all duration-300">
         <div class="flex items-center gap-2.5">
             <i class="fa-solid fa-triangle-exclamation text-lg text-amber-300"></i>
@@ -812,13 +801,19 @@
         &copy; CBT STemga Informatika Multi-Device - Laptop Guru & HP Siswa
     </footer>
 
-    <!-- JAVASCRIPT LOGIC -->
     <script>
-        // BroadcastChannel & Storage Sync for cross-tab or single browser sync
+        // BroadcastChannel, LocalStorage Sync & PeerJS WebRTC for Multi-Device Realtime Sync
         let cbtChannel = null;
-        let activeStudentsMap = {}; // Real-time active student sessions
+        let activeStudentsMap = {};
         let currentSessionId = null;
         let heartbeatInterval = null;
+
+        // PeerJS Instance variables
+        let teacherPeer = null;
+        let studentPeer = null;
+        let peerConns = {}; // Stores active Peer connections on Teacher side
+        let studentConnToTeacher = null; // Single active Peer connection on Student side
+        let roomCode = null;
 
         if ('BroadcastChannel' in window) {
             cbtChannel = new BroadcastChannel('cbt_stemga_channel');
@@ -917,12 +912,86 @@
             renderActiveStudentsLive();
             setupProjectorQr();
 
-            // Interval pembersih siswa inaktif (jika siswa menutup tab tanpa submit > 15 detik)
+            // Interval pembersih siswa inaktif
             setInterval(cleanUpInactiveStudents, 4000);
 
             // Default ke Layar Siswa HP
             switchMainRole('student');
         };
+
+        function initTeacherPeerServer() {
+            if (teacherPeer) return;
+            const peerRoomId = getPeerRoomIdForSubject(currentSubjectKey);
+            
+            try {
+                teacherPeer = new Peer(peerRoomId);
+                
+                teacherPeer.on('open', (id) => {
+                    console.log("Teacher Proctor Peer Live Room:", id);
+                });
+
+                teacherPeer.on('connection', (conn) => {
+                    conn.on('data', (data) => {
+                        if (data && data.type === 'ACTIVE_STUDENT_HEARTBEAT') {
+                            peerConns[data.payload.sessionId] = conn;
+                            handleIncomingHeartbeat(data.payload);
+                        } else if (data && data.type === 'NEW_EXAM_RESULT') {
+                            if (data.payload) {
+                                const exists = examResultsLog.some(l => l.id === data.payload.id);
+                                if (!exists) {
+                                    examResultsLog.unshift(data.payload);
+                                    saveExamLogsToStorage();
+                                    renderStudentResultsRekap();
+                                }
+                            }
+                        }
+                    });
+
+                    conn.on('close', () => {
+                        // Handle peer disconnect if needed
+                    });
+                });
+
+                teacherPeer.on('error', (err) => {
+                    console.warn("PeerJS Teacher Notice:", err);
+                });
+            } catch (err) {
+                console.error("PeerJS Init Error", err);
+            }
+        }
+
+        function initStudentPeerClient(targetRoomId) {
+            if (!targetRoomId) return;
+            try {
+                if (studentPeer) studentPeer.destroy();
+                studentPeer = new Peer();
+
+                studentPeer.on('open', (id) => {
+                    studentConnToTeacher = studentPeer.connect(targetRoomId);
+
+                    studentConnToTeacher.on('open', () => {
+                        console.log("Connected to Teacher Room:", targetRoomId);
+                        if (isExamActive) sendStudentHeartbeat();
+                    });
+
+                    studentConnToTeacher.on('data', (data) => {
+                        if (data && data.type === 'FORCE_SUBMIT_STUDENT') {
+                            if (isExamActive && currentSessionId === data.sessionId) {
+                                showCustomDialog("Dihentikan oleh Guru", "Ujian Anda telah dikumpulkan secara langsung oleh Guru/Proktor.", () => {
+                                    finalizeExamSubmit(false);
+                                }, true);
+                            }
+                        }
+                    });
+                });
+            } catch (err) {
+                console.error("Student Peer Connection Error", err);
+            }
+        }
+
+        function getPeerRoomIdForSubject(subjectKey) {
+            return `cbt_stemga_room_${subjectKey.replace(/[^a-zA-Z0-9]/g, '_')}`;
+        }
 
         function loadActiveStudentsFromStorage() {
             try {
@@ -960,7 +1029,7 @@
             let changed = false;
             Object.keys(activeStudentsMap).forEach(sId => {
                 const student = activeStudentsMap[sId];
-                if (now - (student.lastSeen || 0) > 15000) { // 15 detik tidak bereaksi
+                if (now - (student.lastSeen || 0) > 15000) {
                     delete activeStudentsMap[sId];
                     changed = true;
                 }
@@ -1046,12 +1115,23 @@
 
         function teacherForceSubmitStudent(sessionId) {
             showCustomDialog("Paksa Kumpulkan Ujian?", "Langkah ini akan langsung menyelesaikan dan mengumpulkan ujian siswa yang bersangkutan.", () => {
+                // Send via BroadcastChannel
                 if (cbtChannel) {
                     cbtChannel.postMessage({
                         type: 'FORCE_SUBMIT_STUDENT',
                         sessionId: sessionId
                     });
                 }
+                // Send via WebRTC PeerJS connection
+                if (peerConns[sessionId]) {
+                    try {
+                        peerConns[sessionId].send({
+                            type: 'FORCE_SUBMIT_STUDENT',
+                            sessionId: sessionId
+                        });
+                    } catch(e) { console.error(e); }
+                }
+
                 if (activeStudentsMap[sessionId]) {
                     delete activeStudentsMap[sessionId];
                     saveActiveStudentsToStorage();
@@ -1092,11 +1172,22 @@
                 violations: antiCheatViolations
             };
 
+            // 1. BroadcastChannel local
             if (cbtChannel) {
                 cbtChannel.postMessage({
                     type: 'ACTIVE_STUDENT_HEARTBEAT',
                     payload: payload
                 });
+            }
+
+            // 2. PeerJS WebRTC multi-device
+            if (studentConnToTeacher && studentConnToTeacher.open) {
+                try {
+                    studentConnToTeacher.send({
+                        type: 'ACTIVE_STUDENT_HEARTBEAT',
+                        payload: payload
+                    });
+                } catch(e) { console.error(e); }
             }
 
             handleIncomingHeartbeat(payload);
@@ -1118,11 +1209,15 @@
                 }
                 teacherView.classList.remove("hidden");
                 studentView.classList.add("hidden");
+                initTeacherPeerServer();
                 renderStudentResultsRekap();
                 setupProjectorQr();
             } else {
                 teacherView.classList.add("hidden");
                 studentView.classList.remove("hidden");
+                if (roomCode) {
+                    initStudentPeerClient(roomCode);
+                }
             }
         }
 
@@ -1255,6 +1350,12 @@
                 const urlParams = new URLSearchParams(window.location.search);
                 const mapelParam = urlParams.get('mapel');
                 const qdataParam = urlParams.get('qdata');
+                const roomParam = urlParams.get('room');
+
+                if (roomParam) {
+                    roomCode = roomParam;
+                    initStudentPeerClient(roomCode);
+                }
 
                 if (qdataParam) {
                     try {
@@ -1605,8 +1706,6 @@
             document.getElementById("stat-total-students-laptop").textContent = totalStudents;
             document.getElementById("badge-total-students").textContent = totalStudents;
             document.getElementById("stat-avg-score-laptop").textContent = avgScore;
-            document.getElementById("stat-pass-rate-laptop").textContent = `${passRate}%`;
-            document.getElementById("stat-pass-count").textContent = passedStudents;
             document.getElementById("stat-total-violations").textContent = totalViolations;
             document.getElementById("display-kkm-target").textContent = globalKkmTarget;
 
@@ -1715,12 +1814,12 @@
             updateProjectorQrForSubject(key);
         }
 
-        // DOUBLE-ENGINE BULLETPROOF QR CODE GENERATOR
         function updateProjectorQrForSubject(key) {
             const bank = DEFAULT_QUIZ_BANKS[key];
             if (!bank) return;
 
             const baseUrl = window.location.href.split('?')[0].split('#')[0];
+            const roomPeerId = getPeerRoomIdForSubject(key);
             
             const compactBank = {
                 title: bank.title,
@@ -1735,9 +1834,8 @@
             };
 
             const qdataJson = JSON.stringify(compactBank);
-            let qrUrl = `${baseUrl}?mapel=${encodeURIComponent(key)}`;
+            let qrUrl = `${baseUrl}?mapel=${encodeURIComponent(key)}&room=${encodeURIComponent(roomPeerId)}`;
             
-            // Sertakan qdata hanya jika ukurannya aman (< 350 karakter) agar QR Code tidak terlalu padat
             if (qdataJson.length < 350) {
                 qrUrl += `&qdata=${encodeURIComponent(qdataJson)}`;
             }
@@ -1755,7 +1853,6 @@
 
             let qrRendered = false;
 
-            // Engine 1: QRCode.js Client Library
             if (typeof QRCode !== 'undefined') {
                 try {
                     new QRCode(container, {
@@ -1773,7 +1870,6 @@
                 }
             }
 
-            // Engine 2: QuickChart Fallback
             if (!qrRendered) {
                 const img = document.createElement("img");
                 img.src = `https://quickchart.io/qr?size=300&text=${encodeURIComponent(qrUrl)}`;
@@ -1913,12 +2009,226 @@
             startStudentHeartbeat();
         }
 
+        function initAntiCheatListener() {
+            document.addEventListener("visibilitychange", () => {
+                if (isExamActive && antiCheatConfig === "enabled") {
+                    if (document.visibilityState === "hidden") {
+                        antiCheatViolations++;
+                        showCheatToast();
+                    }
+                }
+            });
+
+            window.addEventListener("blur", () => {
+                if (isExamActive && antiCheatConfig === "enabled") {
+                    antiCheatViolations++;
+                    showCheatToast();
+                }
+            });
+        }
+
+        function renderQuestion() {
+            if (!currentQuestions || currentQuestions.length === 0) return;
+            const q = currentQuestions[currentQuestionIndex];
+            if (!q) return;
+
+            document.getElementById("q-number-title").textContent = currentQuestionIndex + 1;
+            document.getElementById("exam-q-current-badge").textContent = currentQuestionIndex + 1;
+            document.getElementById("question-text").textContent = q.question;
+
+            const optionsContainer = document.getElementById("options-container");
+            optionsContainer.innerHTML = "";
+            const labels = ["A", "B", "C", "D"];
+
+            q.options.forEach((optText, optIdx) => {
+                const isSelected = userAnswers[q.id] === optIdx;
+                const btn = document.createElement("button");
+                btn.type = "button";
+                btn.onclick = () => selectOption(optIdx);
+                btn.className = `w-full text-left p-3.5 rounded-2xl border transition flex items-center gap-3 text-xs sm:text-sm font-medium ${
+                    isSelected 
+                    ? 'bg-indigo-50 border-indigo-600 text-indigo-900 ring-2 ring-indigo-500/20 font-bold' 
+                    : 'bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100'
+                }`;
+
+                btn.innerHTML = `
+                    <span class="w-7 h-7 rounded-xl flex items-center justify-center font-bold text-xs shrink-0 ${
+                        isSelected ? 'bg-indigo-600 text-white' : 'bg-slate-200 text-slate-600'
+                    }">${labels[optIdx]}</span>
+                    <span class="flex-1 leading-snug">${optText}</span>
+                `;
+                optionsContainer.appendChild(btn);
+            });
+
+            const isFlagged = !!flaggedQuestions[q.id];
+            const flagIcon = document.getElementById("flag-icon");
+            const flagText = document.getElementById("flag-text");
+            const flagBtnLabel = document.getElementById("flag-btn-label");
+
+            if (isFlagged) {
+                if (flagIcon) flagIcon.className = "fa-solid fa-bookmark text-amber-500";
+                if (flagText) flagText.textContent = "Ragu-ragu";
+                if (flagBtnLabel) flagBtnLabel.textContent = "Batal Ragu";
+            } else {
+                if (flagIcon) flagIcon.className = "fa-regular fa-bookmark text-slate-400";
+                if (flagText) flagText.textContent = "Tandai Ragu";
+                if (flagBtnLabel) flagBtnLabel.textContent = "Ragu";
+            }
+
+            const prevBtn = document.getElementById("btn-prev-q");
+            if (prevBtn) prevBtn.disabled = (currentQuestionIndex === 0);
+
+            const nextText = document.getElementById("btn-next-text");
+            const nextIcon = document.getElementById("btn-next-icon");
+            if (currentQuestionIndex === currentQuestions.length - 1) {
+                if (nextText) nextText.textContent = "Selesai";
+                if (nextIcon) nextIcon.className = "fa-solid fa-check-double";
+            } else {
+                if (nextText) nextText.textContent = "Selanjutnya";
+                if (nextIcon) nextIcon.className = "fa-solid fa-arrow-right";
+            }
+        }
+
         function selectOption(index) {
             const q = currentQuestions[currentQuestionIndex];
             userAnswers[q.id] = index;
             renderQuestion();
             updateProgressBar();
             sendStudentHeartbeat();
+        }
+
+        function navigateQuestion(step) {
+            const newIdx = currentQuestionIndex + step;
+            if (newIdx >= 0 && newIdx < currentQuestions.length) {
+                currentQuestionIndex = newIdx;
+                renderQuestion();
+                updateProgressBar();
+                sendStudentHeartbeat();
+            }
+        }
+
+        function handleNextOrFinish() {
+            if (currentQuestionIndex === currentQuestions.length - 1) {
+                confirmSubmitExam();
+            } else {
+                navigateQuestion(1);
+            }
+        }
+
+        function toggleFlagCurrentQuestion() {
+            if (!currentQuestions || currentQuestions.length === 0) return;
+            const q = currentQuestions[currentQuestionIndex];
+            if (!q) return;
+
+            flaggedQuestions[q.id] = !flaggedQuestions[q.id];
+            renderQuestion();
+        }
+
+        function updateProgressBar() {
+            if (!currentQuestions || currentQuestions.length === 0) return;
+            const pct = Math.round(((currentQuestionIndex + 1) / currentQuestions.length) * 100);
+            const fill = document.getElementById("exam-progress-fill");
+            if (fill) fill.style.width = `${pct}%`;
+        }
+
+        function startTimer() {
+            if (timerInterval) clearInterval(timerInterval);
+            updateTimerDisplay();
+
+            timerInterval = setInterval(() => {
+                if (timeRemaining > 0) {
+                    timeRemaining--;
+                    updateTimerDisplay();
+                } else {
+                    clearInterval(timerInterval);
+                    finalizeExamSubmit(true);
+                }
+            }, 1000);
+        }
+
+        function updateTimerDisplay() {
+            const minutes = Math.floor(timeRemaining / 60);
+            const seconds = timeRemaining % 60;
+            const formatted = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+            
+            const timerText = document.getElementById("exam-timer-text");
+            const timerBox = document.getElementById("exam-timer-box");
+            if (timerText) timerText.textContent = formatted;
+
+            if (timeRemaining <= 180) {
+                if (timerBox) timerBox.className = "px-3 py-1.5 rounded-xl border border-rose-300 bg-rose-50 flex items-center gap-2 font-mono font-bold text-xs text-rose-600 time-warning";
+            } else {
+                if (timerBox) timerBox.className = "px-3 py-1.5 rounded-xl border border-slate-200 bg-slate-50 flex items-center gap-2 font-mono font-bold text-xs text-slate-700";
+            }
+        }
+
+        function toggleQuestionGridModal(forceState) {
+            const modal = document.getElementById("modal-grid");
+            if (!modal) return;
+
+            const isHidden = forceState !== undefined ? !forceState : modal.classList.contains("hidden");
+            if (isHidden) {
+                renderGridNumbers();
+                modal.classList.remove("hidden");
+            } else {
+                modal.classList.add("hidden");
+            }
+        }
+
+        function renderGridNumbers() {
+            const container = document.getElementById("grid-numbers-container");
+            if (!container || !currentQuestions) return;
+            container.innerHTML = "";
+
+            currentQuestions.forEach((q, idx) => {
+                const isAnswered = userAnswers[q.id] !== undefined;
+                const isFlagged = !!flaggedQuestions[q.id];
+                const isCurrent = idx === currentQuestionIndex;
+
+                let bgClass = "bg-slate-100 text-slate-700 border-slate-200";
+                if (isFlagged) {
+                    bgClass = "bg-amber-400 text-slate-900 border-amber-500 font-extrabold";
+                } else if (isAnswered) {
+                    bgClass = "bg-indigo-600 text-white border-indigo-700 font-extrabold";
+                }
+
+                const btn = document.createElement("button");
+                btn.type = "button";
+                btn.onclick = () => {
+                    currentQuestionIndex = idx;
+                    renderQuestion();
+                    updateProgressBar();
+                    toggleQuestionGridModal(false);
+                    sendStudentHeartbeat();
+                };
+                btn.className = `py-2.5 rounded-xl text-xs border font-bold transition flex items-center justify-center relative ${bgClass} ${
+                    isCurrent ? 'ring-2 ring-indigo-500 ring-offset-1' : ''
+                }`;
+                btn.textContent = idx + 1;
+
+                container.appendChild(btn);
+            });
+        }
+
+        function confirmSubmitExam() {
+            const totalQ = currentQuestions.length;
+            const answeredCount = Object.keys(userAnswers).length;
+            const emptyCount = totalQ - answeredCount;
+
+            const descEl = document.getElementById("confirm-submit-desc");
+            if (descEl) {
+                if (emptyCount > 0) {
+                    descEl.innerHTML = `Masih ada <b class="text-rose-600">${emptyCount} soal</b> yang belum diisi. Yakin ingin mengumpulkan?`;
+                } else {
+                    descEl.textContent = "Semua soal telah terisi. Yakin ingin mengumpulkan ujian sekarang?";
+                }
+            }
+
+            document.getElementById("modal-confirm-submit")?.classList.remove("hidden");
+        }
+
+        function closeSubmitConfirmModal() {
+            document.getElementById("modal-confirm-submit")?.classList.add("hidden");
         }
 
         function showCheatToast() {
@@ -1930,6 +2240,10 @@
                 setTimeout(() => { toast.classList.add("hidden"); }, 5000);
             }
             sendStudentHeartbeat();
+        }
+
+        function dismissCheatToast() {
+            document.getElementById("toast-cheat")?.classList.add("hidden");
         }
 
         function finalizeExamSubmit(isAutoTimeout = false) {
@@ -1983,6 +2297,16 @@
             examResultsLog.unshift(newLog);
             saveExamLogsToStorage();
             renderStudentResultsRekap();
+
+            // Notify Teacher via WebRTC
+            if (studentConnToTeacher && studentConnToTeacher.open) {
+                try {
+                    studentConnToTeacher.send({
+                        type: 'NEW_EXAM_RESULT',
+                        payload: newLog
+                    });
+                } catch(e) { console.error(e); }
+            }
 
             document.getElementById("result-score").textContent = finalScore;
             document.getElementById("res-correct").textContent = correctCount;
