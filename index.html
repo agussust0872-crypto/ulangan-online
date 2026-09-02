@@ -868,35 +868,10 @@
             }
         };
 
-        let DEFAULT_QUIZ_BANKS = {
-            "informatika": {
-                title: "Informatika & Berpikir Komputasional",
-                durationMinutes: 15,
-                questions: [
-                    {
-                        id: 101,
-                        question: "Empat pilar utama dalam Berpikir Komputasional (Computational Thinking) yang tepat adalah...",
-                        options: [
-                            "Dekomposisi, Pengenalan Pola, Abstraksi, dan Algoritma",
-                            "Input, Proses, Output, dan Storage",
-                            "Hardware, Software, Brainware, dan Data",
-                            "Coding, Debugging, Testing, dan Deployment"
-                        ],
-                        answer: 0,
-                        explanation: "Berpikir komputasional mencakup 4 pilar dasar: Dekomposisi, Pengenalan Pola, Abstraksi, dan Algoritma."
-                    },
-                    {
-                        id: 102,
-                        question: "Perangkat keras (Hardware) yang berfungsi sebagai pemproses instruksi utama dan dijuluki sebagai 'Otak Komputer' adalah...",
-                        options: ["RAM", "Central Processing Unit (CPU)", "Hard Disk / SSD", "Power Supply Unit"],
-                        answer: 1,
-                        explanation: "CPU (Central Processing Unit) bertugas mengeksekusi perhitungan logika dan instruksi sistem komputer."
-                    }
-                ]
-            }
-        };
+        // Bank Soal Kosong (Soal Bawaan Telah Dihapus)
+        let DEFAULT_QUIZ_BANKS = {};
 
-        let currentSubjectKey = "informatika";
+        let currentSubjectKey = "";
         let currentRole = "student";
         let activeTeacherTab = 'rekap';
         let globalKkmTarget = 75;
@@ -1430,25 +1405,43 @@
 
             if (adminSelect) {
                 adminSelect.innerHTML = "";
-                keys.forEach(k => {
-                    const opt = document.createElement("option");
-                    opt.value = k;
-                    opt.textContent = DEFAULT_QUIZ_BANKS[k].title;
-                    adminSelect.appendChild(opt);
-                });
-                adminSelect.value = currentSubjectKey;
+                if (keys.length === 0) {
+                    adminSelect.innerHTML = `<option value="">-- Belum Ada Mata Pelajaran --</option>`;
+                } else {
+                    keys.forEach(k => {
+                        const opt = document.createElement("option");
+                        opt.value = k;
+                        opt.textContent = DEFAULT_QUIZ_BANKS[k].title;
+                        adminSelect.appendChild(opt);
+                    });
+                    if (DEFAULT_QUIZ_BANKS[currentSubjectKey]) {
+                        adminSelect.value = currentSubjectKey;
+                    } else if (keys.length > 0) {
+                        currentSubjectKey = keys[0];
+                        adminSelect.value = currentSubjectKey;
+                    }
+                }
             }
 
             if (studentSelect) {
                 studentSelect.innerHTML = "";
-                keys.forEach(k => {
-                    const opt = document.createElement("option");
-                    opt.value = k;
-                    opt.textContent = DEFAULT_QUIZ_BANKS[k].title;
-                    studentSelect.appendChild(opt);
-                });
-                if (keys.includes(currentSubjectKey)) {
-                    studentSelect.value = currentSubjectKey;
+                if (keys.length === 0) {
+                    studentSelect.innerHTML = `<option value="">-- Belum Ada Mata Pelajaran --</option>`;
+                } else {
+                    keys.forEach(k => {
+                        const opt = document.createElement("option");
+                        opt.value = k;
+                        const count = DEFAULT_QUIZ_BANKS[k].questions ? DEFAULT_QUIZ_BANKS[k].questions.length : 0;
+                        const dur = DEFAULT_QUIZ_BANKS[k].durationMinutes || 15;
+                        opt.textContent = `${DEFAULT_QUIZ_BANKS[k].title} (${count} Soal - ${dur} Min)`;
+                        studentSelect.appendChild(opt);
+                    });
+                    if (keys.includes(currentSubjectKey)) {
+                        studentSelect.value = currentSubjectKey;
+                    } else if (keys.length > 0) {
+                        currentSubjectKey = keys[0];
+                        studentSelect.value = currentSubjectKey;
+                    }
                 }
                 handleStudentSubjectChange();
             }
@@ -1465,13 +1458,22 @@
 
             if (projectorSelect) {
                 projectorSelect.innerHTML = "";
-                keys.forEach(k => {
-                    const opt = document.createElement("option");
-                    opt.value = k;
-                    opt.textContent = DEFAULT_QUIZ_BANKS[k].title;
-                    projectorSelect.appendChild(opt);
-                });
-                projectorSelect.value = currentSubjectKey;
+                if (keys.length === 0) {
+                    projectorSelect.innerHTML = `<option value="">-- Belum Ada Mata Pelajaran --</option>`;
+                } else {
+                    keys.forEach(k => {
+                        const opt = document.createElement("option");
+                        opt.value = k;
+                        opt.textContent = DEFAULT_QUIZ_BANKS[k].title;
+                        projectorSelect.appendChild(opt);
+                    });
+                    if (DEFAULT_QUIZ_BANKS[currentSubjectKey]) {
+                        projectorSelect.value = currentSubjectKey;
+                    } else if (keys.length > 0) {
+                        currentSubjectKey = keys[0];
+                        projectorSelect.value = currentSubjectKey;
+                    }
+                }
             }
         }
 
@@ -2084,7 +2086,7 @@
 
             let bank = DEFAULT_QUIZ_BANKS[currentSubjectKey];
 
-            // Auto-fallback for questions
+            // Auto-fallback jika mapel aktif tidak ada soal, cari mapel lain yang memiliki soal
             if (!bank || !bank.questions || bank.questions.length === 0) {
                 const availableKeys = Object.keys(DEFAULT_QUIZ_BANKS);
                 for (let k of availableKeys) {
@@ -2097,33 +2099,8 @@
             }
 
             if (!bank || !bank.questions || bank.questions.length === 0) {
-                DEFAULT_QUIZ_BANKS[currentSubjectKey] = {
-                    title: "Ujian CBT STemga",
-                    durationMinutes: 15,
-                    questions: [
-                        {
-                            id: 101,
-                            question: "Empat pilar utama dalam Berpikir Komputasional (Computational Thinking) yang tepat adalah...",
-                            options: [
-                                "Dekomposisi, Pengenalan Pola, Abstraksi, dan Algoritma",
-                                "Input, Proses, Output, dan Storage",
-                                "Hardware, Software, Brainware, dan Data",
-                                "Coding, Debugging, Testing, dan Deployment"
-                            ],
-                            answer: 0,
-                            explanation: "Berpikir komputasional mencakup 4 pilar dasar: Dekomposisi, Pengenalan Pola, Abstraksi, dan Algoritma."
-                        },
-                        {
-                            id: 102,
-                            question: "Perangkat keras (Hardware) yang berfungsi sebagai pemproses instruksi utama dan dijuluki sebagai 'Otak Komputer' adalah...",
-                            options: ["RAM", "Central Processing Unit (CPU)", "Hard Disk / SSD", "Power Supply Unit"],
-                            answer: 1,
-                            explanation: "CPU (Central Processing Unit) bertugas mengeksekusi perhitungan logika dan instruksi sistem komputer."
-                        }
-                    ]
-                };
-                bank = DEFAULT_QUIZ_BANKS[currentSubjectKey];
-                saveQuizBanksToStorage();
+                showCustomDialog("Soal Belum Tersedia", "Mata pelajaran ini belum memiliki soal. Silakan minta Guru/Proktor untuk membuat atau mengimport soal terlebih dahulu.", null, true);
+                return;
             }
 
             function shuffleArray(arr) {
