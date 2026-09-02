@@ -291,6 +291,9 @@
                         </h3>
                         <p class="text-[11px] text-slate-500">Tambah manual atau import sekaligus secara masal.</p>
                     </div>
+                    <button onclick="clearAllQuizBanks()" class="bg-rose-50 hover:bg-rose-100 text-rose-600 text-[10px] font-extrabold px-2.5 py-1 rounded-xl transition border border-rose-200 flex items-center gap-1">
+                        <i class="fa-solid fa-eraser"></i> Hapus Semua Soal
+                    </button>
                 </div>
 
                 <div class="bg-indigo-600 text-white p-3.5 rounded-2xl flex items-center justify-between">
@@ -868,7 +871,7 @@
             }
         };
 
-        // Bank Soal Kosong (Soal Bawaan Telah Dihapus Total)
+        // BANK SOAL DIBUAT BERSIH TANPA SOAL BAWAAN
         let DEFAULT_QUIZ_BANKS = {};
 
         let currentSubjectKey = "";
@@ -1110,19 +1113,27 @@
         // --- LOCAL STORAGE HELPERS ---
         function loadSavedQuizBanks() {
             try {
-                const saved = localStorage.getItem("cbt_stemga_quiz_banks_data");
+                // Purge old default cache keys if present
+                localStorage.removeItem("cbt_stemga_quiz_banks_data");
+                
+                const saved = localStorage.getItem("cbt_stemga_v2_quiz_banks_data");
                 if (saved) {
                     const parsed = JSON.parse(saved);
-                    if (parsed && Object.keys(parsed).length > 0) {
+                    if (parsed && typeof parsed === 'object') {
                         DEFAULT_QUIZ_BANKS = parsed;
                     }
+                } else {
+                    DEFAULT_QUIZ_BANKS = {};
                 }
-            } catch(e) { console.error("Error loading quiz banks", e); }
+            } catch(e) { 
+                console.error("Error loading quiz banks", e); 
+                DEFAULT_QUIZ_BANKS = {};
+            }
         }
 
         function saveQuizBanksToStorage() {
             try {
-                localStorage.setItem("cbt_stemga_quiz_banks_data", JSON.stringify(DEFAULT_QUIZ_BANKS));
+                localStorage.setItem("cbt_stemga_v2_quiz_banks_data", JSON.stringify(DEFAULT_QUIZ_BANKS));
                 if (cbtChannel) {
                     cbtChannel.postMessage({ type: 'QUIZ_BANKS_UPDATED' });
                 }
@@ -1132,6 +1143,19 @@
                     bank: DEFAULT_QUIZ_BANKS[currentSubjectKey]
                 });
             } catch(e) { console.error("Error saving quiz banks", e); }
+        }
+
+        function clearAllQuizBanks() {
+            showCustomDialog("Hapus Semua Bank Soal?", "Seluruh bank soal dan mata pelajaran akan dihapus total secara permanen.", () => {
+                DEFAULT_QUIZ_BANKS = {};
+                localStorage.removeItem("cbt_stemga_v2_quiz_banks_data");
+                localStorage.removeItem("cbt_stemga_quiz_banks_data");
+                currentSubjectKey = "";
+                populateSubjectSelects();
+                loadAdminQuestionsForSubject();
+                setupProjectorQr();
+                showCustomDialog("Bank Soal Dikosongkan", "Seluruh bank soal telah berhasil dihapus secara bersih.", null, true);
+            });
         }
 
         function loadSavedExamLogs() {
@@ -1426,7 +1450,7 @@
             if (studentSelect) {
                 studentSelect.innerHTML = "";
                 if (keys.length === 0) {
-                    studentSelect.innerHTML = `<option value="">-- Belum Ada Mata Pelajaran --</option>`;
+                    studentSelect.innerHTML = `<option value="">-- Belum Ada Mata Pelajaran (Hubungi Guru) --</option>`;
                 } else {
                     keys.forEach(k => {
                         const opt = document.createElement("option");
@@ -1724,6 +1748,7 @@
                     <div class="text-center py-10 text-slate-400 space-y-2">
                         <i class="fa-solid fa-folder-open text-3xl text-slate-300"></i>
                         <p class="font-bold text-slate-600 text-xs">Belum ada soal tersimpan di mapel ini.</p>
+                        <p class="text-[11px] text-slate-400">Silakan tambahkan soal manual di sebelah kiri atau gunakan fitur Import Banyak Soal.</p>
                     </div>
                 `;
                 return;
