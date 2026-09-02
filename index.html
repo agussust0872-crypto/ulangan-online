@@ -868,7 +868,7 @@
             }
         };
 
-        // Bank Soal Kosong (Soal Bawaan Telah Dihapus)
+        // Bank Soal Kosong (Soal Bawaan Telah Dihapus Total)
         let DEFAULT_QUIZ_BANKS = {};
 
         let currentSubjectKey = "";
@@ -1485,17 +1485,17 @@
             const bank = DEFAULT_QUIZ_BANKS[currentSubjectKey];
 
             const headerMapel = document.getElementById("student-header-mapel");
-            if (headerMapel && bank) headerMapel.textContent = bank.title;
+            if (headerMapel) headerMapel.textContent = bank ? bank.title : "Pilih Mata Pelajaran Ujian";
 
             const durationBadge = document.getElementById("student-exam-duration");
-            if (durationBadge && bank) durationBadge.textContent = `${bank.durationMinutes || 15} Menit`;
+            if (durationBadge) durationBadge.textContent = `${bank ? (bank.durationMinutes || 15) : 15} Menit`;
         }
 
         function setupProjectorQr() {
             const projectorSelect = document.getElementById("projector-mapel-select");
             if (projectorSelect && projectorSelect.value) {
                 updateProjectorQrForSubject(projectorSelect.value);
-            } else {
+            } else if (currentSubjectKey) {
                 updateProjectorQrForSubject(currentSubjectKey);
             }
         }
@@ -1714,12 +1714,12 @@
             const container = document.getElementById("admin-questions-list");
 
             if (durationInput && bank) durationInput.value = bank.durationMinutes || 15;
-            if (qCountBadge && bank) qCountBadge.textContent = bank.questions ? bank.questions.length : 0;
+            if (qCountBadge) qCountBadge.textContent = bank && bank.questions ? bank.questions.length : 0;
 
-            if (!container || !bank) return;
+            if (!container) return;
             container.innerHTML = "";
 
-            if (!bank.questions || bank.questions.length === 0) {
+            if (!bank || !bank.questions || bank.questions.length === 0) {
                 container.innerHTML = `
                     <div class="text-center py-10 text-slate-400 space-y-2">
                         <i class="fa-solid fa-folder-open text-3xl text-slate-300"></i>
