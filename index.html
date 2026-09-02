@@ -871,7 +871,7 @@
             }
         };
 
-        // BANK SOAL DIBUAT BERSIH TANPA SOAL BAWAAN
+        // BANK SOAL DIBUAT BERSIH (0 SOAL BAWAAN)
         let DEFAULT_QUIZ_BANKS = {};
 
         let currentSubjectKey = "";
@@ -902,7 +902,6 @@
                     return;
                 }
 
-                // Public WSS broker for instant cross-device connectivity
                 const brokerUrl = "wss://broker.emqx.io:8084/mqtt";
                 const clientId = 'cbt_stemga_' + Math.random().toString(16).substr(2, 8);
 
@@ -917,8 +916,6 @@
                     console.log("MQTT Cloud Real-Time Connected:", clientId);
                     isMqttConnected = true;
                     updatePeerStatusUI("connected", "Realtime Cloud Live");
-
-                    // Subscribe to topics
                     subscribeMqttRoomTopics();
                 });
 
@@ -962,13 +959,11 @@
         function handleMqttMessage(topic, data) {
             if (!data) return;
 
-            // Heartbeat from active student
             if (topic.includes('/heartbeat')) {
                 if (data.sessionId) {
                     handleIncomingHeartbeat(data);
                 }
             } 
-            // Student finished exam result
             else if (topic.includes('/result')) {
                 if (data.id) {
                     const exists = examResultsLog.some(l => l.id === data.id);
@@ -979,7 +974,6 @@
                     }
                 }
             } 
-            // Teacher command (e.g. force submit)
             else if (topic.includes('/command')) {
                 if (data.type === 'FORCE_SUBMIT_STUDENT' && isExamActive) {
                     if (currentSessionId === data.sessionId) {
@@ -989,7 +983,6 @@
                     }
                 }
             }
-            // Bank soal broadcast from teacher
             else if (topic.includes('/bank_sync')) {
                 if (data.subjectKey && data.bank) {
                     DEFAULT_QUIZ_BANKS[data.subjectKey] = data.bank;
@@ -1047,7 +1040,6 @@
         function handleTeacherPinSubmit(event) {
             if (event) event.preventDefault();
             const enteredPin = document.getElementById("input-teacher-pin")?.value.trim() || "";
-            
             const validPins = [teacherPin, "1234", "0000", "admin", "guru", "stemga", "123456", ""];
             
             if (validPins.includes(enteredPin) || validPins.includes(enteredPin.toLowerCase())) {
@@ -1113,7 +1105,6 @@
         // --- LOCAL STORAGE HELPERS ---
         function loadSavedQuizBanks() {
             try {
-                // Purge old default cache keys if present
                 localStorage.removeItem("cbt_stemga_quiz_banks_data");
                 
                 const saved = localStorage.getItem("cbt_stemga_v2_quiz_banks_data");
@@ -1137,7 +1128,6 @@
                 if (cbtChannel) {
                     cbtChannel.postMessage({ type: 'QUIZ_BANKS_UPDATED' });
                 }
-                // Broadcast to cloud
                 publishMqttMessage('bank_sync', {
                     subjectKey: currentSubjectKey,
                     bank: DEFAULT_QUIZ_BANKS[currentSubjectKey]
@@ -1274,10 +1264,8 @@
                 lastSeen: Date.now()
             };
 
-            // 1. MQTT Cloud Sync (Guaranteed multi-device & multi-network sync)
             publishMqttMessage('heartbeat', payload);
 
-            // 2. Broadcast Channel & Local Storage fallbacks
             if (cbtChannel) {
                 try {
                     cbtChannel.postMessage({
@@ -1435,7 +1423,8 @@
                     keys.forEach(k => {
                         const opt = document.createElement("option");
                         opt.value = k;
-                        opt.textContent = DEFAULT_QUIZ_BANKS[k].title;
+                        const count = DEFAULT_QUIZ_BANKS[k].questions ? DEFAULT_QUIZ_BANKS[k].questions.length : 0;
+                        opt.textContent = `${DEFAULT_QUIZ_BANKS[k].title} (${count} Soal)`;
                         adminSelect.appendChild(opt);
                     });
                     if (DEFAULT_QUIZ_BANKS[currentSubjectKey]) {
@@ -1450,14 +1439,18 @@
             if (studentSelect) {
                 studentSelect.innerHTML = "";
                 if (keys.length === 0) {
-                    studentSelect.innerHTML = `<option value="">-- Belum Ada Mata Pelajaran (Hubungi Guru) --</option>`;
+                    studentSelect.innerHTML = `<option value="">-- Belum Ada Mata Pelajaran / Soal Belum Tersedia --</option>`;
                 } else {
                     keys.forEach(k => {
                         const opt = document.createElement("option");
                         opt.value = k;
                         const count = DEFAULT_QUIZ_BANKS[k].questions ? DEFAULT_QUIZ_BANKS[k].questions.length : 0;
                         const dur = DEFAULT_QUIZ_BANKS[k].durationMinutes || 15;
-                        opt.textContent = `${DEFAULT_QUIZ_BANKS[k].title} (${count} Soal - ${dur} Min)`;
+                        if (count === 0) {
+                            opt.textContent = `${DEFAULT_QUIZ_BANKS[k].title} (Soal Belum Tersedia - 0 Soal)`;
+                        } else {
+                            opt.textContent = `${DEFAULT_QUIZ_BANKS[k].title} (${count} Soal - ${dur} Min)`;
+                        }
                         studentSelect.appendChild(opt);
                     });
                     if (keys.includes(currentSubjectKey)) {
@@ -1509,7 +1502,14 @@
             const bank = DEFAULT_QUIZ_BANKS[currentSubjectKey];
 
             const headerMapel = document.getElementById("student-header-mapel");
-            if (headerMapel) headerMapel.textContent = bank ? bank.title : "Pilih Mata Pelajaran Ujian";
+            if (headerMapel) {
+                if (bank) {
+                    const qCount = bank.questions ? bank.questions.length : 0;
+                    headerMapel.textContent = `${bank.title} ${qCount === 0 ? '(Soal Belum Tersedia)' : ''}`;
+                } else {
+                    headerMapel.textContent = "Pilih Mata Pelajaran Ujian";
+                }
+            }
 
             const durationBadge = document.getElementById("student-exam-duration");
             if (durationBadge) durationBadge.textContent = `${bank ? (bank.durationMinutes || 15) : 15} Menit`;
@@ -1716,6 +1716,7 @@
 
             if (importedCount > 0) {
                 saveQuizBanksToStorage();
+                populateSubjectSelects();
                 loadAdminQuestionsForSubject();
                 closeBulkImportModal();
                 const bulkInput = document.getElementById("input-bulk-text");
@@ -1798,6 +1799,7 @@
             if (!isNaN(val) && val > 0) {
                 DEFAULT_QUIZ_BANKS[currentSubjectKey].durationMinutes = val;
                 saveQuizBanksToStorage();
+                populateSubjectSelects();
             }
         }
 
@@ -1832,6 +1834,7 @@
             });
 
             saveQuizBanksToStorage();
+            populateSubjectSelects();
             loadAdminQuestionsForSubject();
 
             document.getElementById("input-new-q-text").value = "";
@@ -1849,6 +1852,7 @@
                 if (DEFAULT_QUIZ_BANKS[currentSubjectKey]) {
                     DEFAULT_QUIZ_BANKS[currentSubjectKey].questions = DEFAULT_QUIZ_BANKS[currentSubjectKey].questions.filter(q => q.id !== qId);
                     saveQuizBanksToStorage();
+                    populateSubjectSelects();
                     loadAdminQuestionsForSubject();
                 }
             });
@@ -1884,8 +1888,8 @@
             loadSavedExamLogs();
             loadSavedSettings();
             loadActiveStudentsFromStorage();
-            checkUrlSubjectParam();
             populateSubjectSelects();
+            checkUrlSubjectParam();
             initAntiCheatListener();
             renderStudentResultsRekap();
             renderActiveStudentsLive();
@@ -1938,7 +1942,13 @@
                             const qrNotice = document.getElementById("student-qr-notice");
                             const qrNoticeTitle = document.getElementById("student-qr-notice-title");
                             if (qrNotice && qrNoticeTitle) {
-                                qrNoticeTitle.textContent = `${parsedBank.title} (${parsedBank.questions.length} Soal Terisi)`;
+                                if (parsedBank.questions.length === 0) {
+                                    qrNotice.className = "bg-amber-500 text-white p-3.5 rounded-2xl shadow-md border border-amber-400 flex items-center gap-3";
+                                    qrNoticeTitle.textContent = `${parsedBank.title} (Soal Belum Tersedia)`;
+                                } else {
+                                    qrNotice.className = "bg-emerald-500 text-white p-3.5 rounded-2xl shadow-md border border-emerald-400 flex items-center gap-3";
+                                    qrNoticeTitle.textContent = `${parsedBank.title} (${parsedBank.questions.length} Soal Terisi)`;
+                                }
                                 qrNotice.classList.remove("hidden");
                             }
                             return;
@@ -1954,10 +1964,18 @@
                         handleStudentSubjectChange();
                     }
 
+                    const bank = DEFAULT_QUIZ_BANKS[mapelParam];
                     const qrNotice = document.getElementById("student-qr-notice");
                     const qrNoticeTitle = document.getElementById("student-qr-notice-title");
-                    if (qrNotice && qrNoticeTitle) {
-                        qrNoticeTitle.textContent = DEFAULT_QUIZ_BANKS[mapelParam].title;
+                    if (qrNotice && qrNoticeTitle && bank) {
+                        const qCount = bank.questions ? bank.questions.length : 0;
+                        if (qCount === 0) {
+                            qrNotice.className = "bg-amber-500 text-white p-3.5 rounded-2xl shadow-md border border-amber-400 flex items-center gap-3";
+                            qrNoticeTitle.textContent = `${bank.title} (Soal Belum Tersedia)`;
+                        } else {
+                            qrNotice.className = "bg-emerald-500 text-white p-3.5 rounded-2xl shadow-md border border-emerald-400 flex items-center gap-3";
+                            qrNoticeTitle.textContent = `${bank.title} (${qCount} Soal Terisi)`;
+                        }
                         qrNotice.classList.remove("hidden");
                     }
                 }
@@ -2111,20 +2129,8 @@
 
             let bank = DEFAULT_QUIZ_BANKS[currentSubjectKey];
 
-            // Auto-fallback jika mapel aktif tidak ada soal, cari mapel lain yang memiliki soal
             if (!bank || !bank.questions || bank.questions.length === 0) {
-                const availableKeys = Object.keys(DEFAULT_QUIZ_BANKS);
-                for (let k of availableKeys) {
-                    if (DEFAULT_QUIZ_BANKS[k] && DEFAULT_QUIZ_BANKS[k].questions && DEFAULT_QUIZ_BANKS[k].questions.length > 0) {
-                        currentSubjectKey = k;
-                        bank = DEFAULT_QUIZ_BANKS[k];
-                        break;
-                    }
-                }
-            }
-
-            if (!bank || !bank.questions || bank.questions.length === 0) {
-                showCustomDialog("Soal Belum Tersedia", "Mata pelajaran ini belum memiliki soal. Silakan minta Guru/Proktor untuk membuat atau mengimport soal terlebih dahulu.", null, true);
+                showCustomDialog("Soal Belum Tersedia", "Mata pelajaran ini belum memiliki soal. Silakan minta Guru/Proktor untuk membuat atau meng-import soal terlebih dahulu.", null, true);
                 return;
             }
 
@@ -2457,15 +2463,11 @@
                 timestamp: timeStr
             };
             
-            // Save locally
             examResultsLog.unshift(newLog);
             saveExamLogsToStorage();
             renderStudentResultsRekap();
 
-            // Broadcast final result to MQTT Cloud
             publishMqttMessage('result', newLog);
-
-            // Cleanup student active session
             handleStudentFinishedEvent(currentSessionId);
 
             document.getElementById("result-score").textContent = finalScore;
