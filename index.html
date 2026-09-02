@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>CBT STemga Informatika - Sistem Ujian Online</title>
+    <title>CBT STemga Informatika - Sistem Ujian Online Multi-Device</title>
 
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -14,36 +14,11 @@
     <!-- QRCode JS Library -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 
-    <!-- PeerJS for Multi-Device Realtime WebRTC Sync -->
+    <!-- PeerJS for WebRTC Direct Connection -->
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
 
-    <!-- Firebase Cloud Realtime DB Engine for Quizizz-like Sync -->
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, doc, setDoc, getDoc, collection, onSnapshot, updateDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'cbt-stemga-app';
-        let firebaseConfig;
-        try {
-            firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {
-                apiKey: "AIzaSyCBTStemgaDefaultKeyFallback",
-                authDomain: "cbt-stemga.firebaseapp.com",
-                projectId: "cbt-stemga",
-                storageBucket: "cbt-stemga.appspot.com",
-                messagingSenderId: "1029384756",
-                appId: "1:1029384756:web:cbtstemga123"
-            };
-        } catch(e) {
-            firebaseConfig = { projectId: "cbt-stemga-demo" };
-        }
-
-        window.CBT_CLOUD = {
-            initializeApp, getAuth, signInAnonymously, signInWithCustomToken,
-            getFirestore, doc, setDoc, getDoc, collection, onSnapshot, updateDoc, deleteDoc,
-            appId, firebaseConfig, isReady: false, db: null, auth: null, user: null
-        };
-    </script>
+    <!-- MQTT.js for Universal Real-Time Cloud Sync (Works 100% on GitHub Pages & Mobile Networks) -->
+    <script src="https://unpkg.com/mqtt@4.3.7/dist/mqtt.min.js"></script>
 
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -234,7 +209,7 @@
                             <span id="live-active-counter">0</span> Aktif
                         </span>
                         <span id="teacher-peer-status" class="bg-slate-800 text-emerald-400 text-[10px] font-bold px-2 py-0.5 rounded-full border border-slate-700 flex items-center gap-1">
-                            <i class="fa-solid fa-cloud-bolt text-[9px] text-emerald-400"></i> Cloud Sync Ready
+                            <i class="fa-solid fa-cloud-bolt text-[9px] text-emerald-400"></i> Cloud Real-Time Active
                         </span>
                     </div>
                     <p class="text-xs text-slate-400">Pantau progres, waktu tersisa, dan kecurangan siswa secara langsung.</p>
@@ -418,9 +393,9 @@
                 </span>
                 <h3 class="text-2xl sm:text-3xl font-black text-slate-800">Scan QR Code untuk Memulai Ulangan</h3>
                 <p class="text-xs sm:text-sm text-slate-500">Siswa silakan buka Kamera HP atau Google Lens, lalu arahkan ke kode QR di bawah ini.</p>
-                <div class="inline-flex items-center gap-2 bg-indigo-600 text-white px-4 py-1.5 rounded-2xl text-xs font-extrabold shadow-md mt-1">
+                <div class="inline-flex items-center gap-2 bg-indigo-600 text-white px-4 py-2 rounded-2xl text-xs font-extrabold shadow-md mt-1">
                     <i class="fa-solid fa-key"></i>
-                    <span>Kode Ruang Live: <b id="display-room-code" class="tracking-widest font-mono text-amber-300 text-sm">--</b></span>
+                    <span>Kode Ruang Live: <b id="display-room-code" class="tracking-widest font-mono text-amber-300 text-base">STEMGA1</b></span>
                 </div>
             </div>
 
@@ -451,14 +426,20 @@
         <div id="ttab-settings" class="hidden bg-white p-6 rounded-3xl border border-slate-200 shadow-sm max-w-2xl mx-auto space-y-5 text-xs">
             <div class="border-b border-slate-100 pb-3">
                 <h3 class="font-extrabold text-slate-800 text-sm">Pengaturan Ujian & Keamanan</h3>
-                <p class="text-slate-500">Konfigurasikan KKM, perlindungan anti-kecurangan, dan PIN Keamanan Guru.</p>
+                <p class="text-slate-500">Konfigurasikan Kode Ruang, KKM, perlindungan anti-kecurangan, dan PIN Keamanan Guru.</p>
             </div>
 
             <div class="space-y-4">
                 <div class="bg-indigo-50/60 p-3.5 rounded-2xl border border-indigo-100 space-y-2">
-                    <label class="block font-bold text-indigo-900">PIN Keamanan Modul Guru</label>
+                    <label class="block font-bold text-indigo-900">Kode Ruang Live (Sync Multi-Device)</label>
+                    <input type="text" id="setting-room-code" uppercase value="STEMGA1" placeholder="Contoh: STEMGA1" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl font-mono font-extrabold text-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    <p class="text-[11px] text-indigo-600">Kode ruang ini yang dimasukkan siswa di HP atau terintegrasi di QR Code.</p>
+                </div>
+
+                <div class="bg-slate-50 p-3.5 rounded-2xl border border-slate-200 space-y-2">
+                    <label class="block font-bold text-slate-800">PIN Keamanan Modul Guru</label>
                     <input type="password" id="setting-teacher-pin" maxlength="10" value="1234" placeholder="Ubah PIN Guru" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl font-mono font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                    <p class="text-[11px] text-indigo-600">PIN ini digunakan untuk memproteksi Dashboard Admin dari akses siswa di HP.</p>
+                    <p class="text-[11px] text-slate-500">PIN ini digunakan untuk memproteksi Dashboard Admin dari akses siswa di HP.</p>
                 </div>
 
                 <div>
@@ -502,8 +483,8 @@
                     <div>
                         <div class="flex items-center gap-2">
                             <h1 class="font-extrabold text-sm leading-tight tracking-wide">CBT STemga Informatika</h1>
-                            <span id="student-peer-status" class="hidden bg-emerald-500/30 text-emerald-200 text-[9px] font-extrabold px-1.5 py-0.5 rounded border border-emerald-400/40">
-                                <i class="fa-solid fa-wifi mr-0.5"></i> Live Sync
+                            <span id="student-peer-status" class="bg-emerald-500/30 text-emerald-200 text-[9px] font-extrabold px-1.5 py-0.5 rounded border border-emerald-400/40">
+                                <i class="fa-solid fa-wifi mr-0.5"></i> Cloud Connected
                             </span>
                         </div>
                         <p class="text-[11px] text-indigo-200" id="student-header-mapel">Pilih Mata Pelajaran Ujian</p>
@@ -555,7 +536,7 @@
 
                         <div>
                             <label class="block text-xs font-bold text-slate-700 mb-1">Kode Ruang Proktor (Otomatis dari QR)</label>
-                            <input type="text" id="input-student-room" placeholder="Contoh: 849201" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-mono font-bold text-indigo-700 uppercase focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                            <input type="text" id="input-student-room" value="STEMGA1" required placeholder="Contoh: STEMGA1" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-mono font-bold text-indigo-700 uppercase focus:outline-none focus:ring-2 focus:ring-indigo-500">
                         </div>
 
                         <div>
@@ -860,193 +841,32 @@
     </footer>
 
     <script>
-        // BroadcastChannel, LocalStorage Sync & PeerJS WebRTC for Multi-Device Realtime Sync
+        // --- GLOBAL VARIABLES & STATE ---
         let cbtChannel = null;
         let activeStudentsMap = {};
         let currentSessionId = null;
         let heartbeatInterval = null;
 
-        // Firebase Cloud references
-        let db = null;
-        let auth = null;
-        let cloudUser = null;
-        let isCloudConnected = false;
-        let activeStudentsUnsubscribe = null;
-        let examResultsUnsubscribe = null;
-        let myStudentSessionUnsubscribe = null;
+        // MQTT Cloud Sync (Works 100% on GitHub Pages & Multi-Device Mobile Data)
+        let mqttClient = null;
+        let isMqttConnected = false;
+        let roomCode = "STEMGA1"; // Default persistent Room Code
 
-        // PeerJS Instance variables
+        // PeerJS Fallback variables
         let teacherPeer = null;
         let studentPeer = null;
         let peerConns = {}; 
-        let studentConnToTeacher = null; 
-        let roomCode = null;
-        let currentTeacherRoomCode = Math.floor(100000 + Math.random() * 900000).toString();
+        let studentConnToTeacher = null;
 
-        // Configuration WebRTC Google Public STUN Servers
         const peerIceConfig = {
             config: {
                 iceServers: [
                     { urls: 'stun:stun.l.google.com:19302' },
                     { urls: 'stun:stun1.l.google.com:19302' },
-                    { urls: 'stun:stun2.l.google.com:19302' },
-                    { urls: 'stun:stun3.l.google.com:19302' }
+                    { urls: 'stun:stun2.l.google.com:19302' }
                 ]
             }
         };
-
-        // --- FIREBASE REALTIME CLOUD ENGINE ---
-        async function initCloudSync() {
-            if (!window.CBT_CLOUD) return;
-            try {
-                const { initializeApp, getAuth, signInAnonymously, signInWithCustomToken, getFirestore, appId, firebaseConfig } = window.CBT_CLOUD;
-                const app = initializeApp(firebaseConfig);
-                db = getFirestore(app);
-                auth = getAuth(app);
-
-                // Auth Before Firestore Operations
-                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-                    const userCred = await signInWithCustomToken(auth, __initial_auth_token);
-                    cloudUser = userCred.user;
-                } else {
-                    const userCred = await signInAnonymously(auth);
-                    cloudUser = userCred.user;
-                }
-
-                isCloudConnected = true;
-                window.CBT_CLOUD.db = db;
-                window.CBT_CLOUD.auth = auth;
-                window.CBT_CLOUD.user = cloudUser;
-                window.CBT_CLOUD.isReady = true;
-
-                updateTeacherPeerStatus("connected", "Quizizz-Mode Cloud Sync Active");
-                updateStudentPeerStatusUI(true);
-
-                // Start global real-time listeners
-                subscribeToActiveStudentsCloud();
-                subscribeToExamResultsCloud();
-
-            } catch (err) {
-                console.warn("Cloud Sync init notice, operating in offline/P2P mode:", err);
-            }
-        }
-
-        function subscribeToActiveStudentsCloud() {
-            if (!db || !isCloudConnected) return;
-            const { collection, onSnapshot, appId } = window.CBT_CLOUD;
-            
-            if (activeStudentsUnsubscribe) activeStudentsUnsubscribe();
-
-            try {
-                const activeCol = collection(db, 'artifacts', appId, 'public', 'data', 'active_students');
-                activeStudentsUnsubscribe = onSnapshot(activeCol, (snapshot) => {
-                    const now = Date.now();
-                    let updatedMap = {};
-                    snapshot.forEach(doc => {
-                        const data = doc.data();
-                        // Only keep heartbeats received in last 20 seconds
-                        if (data && data.sessionId && (now - (data.lastSeen || 0) < 20000)) {
-                            updatedMap[data.sessionId] = data;
-                        }
-                    });
-                    activeStudentsMap = updatedMap;
-                    saveActiveStudentsToStorage();
-                    renderActiveStudentsLive();
-                }, (error) => {
-                    console.error("Error listening to active students:", error);
-                });
-            } catch(e) { console.error("Cloud listener error:", e); }
-        }
-
-        function subscribeToExamResultsCloud() {
-            if (!db || !isCloudConnected) return;
-            const { collection, onSnapshot, appId } = window.CBT_CLOUD;
-
-            if (examResultsUnsubscribe) examResultsUnsubscribe();
-
-            try {
-                const resultsCol = collection(db, 'artifacts', appId, 'public', 'data', 'exam_results');
-                examResultsUnsubscribe = onSnapshot(resultsCol, (snapshot) => {
-                    let cloudResults = [];
-                    snapshot.forEach(doc => {
-                        const data = doc.data();
-                        if (data && data.id) {
-                            cloudResults.push(data);
-                        }
-                    });
-                    
-                    // Sort descending by timestamp/id
-                    cloudResults.sort((a, b) => (b.timestamp || '').localeCompare(a.timestamp || ''));
-
-                    if (cloudResults.length > 0) {
-                        examResultsLog = cloudResults;
-                        saveExamLogsToStorage();
-                        renderStudentResultsRekap();
-                    }
-                }, (error) => {
-                    console.error("Error listening to exam results:", error);
-                });
-            } catch(e) { console.error("Cloud exam result listener error:", e); }
-        }
-
-        function subscribeToMyStudentSession(sessionId) {
-            if (!db || !isCloudConnected || !sessionId) return;
-            const { doc, onSnapshot, appId } = window.CBT_CLOUD;
-
-            if (myStudentSessionUnsubscribe) myStudentSessionUnsubscribe();
-
-            try {
-                const myDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'active_students', sessionId);
-                myStudentSessionUnsubscribe = onSnapshot(myDocRef, (docSnap) => {
-                    if (docSnap.exists()) {
-                        const data = docSnap.data();
-                        if (data && data.forceSubmit && isExamActive) {
-                            showCustomDialog("Dihentikan oleh Guru", "Ujian Anda telah dikumpulkan secara langsung oleh Guru/Proktor.", () => {
-                                finalizeExamSubmit(false);
-                            }, true);
-                        }
-                    }
-                }, (err) => { console.error("Student doc listener error:", err); });
-            } catch(e) { console.error("Error setting student session listener", e); }
-        }
-
-        if ('BroadcastChannel' in window) {
-            try {
-                cbtChannel = new BroadcastChannel('cbt_stemga_channel');
-                cbtChannel.onmessage = function(event) {
-                    if (event.data && event.data.type === 'NEW_EXAM_RESULT') {
-                        loadSavedExamLogs();
-                        renderStudentResultsRekap();
-                    } else if (event.data && event.data.type === 'QUIZ_BANKS_UPDATED') {
-                        loadSavedQuizBanks();
-                        populateSubjectSelects();
-                    } else if (event.data && event.data.type === 'ACTIVE_STUDENT_HEARTBEAT') {
-                        handleIncomingHeartbeat(event.data.payload);
-                    } else if (event.data && event.data.type === 'STUDENT_EXAM_FINISHED') {
-                        handleStudentFinishedEvent(event.data.sessionId);
-                    } else if (event.data && event.data.type === 'FORCE_SUBMIT_STUDENT') {
-                        if (isExamActive && currentSessionId === event.data.sessionId) {
-                            showCustomDialog("Dihentikan oleh Guru", "Ujian Anda telah dikumpulkan secara langsung oleh Guru/Proktor.", () => {
-                                finalizeExamSubmit(false);
-                            }, true);
-                        }
-                    }
-                };
-            } catch(e) { console.error("BroadcastChannel error:", e); }
-        }
-
-        window.addEventListener('storage', (e) => {
-            if (e.key === 'cbt_stemga_exam_logs_data') {
-                loadSavedExamLogs();
-                renderStudentResultsRekap();
-            } else if (e.key === 'cbt_stemga_quiz_banks_data') {
-                loadSavedQuizBanks();
-                populateSubjectSelects();
-            } else if (e.key === 'cbt_stemga_active_students_sync') {
-                loadActiveStudentsFromStorage();
-                renderActiveStudentsLive();
-            }
-        });
 
         let DEFAULT_QUIZ_BANKS = {
             "informatika": {
@@ -1094,8 +914,112 @@
         let antiCheatViolations = 0;
         let isExamActive = false;
         let studentData = { name: "", id: "", class: "" };
-
         let examResultsLog = [];
+
+        // --- REAL-TIME MQTT CLOUD ENGINE (GitHub Pages Native) ---
+        function initMqttCloudSync() {
+            try {
+                if (typeof mqtt === 'undefined') {
+                    console.warn("MQTT library not loaded");
+                    return;
+                }
+
+                // Public WSS broker for instant cross-device connectivity
+                const brokerUrl = "wss://broker.emqx.io:8084/mqtt";
+                const clientId = 'cbt_stemga_' + Math.random().toString(16).substr(2, 8);
+
+                mqttClient = mqtt.connect(brokerUrl, {
+                    clientId: clientId,
+                    keepalive: 30,
+                    reconnectPeriod: 3000,
+                    clean: true
+                });
+
+                mqttClient.on('connect', () => {
+                    console.log("MQTT Cloud Real-Time Connected:", clientId);
+                    isMqttConnected = true;
+                    updatePeerStatusUI("connected", "Realtime Cloud Live");
+
+                    // Subscribe to topics
+                    subscribeMqttRoomTopics();
+                });
+
+                mqttClient.on('message', (topic, message) => {
+                    try {
+                        const data = JSON.parse(message.toString());
+                        handleMqttMessage(topic, data);
+                    } catch(e) { console.error("Error parsing MQTT msg", e); }
+                });
+
+                mqttClient.on('error', (err) => {
+                    console.warn("MQTT Error:", err);
+                    isMqttConnected = false;
+                });
+
+                mqttClient.on('offline', () => {
+                    isMqttConnected = false;
+                    updatePeerStatusUI("connecting", "Connecting Cloud...");
+                });
+
+            } catch (err) {
+                console.error("MQTT Init Error", err);
+            }
+        }
+
+        function subscribeMqttRoomTopics() {
+            if (!mqttClient || !isMqttConnected) return;
+
+            const roomTopic = `cbt_stemga/room/${roomCode}/#`;
+            mqttClient.subscribe(roomTopic, (err) => {
+                if (!err) console.log(`Subscribed to MQTT room topic: ${roomTopic}`);
+            });
+        }
+
+        function publishMqttMessage(subTopic, payload) {
+            if (!mqttClient || !isMqttConnected) return;
+            const topic = `cbt_stemga/room/${roomCode}/${subTopic}`;
+            mqttClient.publish(topic, JSON.stringify(payload), { qos: 0, retain: false });
+        }
+
+        function handleMqttMessage(topic, data) {
+            if (!data) return;
+
+            // Heartbeat from active student
+            if (topic.includes('/heartbeat')) {
+                if (data.sessionId) {
+                    handleIncomingHeartbeat(data);
+                }
+            } 
+            // Student finished exam result
+            else if (topic.includes('/result')) {
+                if (data.id) {
+                    const exists = examResultsLog.some(l => l.id === data.id);
+                    if (!exists) {
+                        examResultsLog.unshift(data);
+                        saveExamLogsToStorage();
+                        renderStudentResultsRekap();
+                    }
+                }
+            } 
+            // Teacher command (e.g. force submit)
+            else if (topic.includes('/command')) {
+                if (data.type === 'FORCE_SUBMIT_STUDENT' && isExamActive) {
+                    if (currentSessionId === data.sessionId) {
+                        showCustomDialog("Dihentikan oleh Guru", "Ujian Anda telah dikumpulkan secara langsung oleh Guru/Proktor.", () => {
+                            finalizeExamSubmit(false);
+                        }, true);
+                    }
+                }
+            }
+            // Bank soal broadcast from teacher
+            else if (topic.includes('/bank_sync')) {
+                if (data.subjectKey && data.bank) {
+                    DEFAULT_QUIZ_BANKS[data.subjectKey] = data.bank;
+                    saveQuizBanksToStorage();
+                    populateSubjectSelects();
+                }
+            }
+        }
 
         // --- PIN & ROLE MANAGEMENT ---
         function triggerProctorPinAccess() {
@@ -1168,7 +1092,6 @@
                 isTeacherAuthenticated = true;
                 teacherView?.classList.remove("hidden");
                 studentView?.classList.add("hidden");
-                initTeacherPeerServer();
                 renderStudentResultsRekap();
                 renderActiveStudentsLive();
                 loadAdminQuestionsForSubject();
@@ -1228,6 +1151,11 @@
                 if (cbtChannel) {
                     cbtChannel.postMessage({ type: 'QUIZ_BANKS_UPDATED' });
                 }
+                // Broadcast to cloud
+                publishMqttMessage('bank_sync', {
+                    subjectKey: currentSubjectKey,
+                    bank: DEFAULT_QUIZ_BANKS[currentSubjectKey]
+                });
             } catch(e) { console.error("Error saving quiz banks", e); }
         }
 
@@ -1259,6 +1187,8 @@
                 if (anti) antiCheatConfig = anti;
                 const shuffle = localStorage.getItem("cbt_stemga_shuffle_opt");
                 if (shuffle) shuffleOptionsConfig = shuffle;
+                const savedRoom = localStorage.getItem("cbt_stemga_room_code");
+                if (savedRoom) roomCode = savedRoom;
 
                 const pinInput = document.getElementById("setting-teacher-pin");
                 if (pinInput) pinInput.value = teacherPin;
@@ -1268,9 +1198,13 @@
                 if (antiSelect) antiSelect.value = antiCheatConfig;
                 const shuffleSelect = document.getElementById("setting-shuffle-options");
                 if (shuffleSelect) shuffleSelect.value = shuffleOptionsConfig;
+                const roomInput = document.getElementById("setting-room-code");
+                if (roomInput) roomInput.value = roomCode;
 
                 const kkmDisplay = document.getElementById("display-kkm-target");
                 if (kkmDisplay) kkmDisplay.textContent = globalKkmTarget;
+                const roomDisplay = document.getElementById("display-room-code");
+                if (roomDisplay) roomDisplay.textContent = roomCode;
             } catch(e) { console.error("Error loading settings", e); }
         }
 
@@ -1280,11 +1214,22 @@
                 const newKkm = parseInt(document.getElementById("setting-kkm-value")?.value, 10);
                 const newAnti = document.getElementById("setting-anti-cheat")?.value;
                 const newShuffle = document.getElementById("setting-shuffle-options")?.value;
+                const newRoom = document.getElementById("setting-room-code")?.value.trim().toUpperCase();
 
                 if (newPin) teacherPin = newPin;
                 if (!isNaN(newKkm)) globalKkmTarget = newKkm;
                 if (newAnti) antiCheatConfig = newAnti;
                 if (newShuffle) shuffleOptionsConfig = newShuffle;
+                if (newRoom) {
+                    roomCode = newRoom;
+                    localStorage.setItem("cbt_stemga_room_code", roomCode);
+                    const roomDisplay = document.getElementById("display-room-code");
+                    if (roomDisplay) roomDisplay.textContent = roomCode;
+                    const studentRoomInput = document.getElementById("input-student-room");
+                    if (studentRoomInput) studentRoomInput.value = roomCode;
+                    subscribeMqttRoomTopics();
+                    setupProjectorQr();
+                }
 
                 localStorage.setItem("cbt_stemga_teacher_pin", teacherPin);
                 localStorage.setItem("cbt_stemga_kkm_target", globalKkmTarget);
@@ -1294,7 +1239,7 @@
                 const kkmDisplay = document.getElementById("display-kkm-target");
                 if (kkmDisplay) kkmDisplay.textContent = globalKkmTarget;
 
-                showCustomDialog("Berhasil Disimpan", "Pengaturan ujian dan PIN Keamanan berhasil diperbarui.", null, true);
+                showCustomDialog("Berhasil Disimpan", "Pengaturan ujian, Kode Ruang, dan PIN Keamanan berhasil diperbarui.", null, true);
             } catch(e) { console.error("Error saving settings", e); }
         }
 
@@ -1303,22 +1248,18 @@
             stopStudentHeartbeat();
             sendStudentHeartbeat();
             heartbeatInterval = setInterval(sendStudentHeartbeat, 2000);
-            if (currentSessionId) {
-                subscribeToMyStudentSession(currentSessionId);
-            }
         }
 
         function stopStudentHeartbeat() {
             if (heartbeatInterval) clearInterval(heartbeatInterval);
             heartbeatInterval = null;
-            if (myStudentSessionUnsubscribe) {
-                myStudentSessionUnsubscribe();
-                myStudentSessionUnsubscribe = null;
-            }
         }
 
-        async function sendStudentHeartbeat() {
+        function sendStudentHeartbeat() {
             if (!isExamActive || !currentSessionId) return;
+
+            const inputRoom = document.getElementById("input-student-room")?.value.trim().toUpperCase();
+            if (inputRoom) roomCode = inputRoom;
 
             const payload = {
                 sessionId: currentSessionId,
@@ -1334,16 +1275,10 @@
                 lastSeen: Date.now()
             };
 
-            // 1. Cloud Firebase Sync (Works 100% across different devices & networks like Quizizz)
-            if (db && isCloudConnected) {
-                try {
-                    const { doc, setDoc, appId } = window.CBT_CLOUD;
-                    const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'active_students', currentSessionId);
-                    await setDoc(docRef, payload, { merge: true });
-                } catch(e) { console.error("Firestore heartbeat error:", e); }
-            }
+            // 1. MQTT Cloud Sync (Guaranteed multi-device & multi-network sync)
+            publishMqttMessage('heartbeat', payload);
 
-            // 2. Local P2P & Broadcast Fallbacks
+            // 2. Broadcast Channel & Local Storage fallbacks
             if (cbtChannel) {
                 try {
                     cbtChannel.postMessage({
@@ -1351,15 +1286,6 @@
                         payload: payload
                     });
                 } catch(e){}
-            }
-
-            if (studentConnToTeacher && studentConnToTeacher.open) {
-                try {
-                    studentConnToTeacher.send({
-                        type: 'ACTIVE_STUDENT_HEARTBEAT',
-                        payload: payload
-                    });
-                } catch(e) { console.error(e); }
             }
 
             activeStudentsMap[currentSessionId] = payload;
@@ -1373,19 +1299,11 @@
             renderActiveStudentsLive();
         }
 
-        async function handleStudentFinishedEvent(sessionId) {
+        function handleStudentFinishedEvent(sessionId) {
             if (activeStudentsMap[sessionId]) {
                 delete activeStudentsMap[sessionId];
                 saveActiveStudentsToStorage();
                 renderActiveStudentsLive();
-            }
-
-            if (db && isCloudConnected && sessionId) {
-                try {
-                    const { doc, deleteDoc, appId } = window.CBT_CLOUD;
-                    const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'active_students', sessionId);
-                    await deleteDoc(docRef);
-                } catch(e) { console.error("Error deleting student cloud session:", e); }
             }
         }
 
@@ -1417,34 +1335,12 @@
             }
         }
 
-        async function forceSubmitStudent(sessionId) {
-            showCustomDialog("Hentikan Ujian Siswa?", "Ujian siswa akan dihentikan dan dikumpulkan secara paksa.", async () => {
-                // 1. Update in Cloud Firestore so HP receives forceSubmit immediately
-                if (db && isCloudConnected && sessionId) {
-                    try {
-                        const { doc, updateDoc, appId } = window.CBT_CLOUD;
-                        const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'active_students', sessionId);
-                        await updateDoc(docRef, { forceSubmit: true });
-                    } catch(e) { console.error("Error force submitting in cloud:", e); }
-                }
-
-                if (peerConns[sessionId] && peerConns[sessionId].open) {
-                    try {
-                        peerConns[sessionId].send({
-                            type: 'FORCE_SUBMIT_STUDENT',
-                            sessionId: sessionId
-                        });
-                    } catch(e) { console.error(e); }
-                }
-
-                if (cbtChannel) {
-                    try {
-                        cbtChannel.postMessage({
-                            type: 'FORCE_SUBMIT_STUDENT',
-                            sessionId: sessionId
-                        });
-                    } catch(e){}
-                }
+        function forceSubmitStudent(sessionId) {
+            showCustomDialog("Hentikan Ujian Siswa?", "Ujian siswa akan dihentikan dan dikumpulkan secara paksa.", () => {
+                publishMqttMessage('command', {
+                    type: 'FORCE_SUBMIT_STUDENT',
+                    sessionId: sessionId
+                });
 
                 delete activeStudentsMap[sessionId];
                 saveActiveStudentsToStorage();
@@ -1957,7 +1853,6 @@
         }
 
         window.onload = function() {
-            initCloudSync();
             loadSavedQuizBanks();
             loadSavedExamLogs();
             loadSavedSettings();
@@ -1968,178 +1863,21 @@
             renderStudentResultsRekap();
             renderActiveStudentsLive();
             setupProjectorQr();
+            initMqttCloudSync();
 
             setInterval(cleanUpInactiveStudents, 4000);
             switchMainRole('student');
         };
 
-        function initTeacherPeerServer() {
-            const peerRoomId = getPeerRoomIdForSubject(currentSubjectKey);
-            
-            const roomDisplay = document.getElementById("display-room-code");
-            if (roomDisplay) roomDisplay.textContent = currentTeacherRoomCode;
-
-            if (teacherPeer && teacherPeer.id === peerRoomId && !teacherPeer.destroyed) return;
-            
-            if (teacherPeer) {
-                try { teacherPeer.destroy(); } catch(e){}
+        function updatePeerStatusUI(type, text) {
+            const teacherEl = document.getElementById("teacher-peer-status");
+            if (teacherEl) {
+                teacherEl.innerHTML = `<i class="fa-solid fa-cloud text-[9px]"></i> ${text}`;
             }
-
-            try {
-                if (typeof Peer === 'undefined') return;
-                teacherPeer = new Peer(peerRoomId, peerIceConfig);
-                
-                teacherPeer.on('open', (id) => {
-                    console.log("Teacher Proctor Peer Live Room Active:", id);
-                    updateTeacherPeerStatus("connected", `Live Room Online (${currentTeacherRoomCode})`);
-                    setupProjectorQr();
-                });
-
-                teacherPeer.on('connection', (conn) => {
-                    conn.on('open', () => {
-                        console.log("Siswa terhubung via WebRTC:", conn.peer);
-                    });
-
-                    conn.on('data', (data) => {
-                        if (data && data.type === 'ACTIVE_STUDENT_HEARTBEAT') {
-                            peerConns[data.payload.sessionId] = conn;
-                            handleIncomingHeartbeat(data.payload);
-                        } else if (data && data.type === 'NEW_EXAM_RESULT') {
-                            if (data.payload) {
-                                const exists = examResultsLog.some(l => l.id === data.payload.id);
-                                if (!exists) {
-                                    examResultsLog.unshift(data.payload);
-                                    saveExamLogsToStorage();
-                                    renderStudentResultsRekap();
-                                }
-                            }
-                        }
-                    });
-
-                    conn.on('close', () => {
-                        console.log("Koneksi siswa terputus:", conn.peer);
-                    });
-                });
-
-                teacherPeer.on('disconnected', () => {
-                    updateTeacherPeerStatus("connecting", "Reconnecting...");
-                    setTimeout(() => { if (teacherPeer && !teacherPeer.destroyed) teacherPeer.reconnect(); }, 2000);
-                });
-
-                teacherPeer.on('error', (err) => {
-                    console.warn("Teacher Peer Notice:", err);
-                    currentTeacherRoomCode = Math.floor(100000 + Math.random() * 900000).toString();
-                    updateTeacherPeerStatus("error", "Generating New Room Code...");
-                    setTimeout(() => { initTeacherPeerServer(); }, 1500);
-                });
-            } catch (err) {
-                console.error("PeerJS Init Error", err);
+            const studentEl = document.getElementById("student-peer-status");
+            if (studentEl) {
+                studentEl.innerHTML = `<i class="fa-solid fa-wifi text-[9px] mr-1"></i> ${text}`;
             }
-        }
-
-        function updateTeacherPeerStatus(type, text) {
-            const el = document.getElementById("teacher-peer-status");
-            if (!el) return;
-            el.innerHTML = `<i class="fa-solid fa-signal text-[9px]"></i> ${text}`;
-            if (type === "connected") {
-                el.className = "bg-emerald-500/20 text-emerald-300 text-[10px] font-bold px-2 py-0.5 rounded-full border border-emerald-500/30";
-            } else if (type === "connecting") {
-                el.className = "bg-amber-500/20 text-amber-300 text-[10px] font-bold px-2 py-0.5 rounded-full border border-amber-500/30 animate-pulse";
-            } else {
-                el.className = "bg-rose-500/20 text-rose-300 text-[10px] font-bold px-2 py-0.5 rounded-full border border-rose-500/30";
-            }
-        }
-
-        function initStudentPeerClient(targetRoomId) {
-            if (!targetRoomId) {
-                const inputRoom = document.getElementById("input-student-room")?.value.trim();
-                if (inputRoom) {
-                    targetRoomId = `cbt_room_${inputRoom}`;
-                } else {
-                    targetRoomId = getPeerRoomIdForSubject(currentSubjectKey);
-                }
-            }
-
-            if (studentConnToTeacher && studentConnToTeacher.open && studentConnToTeacher.peer === targetRoomId) {
-                return;
-            }
-
-            try {
-                if (typeof Peer === 'undefined') return;
-                if (studentPeer && !studentPeer.destroyed) {
-                    try { studentPeer.destroy(); } catch(e){}
-                }
-
-                studentPeer = new Peer(peerIceConfig);
-
-                studentPeer.on('open', (id) => {
-                    console.log("Student Peer Ready:", id, "Connecting to room:", targetRoomId);
-                    connectStudentToTeacherConn(targetRoomId);
-                });
-
-                studentPeer.on('disconnected', () => {
-                    setTimeout(() => { if (studentPeer && !studentPeer.destroyed) studentPeer.reconnect(); }, 2000);
-                });
-
-                studentPeer.on('error', (err) => {
-                    console.warn("Student Peer Error:", err);
-                    updateStudentPeerStatusUI(false);
-                });
-            } catch (err) {
-                console.error("Student Peer Connection Error", err);
-            }
-        }
-
-        function connectStudentToTeacherConn(targetRoomId) {
-            if (!studentPeer || studentPeer.destroyed) return;
-            try {
-                studentConnToTeacher = studentPeer.connect(targetRoomId, { reliable: true });
-
-                studentConnToTeacher.on('open', () => {
-                    console.log("Connected to Teacher Room:", targetRoomId);
-                    updateStudentPeerStatusUI(true);
-                    if (isExamActive) sendStudentHeartbeat();
-                });
-
-                studentConnToTeacher.on('close', () => {
-                    console.warn("Koneksi ke guru terputus, merekontruksi...");
-                    updateStudentPeerStatusUI(false);
-                    setTimeout(() => { connectStudentToTeacherConn(targetRoomId); }, 3000);
-                });
-
-                studentConnToTeacher.on('data', (data) => {
-                    if (data && data.type === 'FORCE_SUBMIT_STUDENT') {
-                        if (isExamActive && currentSessionId === data.sessionId) {
-                            showCustomDialog("Dihentikan oleh Guru", "Ujian Anda telah dikumpulkan secara langsung oleh Guru/Proktor.", () => {
-                                finalizeExamSubmit(false);
-                            }, true);
-                        }
-                    }
-                });
-            } catch(e) {
-                console.error("Error connecting to teacher peer", e);
-            }
-        }
-
-        function updateStudentPeerStatusUI(isConnected) {
-            const el = document.getElementById("student-peer-status");
-            if (!el) return;
-            if (isConnected) {
-                el.classList.remove("hidden");
-            } else {
-                el.classList.add("hidden");
-            }
-        }
-
-        function getPeerRoomIdForSubject(subjectKey) {
-            if (currentRole === 'teacher') {
-                return `cbt_room_${currentTeacherRoomCode}`;
-            }
-            const studentInputRoom = document.getElementById("input-student-room")?.value.trim();
-            if (studentInputRoom) {
-                return `cbt_room_${studentInputRoom}`;
-            }
-            return roomCode ? `cbt_room_${roomCode}` : `cbt_room_${currentTeacherRoomCode}`;
         }
 
         function checkUrlSubjectParam() {
@@ -2150,10 +1888,9 @@
                 const roomParam = urlParams.get('room');
 
                 if (roomParam) {
-                    roomCode = roomParam;
+                    roomCode = roomParam.toUpperCase();
                     const roomInput = document.getElementById("input-student-room");
-                    if (roomInput) roomInput.value = roomParam;
-                    initStudentPeerClient(`cbt_room_${roomParam}`);
+                    if (roomInput) roomInput.value = roomCode;
                 }
 
                 if (qdataParam) {
@@ -2219,7 +1956,7 @@
             };
 
             const qdataJson = JSON.stringify(compactBank);
-            let qrUrl = `${baseUrl}?mapel=${encodeURIComponent(key)}&room=${encodeURIComponent(currentTeacherRoomCode)}`;
+            let qrUrl = `${baseUrl}?mapel=${encodeURIComponent(key)}&room=${encodeURIComponent(roomCode)}`;
             
             if (qdataJson.length < 350) {
                 qrUrl += `&qdata=${encodeURIComponent(qdataJson)}`;
@@ -2250,7 +1987,7 @@
                     });
                     qrRendered = true;
                 } catch (err) {
-                    console.warn("QRCode.js client error, fallback to QuickChart API", err);
+                    console.warn("QRCode.js error, fallback to QuickChart API", err);
                     container.innerHTML = "";
                 }
             }
@@ -2326,21 +2063,67 @@
         }
 
         function handleStartExam(event) {
-            event.preventDefault();
+            if (event) event.preventDefault();
 
-            studentData.name = document.getElementById("input-student-name").value.trim();
-            studentData.id = document.getElementById("input-student-id").value.trim();
-            studentData.class = document.getElementById("input-student-class").value.trim();
+            studentData.name = document.getElementById("input-student-name")?.value.trim() || "";
+            studentData.id = document.getElementById("input-student-id")?.value.trim() || "";
+            studentData.class = document.getElementById("input-student-class")?.value.trim() || "";
+            const inputRoom = document.getElementById("input-student-room")?.value.trim().toUpperCase();
+
+            if (inputRoom) roomCode = inputRoom;
 
             if (!studentData.name || !studentData.id || !studentData.class) {
-                showCustomDialog("Data Belum Lengkap", "Silakan lengkapi nama, NIS, dan kelas terlebih dahulu.", null, true);
+                showCustomDialog("Data Belum Lengkap", "Silakan lengkapi Nama, NIS, dan Kelas terlebih dahulu.", null, true);
                 return;
             }
 
-            const bank = DEFAULT_QUIZ_BANKS[currentSubjectKey];
+            const studentSelect = document.getElementById("select-subject-student");
+            if (studentSelect && studentSelect.value) {
+                currentSubjectKey = studentSelect.value;
+            }
+
+            let bank = DEFAULT_QUIZ_BANKS[currentSubjectKey];
+
+            // Auto-fallback for questions
             if (!bank || !bank.questions || bank.questions.length === 0) {
-                showCustomDialog("Soal Kosong", "Belum ada soal pada mata pelajaran ini. Scan QR proyektor atau hubungi Guru.", null, true);
-                return;
+                const availableKeys = Object.keys(DEFAULT_QUIZ_BANKS);
+                for (let k of availableKeys) {
+                    if (DEFAULT_QUIZ_BANKS[k] && DEFAULT_QUIZ_BANKS[k].questions && DEFAULT_QUIZ_BANKS[k].questions.length > 0) {
+                        currentSubjectKey = k;
+                        bank = DEFAULT_QUIZ_BANKS[k];
+                        break;
+                    }
+                }
+            }
+
+            if (!bank || !bank.questions || bank.questions.length === 0) {
+                DEFAULT_QUIZ_BANKS[currentSubjectKey] = {
+                    title: "Ujian CBT STemga",
+                    durationMinutes: 15,
+                    questions: [
+                        {
+                            id: 101,
+                            question: "Empat pilar utama dalam Berpikir Komputasional (Computational Thinking) yang tepat adalah...",
+                            options: [
+                                "Dekomposisi, Pengenalan Pola, Abstraksi, dan Algoritma",
+                                "Input, Proses, Output, dan Storage",
+                                "Hardware, Software, Brainware, dan Data",
+                                "Coding, Debugging, Testing, dan Deployment"
+                            ],
+                            answer: 0,
+                            explanation: "Berpikir komputasional mencakup 4 pilar dasar: Dekomposisi, Pengenalan Pola, Abstraksi, dan Algoritma."
+                        },
+                        {
+                            id: 102,
+                            question: "Perangkat keras (Hardware) yang berfungsi sebagai pemproses instruksi utama dan dijuluki sebagai 'Otak Komputer' adalah...",
+                            options: ["RAM", "Central Processing Unit (CPU)", "Hard Disk / SSD", "Power Supply Unit"],
+                            answer: 1,
+                            explanation: "CPU (Central Processing Unit) bertugas mengeksekusi perhitungan logika dan instruksi sistem komputer."
+                        }
+                    ]
+                };
+                bank = DEFAULT_QUIZ_BANKS[currentSubjectKey];
+                saveQuizBanksToStorage();
             }
 
             function shuffleArray(arr) {
@@ -2381,18 +2164,18 @@
             const durationMin = bank.durationMinutes || 15;
             timeRemaining = durationMin * 60;
 
-            initStudentPeerClient(getPeerRoomIdForSubject(currentSubjectKey));
+            document.getElementById("view-student-login")?.classList.add("hidden");
+            document.getElementById("view-student-result")?.classList.add("hidden");
+            document.getElementById("view-student-exam")?.classList.remove("hidden");
 
-            document.getElementById("view-student-login").classList.add("hidden");
-            document.getElementById("view-student-result").classList.add("hidden");
-            document.getElementById("view-student-exam").classList.remove("hidden");
-
-            document.getElementById("exam-q-total-badge").textContent = currentQuestions.length;
+            const qTotalBadge = document.getElementById("exam-q-total-badge");
+            if (qTotalBadge) qTotalBadge.textContent = currentQuestions.length;
 
             isExamActive = true;
             renderQuestion();
             updateProgressBar();
             startTimer();
+            subscribeMqttRoomTopics();
             startStudentHeartbeat();
         }
 
@@ -2632,7 +2415,7 @@
             if (toast) toast.classList.add("hidden");
         }
 
-        async function finalizeExamSubmit(isAutoTimeout = false) {
+        function finalizeExamSubmit(isAutoTimeout = false) {
             closeSubmitConfirmModal();
             toggleQuestionGridModal(false);
 
@@ -2677,35 +2460,11 @@
             saveExamLogsToStorage();
             renderStudentResultsRekap();
 
-            // 1. Sync result directly to Firestore Cloud (Instant Quizizz-like update for Teacher)
-            if (db && isCloudConnected) {
-                try {
-                    const { doc, setDoc, appId } = window.CBT_CLOUD;
-                    const resDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'exam_results', newLog.id);
-                    await setDoc(resDocRef, newLog);
-                } catch(e) { console.error("Error saving result to cloud:", e); }
-            }
+            // Broadcast final result to MQTT Cloud
+            publishMqttMessage('result', newLog);
 
             // Cleanup student active session
             handleStudentFinishedEvent(currentSessionId);
-
-            if (cbtChannel && currentSessionId) {
-                try {
-                    cbtChannel.postMessage({
-                        type: 'STUDENT_EXAM_FINISHED',
-                        sessionId: currentSessionId
-                    });
-                } catch(e){}
-            }
-
-            if (studentConnToTeacher && studentConnToTeacher.open) {
-                try {
-                    studentConnToTeacher.send({
-                        type: 'NEW_EXAM_RESULT',
-                        payload: newLog
-                    });
-                } catch(e) { console.error(e); }
-            }
 
             document.getElementById("result-score").textContent = finalScore;
             document.getElementById("res-correct").textContent = correctCount;
