@@ -1938,9 +1938,23 @@
                 }
             } else if (msg.type === 'command') {
                 if (msg.data.type === 'FORCE_SUBMIT_STUDENT' && msg.data.sessionId === currentSessionId) {
-                    showCustomDialog("Ujian Dihentikan Proktor", "Ujian Anda telah dihentikan secara langsung oleh Guru/Proktor.", () => {
+                    if (isExamActive) {
                         finalizeExamSubmit();
-                    }, true);
+                        showCustomDialog("Ujian Dihentikan Proktor", "Ujian Anda telah dihentikan secara langsung oleh Guru/Proktor.", null, true);
+                    }
+                }
+            } else if (msg.type === 'student_finished') {
+                if (msg.data && msg.data.sessionId) {
+                    delete activeStudentsMap[msg.data.sessionId];
+                    renderActiveStudentsLive();
+                    if (msg.data.result) {
+                        const exists = examResultsLog.some(r => r.studentId === msg.data.result.studentId && r.timestamp === msg.data.result.timestamp);
+                        if (!exists) {
+                            examResultsLog.push(msg.data.result);
+                            saveExamLogsToStorage();
+                            renderStudentResultsRekap();
+                        }
+                    }
                 }
             } else if (msg.type === 'request_bank') {
                 if (isTeacherAuthenticated || currentRole === 'teacher' || Object.keys(DEFAULT_QUIZ_BANKS).length > 0) {
@@ -2043,6 +2057,10 @@
                     type: 'FORCE_SUBMIT_STUDENT',
                     sessionId: sessionId
                 });
+                if (activeStudentsMap[sessionId]) {
+                    delete activeStudentsMap[sessionId];
+                    renderActiveStudentsLive();
+                }
             });
         }
 
@@ -2489,7 +2507,10 @@
             if (isAlert) {
                 if (btnCancel) btnCancel.classList.add("hidden");
                 if (btnConfirm) {
-                    btnConfirm.onclick = () => closeCustomDialog();
+                    btnConfirm.onclick = () => {
+                        closeCustomDialog();
+                        if (onConfirm) onConfirm();
+                    };
                     btnConfirm.textContent = "Tutup";
                 }
             } else {
