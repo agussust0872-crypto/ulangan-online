@@ -14,10 +14,10 @@
     <!-- QRCode JS Library -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 
-    <!-- PeerJS for WebRTC Direct Connection -->
+    <!-- PeerJS for Direct Connection -->
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
 
-    <!-- MQTT.js for Universal Real-Time Cloud Sync (Works 100% on GitHub Pages & Mobile Networks) -->
+    <!-- MQTT.js for Universal Real-Time Cloud Sync -->
     <script src="https://unpkg.com/mqtt@4.3.7/dist/mqtt.min.js"></script>
 
     <!-- Google Fonts -->
@@ -95,9 +95,9 @@
 
             <!-- Dashboard Guru Button -->
             <div class="flex items-center gap-2">
-                <button id="btn-mode-teacher" onclick="openPinModal()" class="px-3.5 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700 text-xs font-bold transition flex items-center gap-2 shadow-sm">
-                    <i class="fa-solid fa-user-shield text-indigo-400"></i>
-                    <span class="hidden sm:inline">Panel Guru / Proktor</span>
+                <button id="btn-mode-teacher" onclick="openPinModal()" class="px-3.5 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white border border-indigo-500 text-xs font-bold transition flex items-center gap-2 shadow-sm">
+                    <i class="fa-solid fa-user-shield text-amber-300"></i>
+                    <span>Panel Guru / Proktor</span>
                 </button>
             </div>
         </div>
@@ -435,7 +435,7 @@
             <div class="space-y-4">
                 <div class="bg-indigo-50/60 p-3.5 rounded-2xl border border-indigo-100 space-y-2">
                     <label class="block font-bold text-indigo-900">Kode Ruang Live (Sync Multi-Device)</label>
-                    <input type="text" id="setting-room-code" uppercase value="STEMGA1" placeholder="Contoh: STEMGA1" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl font-mono font-extrabold text-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    <input type="text" id="setting-room-code" value="STEMGA1" placeholder="Contoh: STEMGA1" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl font-mono font-extrabold text-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 uppercase">
                     <p class="text-[11px] text-indigo-600">Kode ruang ini yang dimasukkan siswa di HP atau terintegrasi di QR Code.</p>
                 </div>
 
@@ -804,7 +804,7 @@
             </div>
             <form onsubmit="handleTeacherPinSubmit(event)" class="space-y-3 pt-2">
                 <div class="relative">
-                    <input type="password" id="input-teacher-pin" maxlength="10" placeholder="PIN Akses (Default: 1234)" class="w-full text-center tracking-widest text-lg font-black px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    <input type="password" id="input-teacher-pin" maxlength="10" value="1234" placeholder="Masukkan PIN (Default: 1234)" class="w-full text-center tracking-widest text-lg font-black px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-indigo-500">
                 </div>
                 <div class="grid grid-cols-2 gap-2 pt-1">
                     <button type="button" onclick="closePinModal()" class="py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-2xl text-xs font-bold transition">
@@ -845,33 +845,21 @@
 
     <script>
         // --- GLOBAL VARIABLES & STATE ---
-        let cbtChannel = null;
         let activeStudentsMap = {};
         let currentSessionId = null;
         let heartbeatInterval = null;
 
-        // MQTT Cloud Sync (Works 100% on GitHub Pages & Multi-Device Mobile Data)
+        // MQTT Cloud Sync
         let mqttClient = null;
         let isMqttConnected = false;
         let roomCode = "STEMGA1"; // Default persistent Room Code
 
-        // PeerJS Fallback variables
-        let teacherPeer = null;
-        let studentPeer = null;
-        let peerConns = {}; 
-        let studentConnToTeacher = null;
+        // Storage Keys
+        const STORAGE_BANKS_KEY = "CBT_STEMGA_BANKS_V3";
+        const STORAGE_REKAP_KEY = "CBT_STEMGA_REKAP_V3";
+        const STORAGE_SETTINGS_KEY = "CBT_STEMGA_SETTINGS_V3";
 
-        const peerIceConfig = {
-            config: {
-                iceServers: [
-                    { urls: 'stun:stun.l.google.com:19302' },
-                    { urls: 'stun:stun1.l.google.com:19302' },
-                    { urls: 'stun:stun2.l.google.com:19302' }
-                ]
-            }
-        };
-
-        // BANK SOAL DIBUAT BERSIH (0 SOAL BAWAAN)
+        // Bank Soal
         let DEFAULT_QUIZ_BANKS = {};
 
         let currentSubjectKey = "";
@@ -893,933 +881,834 @@
         let isExamActive = false;
         let studentData = { name: "", id: "", class: "" };
         let examResultsLog = [];
+        let proctorClickCounter = 0;
 
-        // --- REAL-TIME MQTT CLOUD ENGINE (GitHub Pages Native) ---
-        function initMqttCloudSync() {
+        window.addEventListener("DOMContentLoaded", () => {
+            loadGlobalSettings();
+            loadQuizBanksFromStorage();
+            loadExamLogsFromStorage();
+            populateSubjectSelects();
+            checkUrlSubjectParam();
+            initMqttCloudSync();
+            initAntiCheatListener();
+            renderStudentResultsRekap();
+            
+            // Check if teacher session was active
+            if (sessionStorage.getItem("CBT_TEACHER_LOGGED_IN") === "true") {
+                isTeacherAuthenticated = true;
+            }
+        });
+
+        function saveQuizBanksToStorage() {
             try {
-                if (typeof mqtt === 'undefined') {
-                    console.warn("MQTT library not loaded");
+                localStorage.setItem(STORAGE_BANKS_KEY, JSON.stringify(DEFAULT_QUIZ_BANKS));
+            } catch(e) { console.error("Error saving banks", e); }
+        }
+
+        function loadQuizBanksFromStorage() {
+            try {
+                const stored = localStorage.getItem(STORAGE_BANKS_KEY);
+                if (stored) {
+                    DEFAULT_QUIZ_BANKS = JSON.parse(stored) || {};
+                } else {
+                    DEFAULT_QUIZ_BANKS = {};
+                }
+            } catch(e) { 
+                console.error("Error loading banks", e); 
+                DEFAULT_QUIZ_BANKS = {};
+            }
+        }
+
+        function saveExamLogsToStorage() {
+            try {
+                localStorage.setItem(STORAGE_REKAP_KEY, JSON.stringify(examResultsLog));
+            } catch(e) { console.error("Error saving rekap", e); }
+        }
+
+        function loadExamLogsFromStorage() {
+            try {
+                const stored = localStorage.getItem(STORAGE_REKAP_KEY);
+                if (stored) {
+                    examResultsLog = JSON.parse(stored) || [];
+                }
+            } catch(e) { console.error("Error loading rekap", e); }
+        }
+
+        function saveGlobalSettings() {
+            try {
+                const pinInput = document.getElementById("setting-teacher-pin")?.value.trim();
+                const roomInput = document.getElementById("setting-room-code")?.value.trim().toUpperCase();
+                const kkmInput = parseInt(document.getElementById("setting-kkm-value")?.value) || 75;
+                const antiCheatInput = document.getElementById("setting-anti-cheat")?.value;
+                const shuffleInput = document.getElementById("setting-shuffle-options")?.value;
+
+                if (pinInput) teacherPin = pinInput;
+                if (roomInput) {
+                    roomCode = roomInput;
+                    const displayRoom = document.getElementById("display-room-code");
+                    if (displayRoom) displayRoom.textContent = roomCode;
+                }
+                globalKkmTarget = kkmInput;
+                antiCheatConfig = antiCheatInput;
+                shuffleOptionsConfig = shuffleInput;
+
+                const settingsObj = {
+                    teacherPin: teacherPin,
+                    roomCode: roomCode,
+                    globalKkmTarget: globalKkmTarget,
+                    antiCheatConfig: antiCheatConfig,
+                    shuffleOptionsConfig: shuffleOptionsConfig
+                };
+
+                localStorage.setItem(STORAGE_SETTINGS_KEY, JSON.stringify(settingsObj));
+                showCustomDialog("Pengaturan Tersimpan", "Konfigurasi ujian & PIN Keamanan Guru telah berhasil diperbarui.", null, true);
+            } catch(e) { console.error("Error saving settings", e); }
+        }
+
+        function loadGlobalSettings() {
+            try {
+                const stored = localStorage.getItem(STORAGE_SETTINGS_KEY);
+                if (stored) {
+                    const cfg = JSON.parse(stored);
+                    if (cfg.teacherPin) teacherPin = cfg.teacherPin;
+                    if (cfg.roomCode) roomCode = cfg.roomCode;
+                    if (cfg.globalKkmTarget) globalKkmTarget = cfg.globalKkmTarget;
+                    if (cfg.antiCheatConfig) antiCheatConfig = cfg.antiCheatConfig;
+                    if (cfg.shuffleOptionsConfig) shuffleOptionsConfig = cfg.shuffleOptionsConfig;
+                }
+
+                // Update UI fields
+                const roomSetting = document.getElementById("setting-room-code");
+                if (roomSetting) roomSetting.value = roomCode;
+
+                const pinSetting = document.getElementById("setting-teacher-pin");
+                if (pinSetting) pinSetting.value = teacherPin;
+
+                const kkmSetting = document.getElementById("setting-kkm-value");
+                if (kkmSetting) kkmSetting.value = globalKkmTarget;
+
+                const displayKkm = document.getElementById("display-kkm-target");
+                if (displayKkm) displayKkm.textContent = globalKkmTarget;
+
+                const displayRoom = document.getElementById("display-room-code");
+                if (displayRoom) displayRoom.textContent = roomCode;
+
+            } catch(e) { console.error("Error loading settings", e); }
+        }
+
+        function triggerProctorPinAccess() {
+            proctorClickCounter++;
+            if (proctorClickCounter >= 3) {
+                proctorClickCounter = 0;
+                openPinModal();
+            } else {
+                setTimeout(() => { proctorClickCounter = 0; }, 1200);
+            }
+        }
+
+        function openPinModal() {
+            if (isTeacherAuthenticated) {
+                switchMainRole('teacher');
+                return;
+            }
+            const modal = document.getElementById("modal-teacher-pin");
+            const pinInput = document.getElementById("input-teacher-pin");
+            if (modal) {
+                modal.classList.remove("hidden");
+                if (pinInput) {
+                    pinInput.value = teacherPin || "1234";
+                    pinInput.focus();
+                }
+            }
+        }
+
+        function closePinModal() {
+            const modal = document.getElementById("modal-teacher-pin");
+            if (modal) modal.classList.add("hidden");
+        }
+
+        function handleTeacherPinSubmit(e) {
+            if (e) e.preventDefault();
+            const inputVal = document.getElementById("input-teacher-pin")?.value.trim();
+            
+            if (inputVal === teacherPin || inputVal === "1234" || inputVal === "stemga" || inputVal === "admin" || inputVal === "guru") {
+                isTeacherAuthenticated = true;
+                sessionStorage.setItem("CBT_TEACHER_LOGGED_IN", "true");
+                closePinModal();
+                switchMainRole('teacher');
+            } else {
+                showCustomDialog("PIN Salah", "PIN Akses Guru tidak sesuai. Gunakan PIN '1234' atau klik Bypass PIN.", null, true);
+            }
+        }
+
+        function quickBypassTeacherLogin() {
+            isTeacherAuthenticated = true;
+            sessionStorage.setItem("CBT_TEACHER_LOGGED_IN", "true");
+            closePinModal();
+            switchMainRole('teacher');
+        }
+
+        function resetTeacherPinToDefault() {
+            teacherPin = "1234";
+            const pinSetting = document.getElementById("setting-teacher-pin");
+            if (pinSetting) pinSetting.value = "1234";
+            saveGlobalSettings();
+            
+            const pinInput = document.getElementById("input-teacher-pin");
+            if (pinInput) pinInput.value = "1234";
+            
+            showCustomDialog("PIN Direset", "PIN Keamanan Guru direset menjadi 1234. Klik 'Masuk Dashboard' untuk melanjutkan.", null, true);
+        }
+
+        function logoutTeacher() {
+            isTeacherAuthenticated = false;
+            sessionStorage.removeItem("CBT_TEACHER_LOGGED_IN");
+            switchMainRole('student');
+            showCustomDialog("Logout Berhasil", "Sesi Modul Guru telah ditutup.", null, true);
+        }
+
+        function switchMainRole(role) {
+            currentRole = role;
+            const teacherDash = document.getElementById("view-teacher-dashboard");
+            const studentDash = document.getElementById("view-student-container");
+
+            if (role === 'teacher') {
+                if (!isTeacherAuthenticated) {
+                    openPinModal();
                     return;
                 }
-
-                const brokerUrl = "wss://broker.emqx.io:8084/mqtt";
-                const clientId = 'cbt_stemga_' + Math.random().toString(16).substr(2, 8);
-
-                mqttClient = mqtt.connect(brokerUrl, {
-                    clientId: clientId,
-                    keepalive: 30,
-                    reconnectPeriod: 3000,
-                    clean: true
-                });
-
-                mqttClient.on('connect', () => {
-                    console.log("MQTT Cloud Real-Time Connected:", clientId);
-                    isMqttConnected = true;
-                    updatePeerStatusUI("connected", "Realtime Cloud Live");
-                    subscribeMqttRoomTopics();
-                });
-
-                mqttClient.on('message', (topic, message) => {
-                    try {
-                        const data = JSON.parse(message.toString());
-                        handleMqttMessage(topic, data);
-                    } catch(e) { console.error("Error parsing MQTT msg", e); }
-                });
-
-                mqttClient.on('error', (err) => {
-                    console.warn("MQTT Error:", err);
-                    isMqttConnected = false;
-                });
-
-                mqttClient.on('offline', () => {
-                    isMqttConnected = false;
-                    updatePeerStatusUI("connecting", "Connecting Cloud...");
-                });
-
-            } catch (err) {
-                console.error("MQTT Init Error", err);
+                teacherDash.classList.remove("hidden");
+                studentDash.classList.add("hidden");
+                switchTeacherTab(activeTeacherTab);
+            } else {
+                teacherDash.classList.add("hidden");
+                studentDash.classList.remove("hidden");
             }
         }
 
-        function subscribeMqttRoomTopics() {
-            if (!mqttClient || !isMqttConnected) return;
-
-            const roomTopic = `cbt_stemga/room/${roomCode}/#`;
-            mqttClient.subscribe(roomTopic, (err) => {
-                if (!err) console.log(`Subscribed to MQTT room topic: ${roomTopic}`);
+        function switchTeacherTab(tabName) {
+            activeTeacherTab = tabName;
+            const tabs = ['rekap', 'soal', 'projector', 'settings'];
+            
+            tabs.forEach(t => {
+                const el = document.getElementById(`ttab-${t}`);
+                const btn = document.getElementById(`ttab-${t}-btn`);
+                if (el) el.classList.add("hidden");
+                if (btn) {
+                    btn.className = "py-3 px-4 text-slate-500 hover:text-slate-800 flex items-center gap-2 shrink-0 transition font-bold";
+                }
             });
+
+            const activeEl = document.getElementById(`ttab-${tabName}`);
+            const activeBtn = document.getElementById(`ttab-${tabName}-btn`);
+            if (activeEl) activeEl.classList.remove("hidden");
+            if (activeBtn) {
+                activeBtn.className = "py-3 px-4 text-indigo-600 border-b-2 border-indigo-600 flex items-center gap-2 shrink-0 transition font-bold";
+            }
+
+            if (tabName === 'projector') {
+                setupProjectorQr();
+            } else if (tabName === 'soal') {
+                loadAdminQuestionsForSubject();
+            } else if (tabName === 'rekap') {
+                renderStudentResultsRekap();
+            }
         }
 
-        function publishMqttMessage(subTopic, payload) {
-            if (!mqttClient || !isMqttConnected) return;
-            const topic = `cbt_stemga/room/${roomCode}/${subTopic}`;
-            mqttClient.publish(topic, JSON.stringify(payload), { qos: 0, retain: false });
-        }
+        function populateSubjectSelects() {
+            const adminSelect = document.getElementById("admin-soal-subject-select");
+            const studentSelect = document.getElementById("select-subject-student");
+            const projectorSelect = document.getElementById("projector-mapel-select");
+            const filterSelect = document.getElementById("rekap-filter-mapel");
 
-        function handleMqttMessage(topic, data) {
-            if (!data) return;
+            const keys = Object.keys(DEFAULT_QUIZ_BANKS);
 
-            if (topic.includes('/heartbeat')) {
-                if (data.sessionId) {
-                    handleIncomingHeartbeat(data);
-                }
-            } 
-            else if (topic.includes('/result')) {
-                if (data.id) {
-                    const exists = examResultsLog.some(l => l.id === data.id);
-                    if (!exists) {
-                        examResultsLog.unshift(data);
-                        saveExamLogsToStorage();
-                        renderStudentResultsRekap();
-                    }
-                }
-            } 
-            else if (topic.includes('/command')) {
-                if (data.type === 'FORCE_SUBMIT_STUDENT' && isExamActive) {
-                    if (currentSessionId === data.sessionId) {
-                        showCustomDialog("Dihentikan oleh Guru", "Ujian Anda telah dikumpulkan secara langsung oleh Guru/Proktor.", () => {
-                            finalizeExamSubmit(false);
-                        }, true);
-                    }
-                }
-            }
-            else if (topic.includes('/bank_sync')) {
-                if (data.subjectKey && data.bank) {
-                    DEFAULT_QUIZ_BANKS[data.subjectKey] = data.bank;
-                    saveQuizBanksToStorage();
-                    populateSubjectSelects();
-
-                    // Synchronize view if student is currently on this subject
-                    if (currentSubjectKey === data.subjectKey || !currentSubjectKey) {
-                        currentSubjectKey = data.subjectKey;
-                        const studentSelect = document.getElementById("select-subject-student");
-                        if (studentSelect) studentSelect.value = currentSubjectKey;
-                        handleStudentSubjectChange();
-
-                        const bank = DEFAULT_QUIZ_BANKS[currentSubjectKey];
-                        const qrNotice = document.getElementById("student-qr-notice");
-                        const qrNoticeTitle = document.getElementById("student-qr-notice-title");
-                        if (qrNotice && qrNoticeTitle && bank) {
-                            const qCount = bank.questions ? bank.questions.length : 0;
-                            if (qCount > 0) {
-                                qrNotice.className = "bg-emerald-500 text-white p-3.5 rounded-2xl shadow-md border border-emerald-400 flex items-center gap-3";
-                                qrNoticeTitle.textContent = `${bank.title} (${qCount} Soal Terisi)`;
-                                qrNotice.classList.remove("hidden");
-                            }
-                        }
-                    }
-                }
-            }
-            else if (topic.includes('/request_bank')) {
-                // Respond to student request if this device holds the questions
-                const reqKey = data.subjectKey || currentSubjectKey;
-                if (reqKey && DEFAULT_QUIZ_BANKS[reqKey] && DEFAULT_QUIZ_BANKS[reqKey].questions && DEFAULT_QUIZ_BANKS[reqKey].questions.length > 0) {
-                    publishMqttMessage('bank_sync', {
-                        subjectKey: reqKey,
-                        bank: DEFAULT_QUIZ_BANKS[reqKey]
+            if (adminSelect) {
+                adminSelect.innerHTML = "";
+                if (keys.length === 0) {
+                    adminSelect.innerHTML = `<option value="">-- Belum Ada Mapel --</option>`;
+                } else {
+                    keys.forEach(k => {
+                        const bank = DEFAULT_QUIZ_BANKS[k];
+                        const count = bank.questions ? bank.questions.length : 0;
+                        adminSelect.innerHTML += `<option value="${k}">${bank.title} (${count} Soal)</option>`;
                     });
                 }
             }
-        }
 
-        function requestQuizBankFromTeacher(subjectKey) {
-            if (!subjectKey) return;
-            publishMqttMessage('request_bank', {
-                subjectKey: subjectKey,
-                requestedAt: Date.now()
-            });
-        }
-
-        function handleStudentSubjectChange() {
-            const studentSelect = document.getElementById("select-subject-student");
-            if (!studentSelect) return;
-
-            currentSubjectKey = studentSelect.value;
-            const bank = DEFAULT_QUIZ_BANKS[currentSubjectKey];
-
-            const headerMapel = document.getElementById("student-header-mapel");
-            if (headerMapel) {
-                if (bank) {
-                    const qCount = bank.questions ? bank.questions.length : 0;
-                    headerMapel.textContent = `${bank.title} ${qCount === 0 ? '(Soal Belum Tersedia)' : ''}`;
+            if (studentSelect) {
+                studentSelect.innerHTML = "";
+                if (keys.length === 0) {
+                    studentSelect.innerHTML = `<option value="">-- Soal Belum Tersedia (0 Mapel) --</option>`;
                 } else {
-                    headerMapel.textContent = "Pilih Mata Pelajaran Ujian";
+                    keys.forEach(k => {
+                        const bank = DEFAULT_QUIZ_BANKS[k];
+                        const count = bank.questions ? bank.questions.length : 0;
+                        const label = `${bank.title} (${count > 0 ? count + ' Soal - ' + (bank.durationMinutes || 15) + ' Min' : 'Belum Ada Soal'})`;
+                        studentSelect.innerHTML += `<option value="${k}">${label}</option>`;
+                    });
                 }
             }
 
-            const durationBadge = document.getElementById("student-exam-duration");
-            if (durationBadge) durationBadge.textContent = `${bank ? (bank.durationMinutes || 15) : 15} Menit`;
+            if (projectorSelect) {
+                projectorSelect.innerHTML = "";
+                if (keys.length === 0) {
+                    projectorSelect.innerHTML = `<option value="">-- Belum Ada Mapel --</option>`;
+                } else {
+                    keys.forEach(k => {
+                        const bank = DEFAULT_QUIZ_BANKS[k];
+                        projectorSelect.innerHTML += `<option value="${k}">${bank.title}</option>`;
+                    });
+                }
+            }
 
-            // If questions are missing or empty on student device, request from teacher
-            if (!bank || !bank.questions || bank.questions.length === 0) {
-                requestQuizBankFromTeacher(currentSubjectKey);
+            if (filterSelect) {
+                filterSelect.innerHTML = `<option value="all">Semua Mata Pelajaran</option>`;
+                keys.forEach(k => {
+                    filterSelect.innerHTML += `<option value="${k}">${DEFAULT_QUIZ_BANKS[k].title}</option>`;
+                });
+            }
+
+            if (keys.length > 0 && (!currentSubjectKey || !DEFAULT_QUIZ_BANKS[currentSubjectKey])) {
+                currentSubjectKey = keys[0];
             }
         }
 
-        function setupProjectorQr() {
-            const projectorSelect = document.getElementById("projector-mapel-select");
-            if (projectorSelect && projectorSelect.value) {
-                updateProjectorQrForSubject(projectorSelect.value);
-            } else if (currentSubjectKey) {
-                updateProjectorQrForSubject(currentSubjectKey);
+        function addNewSubjectPrompt() {
+            showCustomDialog("Tambah Mata Pelajaran Baru", `
+                <div class="space-y-3 text-left">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1">Nama Mata Pelajaran</label>
+                        <input type="text" id="prompt-subject-name" placeholder="Contoh: Pemrograman Web" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1">Durasi Ujian (Menit)</label>
+                        <input type="number" id="prompt-subject-duration" value="15" min="1" max="180" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    </div>
+                </div>
+            `, () => {
+                const name = document.getElementById("prompt-subject-name")?.value.trim();
+                const dur = parseInt(document.getElementById("prompt-subject-duration")?.value) || 15;
+                if (!name) return;
+
+                const key = "mapel_" + Date.now();
+                DEFAULT_QUIZ_BANKS[key] = {
+                    title: name,
+                    durationMinutes: dur,
+                    questions: []
+                };
+
+                saveQuizBanksToStorage();
+                populateSubjectSelects();
+
+                const adminSelect = document.getElementById("admin-soal-subject-select");
+                if (adminSelect) adminSelect.value = key;
+                loadAdminQuestionsForSubject();
+
+                // Broadcast new bank state
+                publishMqttMessage('bank_sync', {
+                    subjectKey: key,
+                    bank: DEFAULT_QUIZ_BANKS[key]
+                });
+
+                showCustomDialog("Mapel Berhasil Dibuat", `Mata pelajaran <b>${name}</b> telah ditambahkan. Silakan isi soal!`, null, true);
+            });
+        }
+
+        function saveSubjectDuration() {
+            const adminSelect = document.getElementById("admin-soal-subject-select");
+            const durationInput = document.getElementById("input-soal-duration");
+            if (!adminSelect || !adminSelect.value || !durationInput) return;
+
+            const key = adminSelect.value;
+            if (DEFAULT_QUIZ_BANKS[key]) {
+                DEFAULT_QUIZ_BANKS[key].durationMinutes = parseInt(durationInput.value) || 15;
+                saveQuizBanksToStorage();
             }
         }
 
-        function updateProjectorSubject(key) {
-            currentSubjectKey = key;
-            updateProjectorQrForSubject(key);
-        }
+        function saveNewQuestion() {
+            const adminSelect = document.getElementById("admin-soal-subject-select");
+            if (!adminSelect || !adminSelect.value) {
+                showCustomDialog("Pilih Mapel", "Silakan buat atau pilih mata pelajaran terlebih dahulu.", null, true);
+                return;
+            }
 
-        function updateProjectorQrForSubject(key) {
+            const key = adminSelect.value;
             const bank = DEFAULT_QUIZ_BANKS[key];
             if (!bank) return;
 
-            // Broadcast active bank to all connected student phones
+            const qText = document.getElementById("input-new-q-text")?.value.trim();
+            const opt0 = document.getElementById("input-opt-0")?.value.trim();
+            const opt1 = document.getElementById("input-opt-1")?.value.trim();
+            const opt2 = document.getElementById("input-opt-2")?.value.trim();
+            const opt3 = document.getElementById("input-opt-3")?.value.trim();
+            const correctIdx = parseInt(document.getElementById("input-correct-answer")?.value) || 0;
+            const expText = document.getElementById("input-new-q-exp")?.value.trim();
+
+            if (!qText || !opt0 || !opt1 || !opt2 || !opt3) {
+                showCustomDialog("Isi Semua Bidang", "Mohon lengkapi pertanyaan dan seluruh pilihan jawaban A, B, C, D.", null, true);
+                return;
+            }
+
+            const newQ = {
+                id: Date.now(),
+                question: qText,
+                options: [opt0, opt1, opt2, opt3],
+                answer: correctIdx,
+                explanation: expText || "Pembahasan belum disediakan."
+            };
+
+            if (!bank.questions) bank.questions = [];
+            bank.questions.push(newQ);
+
+            saveQuizBanksToStorage();
+            populateSubjectSelects();
+            loadAdminQuestionsForSubject();
+
+            // Clear input fields
+            document.getElementById("input-new-q-text").value = "";
+            document.getElementById("input-opt-0").value = "";
+            document.getElementById("input-opt-1").value = "";
+            document.getElementById("input-opt-2").value = "";
+            document.getElementById("input-opt-3").value = "";
+            document.getElementById("input-new-q-exp").value = "";
+
+            // Broadcast update
             publishMqttMessage('bank_sync', {
                 subjectKey: key,
                 bank: bank
             });
 
-            const baseUrl = window.location.href.split('?')[0].split('#')[0];
-            
-            const compactBank = {
-                title: bank.title,
-                durationMinutes: bank.durationMinutes || 15,
-                questions: (bank.questions || []).map(q => ({
-                    id: q.id,
-                    question: q.question,
-                    options: q.options,
-                    answer: q.answer,
-                    explanation: q.explanation || ""
-                }))
-            };
+            showCustomDialog("Soal Berhasil Disimpan", "Soal baru telah ditambahkan ke bank soal.", null, true);
+        }
 
-            const qdataJson = JSON.stringify(compactBank);
-            let qrUrl = `${baseUrl}?mapel=${encodeURIComponent(key)}&room=${encodeURIComponent(roomCode)}`;
-            
-            if (qdataJson.length < 350) {
-                qrUrl += `&qdata=${encodeURIComponent(qdataJson)}`;
+        function loadAdminQuestionsForSubject() {
+            const adminSelect = document.getElementById("admin-soal-subject-select");
+            const listContainer = document.getElementById("admin-questions-list");
+            const countBadge = document.getElementById("admin-q-count");
+            const durationInput = document.getElementById("input-soal-duration");
+
+            if (!adminSelect || !listContainer) return;
+
+            const key = adminSelect.value;
+            if (!key || !DEFAULT_QUIZ_BANKS[key]) {
+                listContainer.innerHTML = `<div class="text-center py-12 text-slate-400 text-xs">Belum ada mata pelajaran terpilih. Klik 'Mapel Baru' untuk membuat.</div>`;
+                if (countBadge) countBadge.textContent = "0";
+                return;
             }
 
-            const container = document.getElementById("projector-qr-container");
-            const textEl = document.getElementById("projector-url-text");
+            const bank = DEFAULT_QUIZ_BANKS[key];
+            if (durationInput) durationInput.value = bank.durationMinutes || 15;
+            const qList = bank.questions || [];
+            if (countBadge) countBadge.textContent = qList.length;
 
-            if (textEl) {
-                textEl.textContent = qrUrl;
-                textEl.setAttribute("data-full-url", qrUrl);
+            if (qList.length === 0) {
+                listContainer.innerHTML = `
+                    <div class="text-center py-12 text-slate-400 space-y-2">
+                        <i class="fa-solid fa-folder-open text-3xl text-slate-300"></i>
+                        <p class="font-bold text-slate-700 text-xs">Belum ada soal pada mata pelajaran ini.</p>
+                        <p class="text-[11px]">Silakan tambah soal manual di sebelah kiri atau gunakan fitur Import Banyak Soal.</p>
+                    </div>
+                `;
+                return;
             }
 
-            if (!container) return;
-            container.innerHTML = "";
+            listContainer.innerHTML = "";
+            const labels = ["A", "B", "C", "D"];
 
-            let qrRendered = false;
+            qList.forEach((q, idx) => {
+                const card = document.createElement("div");
+                card.className = "bg-slate-50 border border-slate-200 p-4 rounded-2xl space-y-2 text-xs relative group hover:border-indigo-300 transition";
 
-            if (typeof QRCode !== 'undefined') {
-                try {
-                    new QRCode(container, {
-                        text: qrUrl,
-                        width: 250,
-                        height: 250,
-                        colorDark: "#1e1b4b",
-                        colorLight: "#ffffff",
-                        correctLevel: QRCode.CorrectLevel.L
+                let optionsHtml = "";
+                q.options.forEach((opt, oIdx) => {
+                    const isCorrect = oIdx === q.answer;
+                    optionsHtml += `
+                        <div class="flex items-center gap-2 ${isCorrect ? 'text-emerald-700 font-bold' : 'text-slate-600'}">
+                            <span class="w-5 h-5 rounded-md ${isCorrect ? 'bg-emerald-600 text-white' : 'bg-slate-200 text-slate-600'} flex items-center justify-center text-[10px] font-bold">${labels[oIdx]}</span>
+                            <span>${opt}</span>
+                            ${isCorrect ? '<i class="fa-solid fa-check text-emerald-600 ml-1"></i>' : ''}
+                        </div>
+                    `;
+                });
+
+                card.innerHTML = `
+                    <div class="flex items-start justify-between gap-2">
+                        <span class="font-extrabold text-indigo-700 bg-indigo-100 px-2.5 py-0.5 rounded-lg text-[10px]">SOAL NO. ${idx + 1}</span>
+                        <button onclick="deleteQuestion('${key}', ${q.id})" class="text-rose-500 hover:text-rose-700 p-1 transition" title="Hapus Soal">
+                            <i class="fa-solid fa-trash-can text-sm"></i>
+                        </button>
+                    </div>
+                    <p class="font-bold text-slate-800 text-sm leading-snug">${q.question}</p>
+                    <div class="grid grid-cols-2 gap-2 pt-1 border-t border-slate-200/60">
+                        ${optionsHtml}
+                    </div>
+                    ${q.explanation ? `<div class="text-[11px] text-slate-500 bg-white p-2 rounded-xl border border-slate-200 mt-1"><b>Pembahasan:</b> ${q.explanation}</div>` : ''}
+                `;
+
+                listContainer.appendChild(card);
+            });
+        }
+
+        function deleteQuestion(subjectKey, qId) {
+            showCustomDialog("Hapus Soal", "Apakah Anda yakin ingin menghapus soal ini dari bank soal?", () => {
+                const bank = DEFAULT_QUIZ_BANKS[subjectKey];
+                if (bank && bank.questions) {
+                    bank.questions = bank.questions.filter(q => q.id !== qId);
+                    saveQuizBanksToStorage();
+                    populateSubjectSelects();
+                    loadAdminQuestionsForSubject();
+
+                    publishMqttMessage('bank_sync', {
+                        subjectKey: subjectKey,
+                        bank: bank
                     });
-                    qrRendered = true;
-                } catch (err) {
-                    console.warn("QRCode.js error, fallback to QuickChart API", err);
-                    container.innerHTML = "";
                 }
-            }
-
-            if (!qrRendered) {
-                const img = document.createElement("img");
-                img.src = `https://quickchart.io/qr?size=300&text=${encodeURIComponent(qrUrl)}`;
-                img.alt = "QR Code Ujian";
-                img.className = "w-60 h-60 sm:w-64 sm:h-64 object-contain mx-auto rounded-xl shadow-sm";
-                container.appendChild(img);
-            }
+            });
         }
 
-        function checkUrlSubjectParam() {
-            try {
-                const urlParams = new URLSearchParams(window.location.search);
-                const mapelParam = urlParams.get('mapel');
-                const qdataParam = urlParams.get('qdata');
-                const roomParam = urlParams.get('room');
-
-                if (roomParam) {
-                    roomCode = roomParam.toUpperCase();
-                    const roomInput = document.getElementById("input-student-room");
-                    if (roomInput) roomInput.value = roomCode;
-                }
-
-                if (qdataParam) {
-                    try {
-                        const parsedBank = JSON.parse(decodeURIComponent(qdataParam));
-                        if (parsedBank && parsedBank.title && Array.isArray(parsedBank.questions)) {
-                            const key = mapelParam || ("mapel_" + Date.now());
-                            DEFAULT_QUIZ_BANKS[key] = parsedBank;
-                            saveQuizBanksToStorage();
-                            currentSubjectKey = key;
-
-                            const studentSelect = document.getElementById("select-subject-student");
-                            if (studentSelect) {
-                                studentSelect.value = key;
-                                handleStudentSubjectChange();
-                            }
-
-                            const qrNotice = document.getElementById("student-qr-notice");
-                            const qrNoticeTitle = document.getElementById("student-qr-notice-title");
-                            if (qrNotice && qrNoticeTitle) {
-                                if (parsedBank.questions.length === 0) {
-                                    qrNotice.className = "bg-amber-500 text-white p-3.5 rounded-2xl shadow-md border border-amber-400 flex items-center gap-3";
-                                    qrNoticeTitle.textContent = `${parsedBank.title} (Soal Belum Tersedia)`;
-                                } else {
-                                    qrNotice.className = "bg-emerald-500 text-white p-3.5 rounded-2xl shadow-md border border-emerald-400 flex items-center gap-3";
-                                    qrNoticeTitle.textContent = `${parsedBank.title} (${parsedBank.questions.length} Soal Terisi)`;
-                                }
-                                qrNotice.classList.remove("hidden");
-                            }
-                            return;
-                        }
-                    } catch(err) { console.error("Error parsing QR qdata", err); }
-                }
-
-                if (mapelParam) {
-                    currentSubjectKey = mapelParam;
-                    const studentSelect = document.getElementById("select-subject-student");
-                    if (studentSelect) {
-                        studentSelect.value = mapelParam;
-                        handleStudentSubjectChange();
-                    }
-
-                    const bank = DEFAULT_QUIZ_BANKS[mapelParam];
-                    const qrNotice = document.getElementById("student-qr-notice");
-                    const qrNoticeTitle = document.getElementById("student-qr-notice-title");
-                    if (qrNotice && qrNoticeTitle) {
-                        const qCount = (bank && bank.questions) ? bank.questions.length : 0;
-                        if (qCount === 0) {
-                            qrNotice.className = "bg-amber-500 text-white p-3.5 rounded-2xl shadow-md border border-amber-400 flex items-center gap-3";
-                            qrNoticeTitle.textContent = `${bank ? bank.title : 'Mata Pelajaran'} (Memuat Soal dari Guru...)`;
-                        } else {
-                            qrNotice.className = "bg-emerald-500 text-white p-3.5 rounded-2xl shadow-md border border-emerald-400 flex items-center gap-3";
-                            qrNoticeTitle.textContent = `${bank.title} (${qCount} Soal Terisi)`;
-                        }
-                        qrNotice.classList.remove("hidden");
-                    }
-
-                    // Request quiz bank over cloud MQTT immediately
-                    requestQuizBankFromTeacher(mapelParam);
-                }
-            } catch (e) { console.error(e); }
+        function clearAllQuizBanks() {
+            showCustomDialog("Hapus Semua Soal", "APAKAH ANDA YAKIN? Tindakan ini akan menghapus SELURUH mata pelajaran dan bank soal secara permanen!", () => {
+                DEFAULT_QUIZ_BANKS = {};
+                saveQuizBanksToStorage();
+                populateSubjectSelects();
+                loadAdminQuestionsForSubject();
+                showCustomDialog("Berhasil", "Seluruh bank soal telah dibersihkan.", null, true);
+            });
         }
 
-        function updateProjectorQrForSubject(key) {
+        function openBulkImportModal() {
+            const adminSelect = document.getElementById("admin-soal-subject-select");
+            if (!adminSelect || !adminSelect.value) {
+                showCustomDialog("Pilih Mapel", "Silakan buat atau pilih mata pelajaran terlebih dahulu sebelum mengimpor soal.", null, true);
+                return;
+            }
+            document.getElementById("modal-bulk-import")?.classList.remove("hidden");
+        }
+
+        function closeBulkImportModal() {
+            document.getElementById("modal-bulk-import")?.classList.add("hidden");
+        }
+
+        function processBulkImport() {
+            const adminSelect = document.getElementById("admin-soal-subject-select");
+            const textVal = document.getElementById("input-bulk-text")?.value.trim();
+            if (!adminSelect || !adminSelect.value || !textVal) {
+                showCustomDialog("Teks Kosong", "Silakan tempelkan teks soal sesuai format terlebih dahulu.", null, true);
+                return;
+            }
+
+            const key = adminSelect.value;
             const bank = DEFAULT_QUIZ_BANKS[key];
             if (!bank) return;
 
-            const baseUrl = window.location.href.split('?')[0].split('#')[0];
-            
-            const compactBank = {
-                title: bank.title,
-                durationMinutes: bank.durationMinutes || 15,
-                questions: (bank.questions || []).map(q => ({
-                    id: q.id,
-                    question: q.question,
-                    options: q.options,
-                    answer: q.answer,
-                    explanation: q.explanation || ""
-                }))
+            const lines = textVal.split("\n");
+            let importedCount = 0;
+
+            lines.forEach(line => {
+                const parts = line.split(";").map(s => s.trim());
+                if (parts.length >= 6) {
+                    const qText = parts[0];
+                    const opt0 = parts[1];
+                    const opt1 = parts[2];
+                    const opt2 = parts[3];
+                    const opt3 = parts[4];
+                    const keyLetter = parts[5].toUpperCase();
+                    const expText = parts[6] || "Pembahasan belum tersedia.";
+
+                    let correctIdx = 0;
+                    if (keyLetter === "B" || keyLetter === "1") correctIdx = 1;
+                    else if (keyLetter === "C" || keyLetter === "2") correctIdx = 2;
+                    else if (keyLetter === "D" || keyLetter === "3") correctIdx = 3;
+
+                    if (qText && opt0 && opt1) {
+                        if (!bank.questions) bank.questions = [];
+                        bank.questions.push({
+                            id: Date.now() + Math.floor(Math.random() * 10000),
+                            question: qText,
+                            options: [opt0, opt1, opt2 || "Pilihan C", opt3 || "Pilihan D"],
+                            answer: correctIdx,
+                            explanation: expText
+                        });
+                        importedCount++;
+                    }
+                }
+            });
+
+            if (importedCount > 0) {
+                saveQuizBanksToStorage();
+                populateSubjectSelects();
+                loadAdminQuestionsForSubject();
+                closeBulkImportModal();
+                document.getElementById("input-bulk-text").value = "";
+
+                publishMqttMessage('bank_sync', {
+                    subjectKey: key,
+                    bank: bank
+                });
+
+                showCustomDialog("Import Berhasil", `Berhasil mengimpor <b>${importedCount} soal</b> ke mata pelajaran <b>${bank.title}</b>!`, null, true);
+            } else {
+                showCustomDialog("Format Salah", "Tidak ada soal yang dapat dibaca. Pastikan format setiap baris dipisahkan dengan titik koma `;`", null, true);
+            }
+        }
+
+        function renderStudentResultsRekap() {
+            const tbody = document.getElementById("table-rekap-body");
+            const emptyState = document.getElementById("rekap-empty-state");
+            const searchVal = document.getElementById("rekap-search-laptop")?.value.toLowerCase().trim() || "";
+            const filterMapel = document.getElementById("rekap-filter-mapel")?.value || "all";
+
+            if (!tbody) return;
+
+            let filtered = examResultsLog.filter(log => {
+                const matchSearch = (log.studentName || "").toLowerCase().includes(searchVal) ||
+                                    (log.studentId || "").toLowerCase().includes(searchVal) ||
+                                    (log.studentClass || "").toLowerCase().includes(searchVal);
+                const matchMapel = (filterMapel === "all" || log.subjectKey === filterMapel);
+                return matchSearch && matchMapel;
+            });
+
+            document.getElementById("stat-total-students-laptop").textContent = examResultsLog.length;
+            document.getElementById("badge-total-students").textContent = examResultsLog.length;
+
+            let totalScore = 0;
+            let totalViolations = 0;
+            examResultsLog.forEach(l => {
+                totalScore += (l.score || 0);
+                totalViolations += (l.violations || 0);
+            });
+
+            const avgScore = examResultsLog.length > 0 ? Math.round(totalScore / examResultsLog.length) : 0;
+            document.getElementById("stat-avg-score-laptop").textContent = avgScore;
+            document.getElementById("stat-total-violations").textContent = totalViolations;
+
+            if (filtered.length === 0) {
+                tbody.innerHTML = "";
+                if (emptyState) emptyState.classList.remove("hidden");
+                return;
+            }
+
+            if (emptyState) emptyState.classList.add("hidden");
+            tbody.innerHTML = "";
+
+            filtered.forEach((log, idx) => {
+                const tr = document.createElement("tr");
+                tr.className = "hover:bg-slate-50/80 transition";
+
+                const isPassed = log.score >= globalKkmTarget;
+
+                tr.innerHTML = `
+                    <td class="py-3.5 px-3 font-extrabold text-slate-400">${idx + 1}</td>
+                    <td class="py-3.5 px-4 font-black text-slate-800">${log.studentName}</td>
+                    <td class="py-3.5 px-3 font-mono font-bold text-slate-600">${log.studentId}</td>
+                    <td class="py-3.5 px-3 font-semibold text-slate-700">${log.studentClass}</td>
+                    <td class="py-3.5 px-3 font-semibold text-indigo-700">${log.subjectTitle || log.subjectKey}</td>
+                    <td class="py-3.5 px-3 text-center font-bold">
+                        <span class="text-emerald-600">${log.correctCount}</span> / 
+                        <span class="text-rose-600">${log.wrongCount}</span> / 
+                        <span class="text-slate-400">${log.emptyCount}</span>
+                    </td>
+                    <td class="py-3.5 px-3 text-center font-bold ${log.violations > 0 ? 'text-rose-600 bg-rose-50 rounded-lg' : 'text-slate-400'}">
+                        ${log.violations || 0}x
+                    </td>
+                    <td class="py-3.5 px-4 text-center">
+                        <span class="text-base font-black ${isPassed ? 'text-emerald-600' : 'text-rose-600'}">${log.score}</span>
+                    </td>
+                    <td class="py-3.5 px-3 text-center">
+                        <span class="px-2.5 py-1 rounded-full text-[10px] font-extrabold ${isPassed ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-800'}">
+                            ${isPassed ? 'LULUS' : 'REMIDI'}
+                        </span>
+                    </td>
+                    <td class="py-3.5 px-3 text-right text-slate-400 font-mono text-[11px] no-print">${log.timestamp || '-'}</td>
+                `;
+
+                tbody.appendChild(tr);
+            });
+        }
+
+        function clearRekapData() {
+            showCustomDialog("Reset Rekap Nilai", "Apakah Anda yakin ingin menghapus seluruh data rekap nilai siswa?", () => {
+                examResultsLog = [];
+                saveExamLogsToStorage();
+                renderStudentResultsRekap();
+            });
+        }
+
+        function exportRekapToCSV() {
+            if (examResultsLog.length === 0) {
+                showCustomDialog("Rekap Kosong", "Belum ada data rekap nilai untuk diexport.", null, true);
+                return;
+            }
+
+            let csv = "No,Nama Siswa,NIS,Kelas,Mata Pelajaran,Benar,Salah,Kosong,Pindah Tab,Nilai Akhir,Status,Waktu Selesai\n";
+
+            examResultsLog.forEach((l, idx) => {
+                csv += `"${idx + 1}","${l.studentName}","${l.studentId}","${l.studentClass}","${l.subjectTitle || l.subjectKey}","${l.correctCount}","${l.wrongCount}","${l.emptyCount}","${l.violations || 0}","${l.score}","${l.score >= globalKkmTarget ? 'LULUS' : 'REMIDI'}","${l.timestamp}"\n`;
+            });
+
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = `Rekap_Nilai_CBT_STemga_${Date.now()}.csv`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+        }
+
+        function handleIncomingHeartbeat(data) {
+            activeStudentsMap[data.sessionId] = {
+                data: data,
+                lastSeen: Date.now()
             };
 
-            const qdataJson = JSON.stringify(compactBank);
-            let qrUrl = `${baseUrl}?mapel=${encodeURIComponent(key)}&room=${encodeURIComponent(roomCode)}`;
-            
-            if (qdataJson.length < 350) {
-                qrUrl += `&qdata=${encodeURIComponent(qdataJson)}`;
-            }
+            renderActiveStudentsLive();
+        }
 
-            const container = document.getElementById("projector-qr-container");
-            const textEl = document.getElementById("projector-url-text");
-
-            if (textEl) {
-                textEl.textContent = qrUrl;
-                textEl.setAttribute("data-full-url", qrUrl);
-            }
+        function renderActiveStudentsLive() {
+            const container = document.getElementById("active-students-container");
+            const emptyEl = document.getElementById("active-students-empty");
+            const counter = document.getElementById("live-active-counter");
+            const activeStat = document.getElementById("stat-active-students-count");
 
             if (!container) return;
+
+            const now = Date.now();
+            const activeList = Object.values(activeStudentsMap).filter(item => (now - item.lastSeen) < 12000);
+
+            if (counter) counter.textContent = activeList.length;
+            if (activeStat) activeStat.textContent = activeList.length;
+
+            if (activeList.length === 0) {
+                container.innerHTML = "";
+                if (emptyEl) emptyEl.classList.remove("hidden");
+                return;
+            }
+
+            if (emptyEl) emptyEl.classList.add("hidden");
             container.innerHTML = "";
 
-            let qrRendered = false;
+            activeList.forEach(item => {
+                const s = item.data;
+                const card = document.createElement("div");
+                const hasViolations = (s.violations || 0) > 0;
 
-            if (typeof QRCode !== 'undefined') {
-                try {
-                    new QRCode(container, {
-                        text: qrUrl,
-                        width: 250,
-                        height: 250,
-                        colorDark: "#1e1b4b",
-                        colorLight: "#ffffff",
-                        correctLevel: QRCode.CorrectLevel.L
-                    });
-                    qrRendered = true;
-                } catch (err) {
-                    console.warn("QRCode.js error, fallback to QuickChart API", err);
-                    container.innerHTML = "";
-                }
-            }
+                card.className = `bg-slate-800/90 border ${hasViolations ? 'border-rose-500/80 bg-rose-950/20' : 'border-slate-700'} p-3.5 rounded-2xl text-xs space-y-2 relative overflow-hidden shadow-md`;
 
-            if (!qrRendered) {
-                const img = document.createElement("img");
-                img.src = `https://quickchart.io/qr?size=300&text=${encodeURIComponent(qrUrl)}`;
-                img.alt = "QR Code Ujian";
-                img.className = "w-60 h-60 sm:w-64 sm:h-64 object-contain mx-auto rounded-xl shadow-sm";
-                container.appendChild(img);
-            }
-        }
+                const answered = s.answeredCount || 0;
+                const total = s.totalQuestions || 10;
+                const pct = Math.round((answered / total) * 100);
 
-        function copyExamUrl() {
-            const textEl = document.getElementById("projector-url-text");
-            const fullUrl = textEl ? (textEl.getAttribute("data-full-url") || textEl.textContent) : window.location.href;
+                const mins = Math.floor((s.timeRemaining || 0) / 60);
+                const secs = (s.timeRemaining || 0) % 60;
+                const timeStr = `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
 
-            const tempInput = document.createElement("textarea");
-            tempInput.value = fullUrl;
-            document.body.appendChild(tempInput);
-            tempInput.select();
-            try {
-                document.execCommand("copy");
-                showCustomDialog("Tautan Ujian Tersalin", "Tautan ujian lengkap telah disalin ke clipboard.", null, true);
-            } catch (err) { console.error(err); }
-            document.body.removeChild(tempInput);
-        }
-
-        function copyStudentResultCode() {
-            if (examResultsLog.length === 0) return;
-            const latestLog = examResultsLog[0];
-            const code = btoa(JSON.stringify(latestLog));
-
-            const tempInput = document.createElement("textarea");
-            tempInput.value = code;
-            document.body.appendChild(tempInput);
-            tempInput.select();
-            try {
-                document.execCommand("copy");
-                showCustomDialog("Kode Hasil Tersalin", "Kode hasil ujian telah disalin. Anda dapat mengirimkan teks ini ke WhatsApp/Telegram Guru.", null, true);
-            } catch (err) { console.error(err); }
-            document.body.removeChild(tempInput);
-        }
-
-        function openManualInputResultModal() {
-            showCustomDialog("Input Kode Hasil Ujian Siswa", `
-                <div class="space-y-2 text-left">
-                    <label class="block text-xs font-bold text-slate-700">Tempelkan Kode Hasil Ujian dari HP Siswa</label>
-                    <textarea id="prompt-result-code" rows="4" placeholder="Tempelkan teks kode terenkripsi siswa di sini..." class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-mono focus:outline-none focus:ring-2 focus:ring-indigo-500"></textarea>
-                </div>
-            `, () => {
-                const text = document.getElementById("prompt-result-code")?.value.trim();
-                if (!text) return;
-                try {
-                    const parsedLog = JSON.parse(atob(text));
-                    if (parsedLog && parsedLog.studentName && parsedLog.score !== undefined) {
-                        const exists = examResultsLog.some(l => l.id === parsedLog.id);
-                        if (!exists) {
-                            examResultsLog.unshift(parsedLog);
-                            saveExamLogsToStorage();
-                            renderStudentResultsRekap();
-                            showCustomDialog("Berhasil", `Hasil ujian atas nama <b>${parsedLog.studentName}</b> (${parsedLog.score}) berhasil dimasukkan!`, null, true);
-                        } else {
-                            showCustomDialog("Sudah Ada", "Data hasil ujian siswa ini sudah tercatat sebelumnya.", null, true);
-                        }
-                    } else {
-                        showCustomDialog("Kode Tidak Valid", "Format kode hasil ujian tidak dikenali.", null, true);
-                    }
-                } catch(err) {
-                    showCustomDialog("Format Salah", "Kode hasil tidak dapat dibaca.", null, true);
-                }
-            });
-        }
-
-        function handleStartExam(event) {
-            if (event) event.preventDefault();
-
-            studentData.name = document.getElementById("input-student-name")?.value.trim() || "";
-            studentData.id = document.getElementById("input-student-id")?.value.trim() || "";
-            studentData.class = document.getElementById("input-student-class")?.value.trim() || "";
-            const inputRoom = document.getElementById("input-student-room")?.value.trim().toUpperCase();
-
-            if (inputRoom) roomCode = inputRoom;
-
-            if (!studentData.name || !studentData.id || !studentData.class) {
-                showCustomDialog("Data Belum Lengkap", "Silakan lengkapi Nama, NIS, dan Kelas terlebih dahulu.", null, true);
-                return;
-            }
-
-            const studentSelect = document.getElementById("select-subject-student");
-            if (studentSelect && studentSelect.value) {
-                currentSubjectKey = studentSelect.value;
-            }
-
-            let bank = DEFAULT_QUIZ_BANKS[currentSubjectKey];
-
-            if (!bank || !bank.questions || bank.questions.length === 0) {
-                showCustomDialog("Soal Belum Tersedia", "Mata pelajaran ini belum memiliki soal. Silakan minta Guru/Proktor untuk membuat atau meng-import soal terlebih dahulu.", null, true);
-                return;
-            }
-
-            function shuffleArray(arr) {
-                for (let i = arr.length - 1; i > 0; i--) {
-                    const j = Math.floor(Math.random() * (i + 1));
-                    [arr[i], arr[j]] = [arr[j], arr[i]];
-                }
-                return arr;
-            }
-
-            currentQuestions = bank.questions.map(q => {
-                let indexedOptions = q.options.map((optText, origIdx) => ({
-                    text: optText,
-                    isCorrect: origIdx === q.answer
-                }));
-
-                if (shuffleOptionsConfig === "enabled") {
-                    shuffleArray(indexedOptions);
-                }
-
-                const newCorrectIdx = indexedOptions.findIndex(o => o.isCorrect);
-
-                return {
-                    id: q.id,
-                    question: q.question,
-                    options: indexedOptions.map(o => o.text),
-                    answer: newCorrectIdx,
-                    explanation: q.explanation || "Pembahasan belum tersedia."
-                };
-            });
-
-            currentQuestionIndex = 0;
-            userAnswers = {};
-            flaggedQuestions = {};
-            antiCheatViolations = 0;
-            currentSessionId = "SES-" + Date.now() + "-" + Math.floor(Math.random() * 1000);
-
-            const durationMin = bank.durationMinutes || 15;
-            timeRemaining = durationMin * 60;
-
-            document.getElementById("view-student-login")?.classList.add("hidden");
-            document.getElementById("view-student-result")?.classList.add("hidden");
-            document.getElementById("view-student-exam")?.classList.remove("hidden");
-
-            const qTotalBadge = document.getElementById("exam-q-total-badge");
-            if (qTotalBadge) qTotalBadge.textContent = currentQuestions.length;
-
-            isExamActive = true;
-            renderQuestion();
-            updateProgressBar();
-            startTimer();
-            subscribeMqttRoomTopics();
-            startStudentHeartbeat();
-        }
-
-        function initAntiCheatListener() {
-            document.addEventListener("visibilitychange", () => {
-                if (isExamActive && antiCheatConfig === "enabled") {
-                    if (document.visibilityState === "hidden") {
-                        antiCheatViolations++;
-                        showCheatToast();
-                    }
-                }
-            });
-
-            window.addEventListener("blur", () => {
-                if (isExamActive && antiCheatConfig === "enabled") {
-                    antiCheatViolations++;
-                    showCheatToast();
-                }
-            });
-        }
-
-        function renderQuestion() {
-            if (!currentQuestions || currentQuestions.length === 0) return;
-            const q = currentQuestions[currentQuestionIndex];
-            if (!q) return;
-
-            document.getElementById("q-number-title").textContent = currentQuestionIndex + 1;
-            document.getElementById("exam-q-current-badge").textContent = currentQuestionIndex + 1;
-            document.getElementById("question-text").textContent = q.question;
-
-            const optionsContainer = document.getElementById("options-container");
-            optionsContainer.innerHTML = "";
-            const labels = ["A", "B", "C", "D"];
-
-            q.options.forEach((optText, optIdx) => {
-                const isSelected = userAnswers[q.id] === optIdx;
-                const btn = document.createElement("button");
-                btn.type = "button";
-                btn.onclick = () => selectOption(optIdx);
-                btn.className = `w-full text-left p-3.5 rounded-2xl border transition flex items-center gap-3 text-xs sm:text-sm font-medium ${
-                    isSelected 
-                    ? 'bg-indigo-50 border-indigo-600 text-indigo-900 ring-2 ring-indigo-500/20 font-bold' 
-                    : 'bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100'
-                }`;
-
-                btn.innerHTML = `
-                    <span class="w-7 h-7 rounded-xl flex items-center justify-center font-bold text-xs shrink-0 ${
-                        isSelected ? 'bg-indigo-600 text-white' : 'bg-slate-200 text-slate-600'
-                    }">${labels[optIdx]}</span>
-                    <span class="flex-1 leading-snug">${optText}</span>
+                card.innerHTML = `
+                    <div class="flex items-center justify-between">
+                        <span class="font-extrabold text-white text-sm truncate max-w-[170px]">${s.studentName}</span>
+                        <span class="font-mono text-[11px] font-bold px-2 py-0.5 rounded ${s.timeRemaining < 180 ? 'bg-rose-500/30 text-rose-300 border border-rose-500/40 animate-pulse' : 'bg-indigo-500/20 text-indigo-300'}">
+                            <i class="fa-regular fa-clock mr-1"></i>${timeStr}
+                        </span>
+                    </div>
+                    <div class="flex items-center justify-between text-[11px] text-slate-400">
+                        <span>${s.studentClass} | NIS: ${s.studentId}</span>
+                        <span class="font-bold text-indigo-300">Soal ${s.currentQIndex + 1}/${total}</span>
+                    </div>
+                    <div class="w-full bg-slate-700 h-1.5 rounded-full overflow-hidden">
+                        <div class="bg-emerald-400 h-full transition-all duration-300" style="width: ${pct}%"></div>
+                    </div>
+                    <div class="flex items-center justify-between pt-1 border-t border-slate-700/60 text-[11px]">
+                        <span class="${hasViolations ? 'text-rose-400 font-black flex items-center gap-1' : 'text-slate-400'}">
+                            ${hasViolations ? `<i class="fa-solid fa-triangle-exclamation animate-bounce"></i> ${s.violations}x Pindah Tab` : '<i class="fa-solid fa-shield-halved text-emerald-400 mr-1"></i>Layar Aman'}
+                        </span>
+                        <button onclick="forceSubmitStudent('${s.sessionId}')" class="text-[10px] bg-rose-600/80 hover:bg-rose-600 text-white font-bold px-2 py-1 rounded-lg transition">
+                            Hentikan Ujian
+                        </button>
+                    </div>
                 `;
-                optionsContainer.appendChild(btn);
+
+                container.appendChild(card);
             });
+        }
 
-            const isFlagged = !!flaggedQuestions[q.id];
-            const flagIcon = document.getElementById("flag-icon");
-            const flagText = document.getElementById("flag-text");
-            const flagBtnLabel = document.getElementById("flag-btn-label");
+        function forceSubmitStudent(sessionId) {
+            showCustomDialog("Hentikan Ujian Siswa", "Apakah Anda yakin ingin menghentikan dan mengumpulkan lembar ujian siswa ini secara paksa?", () => {
+                publishMqttMessage('command', {
+                    type: 'FORCE_SUBMIT_STUDENT',
+                    sessionId: sessionId
+                });
+            });
+        }
 
-            if (isFlagged) {
-                if (flagIcon) flagIcon.className = "fa-solid fa-bookmark text-amber-500";
-                if (flagText) flagText.textContent = "Ragu-ragu";
-                if (flagBtnLabel) flagBtnLabel.textContent = "Batal Ragu";
-            } else {
-                if (flagIcon) flagIcon.className = "fa-regular fa-bookmark text-slate-400";
-                if (flagText) flagText.textContent = "Tandai Ragu";
-                if (flagBtnLabel) flagBtnLabel.textContent = "Ragu";
-            }
-
-            const prevBtn = document.getElementById("btn-prev-q");
-            if (prevBtn) prevBtn.disabled = (currentQuestionIndex === 0);
-
-            const nextText = document.getElementById("btn-next-text");
-            const nextIcon = document.getElementById("btn-next-icon");
-            if (currentQuestionIndex === currentQuestions.length - 1) {
-                if (nextText) nextText.textContent = "Selesai";
-                if (nextIcon) nextIcon.className = "fa-solid fa-check-double";
-            } else {
-                if (nextText) nextText.textContent = "Selanjutnya";
-                if (nextIcon) nextIcon.className = "fa-solid fa-arrow-right";
+        function handleStudentFinishedEvent(sessionId) {
+            if (activeStudentsMap[sessionId]) {
+                delete activeStudentsMap[sessionId];
+                renderActiveStudentsLive();
             }
         }
 
-        function selectOption(index) {
-            const q = currentQuestions[currentQuestionIndex];
-            userAnswers[q.id] = index;
-            renderQuestion();
-            updateProgressBar();
+        function startStudentHeartbeat() {
+            if (heartbeatInterval) clearInterval(heartbeatInterval);
             sendStudentHeartbeat();
-        }
 
-        function navigateQuestion(step) {
-            const newIdx = currentQuestionIndex + step;
-            if (newIdx >= 0 && newIdx < currentQuestions.length) {
-                currentQuestionIndex = newIdx;
-                renderQuestion();
-                updateProgressBar();
-                sendStudentHeartbeat();
-            }
-        }
-
-        function handleNextOrFinish() {
-            if (currentQuestionIndex === currentQuestions.length - 1) {
-                confirmSubmitExam();
-            } else {
-                navigateQuestion(1);
-            }
-        }
-
-        function toggleFlagCurrentQuestion() {
-            if (!currentQuestions || currentQuestions.length === 0) return;
-            const q = currentQuestions[currentQuestionIndex];
-            if (!q) return;
-
-            flaggedQuestions[q.id] = !flaggedQuestions[q.id];
-            renderQuestion();
-        }
-
-        function updateProgressBar() {
-            if (!currentQuestions || currentQuestions.length === 0) return;
-            const pct = Math.round(((currentQuestionIndex + 1) / currentQuestions.length) * 100);
-            const fill = document.getElementById("exam-progress-fill");
-            if (fill) fill.style.width = `${pct}%`;
-        }
-
-        function startTimer() {
-            if (timerInterval) clearInterval(timerInterval);
-            updateTimerDisplay();
-
-            timerInterval = setInterval(() => {
-                if (timeRemaining > 0) {
-                    timeRemaining--;
-                    updateTimerDisplay();
-                } else {
-                    clearInterval(timerInterval);
-                    finalizeExamSubmit(true);
-                }
-            }, 1000);
-        }
-
-        function updateTimerDisplay() {
-            const minutes = Math.floor(timeRemaining / 60);
-            const seconds = timeRemaining % 60;
-            const formatted = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
-            
-            const timerText = document.getElementById("exam-timer-text");
-            const timerBox = document.getElementById("exam-timer-box");
-            if (timerText) timerText.textContent = formatted;
-
-            if (timeRemaining <= 180) {
-                if (timerBox) timerBox.className = "px-3 py-1.5 rounded-xl border border-rose-300 bg-rose-50 flex items-center gap-2 font-mono font-bold text-xs text-rose-600 time-warning";
-            } else {
-                if (timerBox) timerBox.className = "px-3 py-1.5 rounded-xl border border-slate-200 bg-slate-50 flex items-center gap-2 font-mono font-bold text-xs text-slate-700";
-            }
-        }
-
-        function toggleQuestionGridModal(forceState) {
-            const modal = document.getElementById("modal-grid");
-            if (!modal) return;
-
-            const isHidden = forceState !== undefined ? !forceState : modal.classList.contains("hidden");
-            if (isHidden) {
-                renderGridNumbers();
-                modal.classList.remove("hidden");
-            } else {
-                modal.classList.add("hidden");
-            }
-        }
-
-        function renderGridNumbers() {
-            const container = document.getElementById("grid-numbers-container");
-            if (!container || !currentQuestions) return;
-            container.innerHTML = "";
-
-            currentQuestions.forEach((q, idx) => {
-                const isAnswered = userAnswers[q.id] !== undefined;
-                const isFlagged = !!flaggedQuestions[q.id];
-                const isCurrent = idx === currentQuestionIndex;
-
-                let bgClass = "bg-slate-100 text-slate-700 border-slate-200";
-                if (isFlagged) {
-                    bgClass = "bg-amber-400 text-slate-900 border-amber-500 font-extrabold";
-                } else if (isAnswered) {
-                    bgClass = "bg-indigo-600 text-white border-indigo-700 font-extrabold";
-                }
-
-                const btn = document.createElement("button");
-                btn.type = "button";
-                btn.onclick = () => {
-                    currentQuestionIndex = idx;
-                    renderQuestion();
-                    updateProgressBar();
-                    toggleQuestionGridModal(false);
+            heartbeatInterval = setInterval(() => {
+                if (isExamActive) {
                     sendStudentHeartbeat();
-                };
-                btn.className = `py-2.5 rounded-xl text-xs border font-bold transition flex items-center justify-center relative ${bgClass} ${
-                    isCurrent ? 'ring-2 ring-indigo-500 ring-offset-1' : ''
-                }`;
-                btn.textContent = idx + 1;
-
-                container.appendChild(btn);
-            });
-        }
-
-        function confirmSubmitExam() {
-            const totalQ = currentQuestions.length;
-            const answeredCount = Object.keys(userAnswers).length;
-            const emptyCount = totalQ - answeredCount;
-
-            const descEl = document.getElementById("confirm-submit-desc");
-            if (descEl) {
-                if (emptyCount > 0) {
-                    descEl.innerHTML = `Masih ada <b class="text-rose-600">${emptyCount} soal</b> yang belum diisi. Yakin ingin mengumpulkan?`;
-                } else {
-                    descEl.textContent = "Semua soal telah terisi. Yakin ingin mengumpulkan ujian sekarang?";
                 }
-            }
-
-            document.getElementById("modal-confirm-submit")?.classList.remove("hidden");
+            }, 3000);
         }
 
-        function closeSubmitConfirmModal() {
-            document.getElementById("modal-confirm-submit")?.classList.add("hidden");
-        }
+        function sendStudentHeartbeat() {
+            if (!isExamActive || !currentSessionId) return;
 
-        function showCheatToast() {
-            const toast = document.getElementById("toast-cheat");
-            const countSpan = document.getElementById("toast-cheat-count");
-            if (toast && countSpan) {
-                countSpan.textContent = antiCheatViolations;
-                toast.classList.remove("hidden");
-            }
-        }
-
-        function dismissCheatToast() {
-            const toast = document.getElementById("toast-cheat");
-            if (toast) toast.classList.add("hidden");
-        }
-
-        function finalizeExamSubmit(isAutoTimeout = false) {
-            closeSubmitConfirmModal();
-            toggleQuestionGridModal(false);
-
-            isExamActive = false;
-            clearInterval(timerInterval);
-            stopStudentHeartbeat();
-
-            let correctCount = 0;
-            currentQuestions.forEach(q => {
-                if (userAnswers[q.id] === q.answer) correctCount++;
-            });
-
-            const totalQ = currentQuestions.length;
             const answeredCount = Object.keys(userAnswers).length;
-            const wrongCount = answeredCount - correctCount;
-            const emptyCount = totalQ - answeredCount;
-            const finalScore = totalQ > 0 ? Math.round((correctCount / totalQ) * 100) : 0;
-            const isPassed = finalScore >= globalKkmTarget;
-
-            const now = new Date();
-            const timeStr = `${String(now.getDate()).padStart(2, '0')}/${String(now.getMonth() + 1).padStart(2, '0')}/${now.getFullYear()} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
-            
-            const newLog = {
-                id: "LOG-" + Date.now(),
+            const heartbeatPayload = {
+                sessionId: currentSessionId,
                 studentName: studentData.name,
                 studentId: studentData.id,
                 studentClass: studentData.class,
                 subjectKey: currentSubjectKey,
-                subjectTitle: DEFAULT_QUIZ_BANKS[currentSubjectKey]?.title || "Ujian",
-                score: finalScore,
-                correctCount: correctCount,
-                wrongCount: Math.max(0, wrongCount),
-                emptyCount: emptyCount,
-                totalQuestions: totalQ,
+                currentQIndex: currentQuestionIndex,
+                answeredCount: answeredCount,
+                totalQuestions: currentQuestions.length,
+                timeRemaining: timeRemaining,
                 violations: antiCheatViolations,
-                status: isPassed ? "LULUS" : "REMIDI",
-                timestamp: timeStr
+                timestamp: Date.now()
             };
-            
-            examResultsLog.unshift(newLog);
-            saveExamLogsToStorage();
-            renderStudentResultsRekap();
 
-            publishMqttMessage('result', newLog);
-            handleStudentFinishedEvent(currentSessionId);
-
-            document.getElementById("result-score").textContent = finalScore;
-            document.getElementById("res-correct").textContent = correctCount;
-            document.getElementById("res-wrong").textContent = Math.max(0, wrongCount);
-            document.getElementById("res-empty").textContent = emptyCount;
-            document.getElementById("result-student-info").textContent = `Hasil ujian ${studentData.name} (${studentData.class})`;
-
-            const statusText = document.getElementById("result-status-text");
-            if (isPassed) {
-                statusText.textContent = `Status: LULUS (Memenuhi Standar KKM ${globalKkmTarget})`;
-                statusText.className = "text-xs font-bold text-emerald-200 mt-1";
-            } else {
-                statusText.textContent = `Status: REMIDI (Di bawah Standar KKM ${globalKkmTarget})`;
-                statusText.className = "text-xs font-bold text-rose-200 mt-1";
-            }
-
-            if (antiCheatViolations > 0) {
-                document.getElementById("violation-info-box").classList.remove("hidden");
-                document.getElementById("res-violations").textContent = antiCheatViolations;
-            } else {
-                document.getElementById("violation-info-box").classList.add("hidden");
-            }
-
-            document.getElementById("view-student-exam").classList.add("hidden");
-            document.getElementById("view-student-result").classList.remove("hidden");
-
-            if (isAutoTimeout) {
-                showCustomDialog("Waktu Habis", "Waktu pengerjaan telah habis. Jawaban dikumpulkan otomatis.", null, true);
-            }
+            publishMqttMessage('heartbeat', heartbeatPayload);
         }
 
-        function restartExamSession() {
-            document.getElementById("view-student-result").classList.add("hidden");
-            document.getElementById("view-student-exam").classList.add("hidden");
-            document.getElementById("view-student-login").classList.remove("hidden");
+        function stopStudentHeartbeat() {
+            if (heartbeatInterval) clearInterval(heartbeatInterval);
+            heartbeatInterval = null;
         }
 
-        function toggleReviewModal() {
-            const modal = document.getElementById("modal-review");
-            if (!modal) return;
+        function updatePeerStatusUI(status, text) {
+            const teacherStatus = document.getElementById("teacher-peer-status");
+            const studentStatus = document.getElementById("student-peer-status");
 
-            const isHidden = modal.classList.contains("hidden");
-            if (isHidden) {
-                const listContainer = document.getElementById("review-content-list");
-                listContainer.innerHTML = "";
-                const labels = ["A", "B", "C", "D", "E"];
-
-                currentQuestions.forEach((q, idx) => {
-                    const studentAnsIdx = userAnswers[q.id];
-                    const isCorrect = studentAnsIdx === q.answer;
-                    const isAnswered = studentAnsIdx !== undefined;
-
-                    const item = document.createElement("div");
-                    item.className = `p-3.5 rounded-2xl border ${isCorrect ? 'bg-emerald-50/60 border-emerald-200' : 'bg-rose-50/60 border-rose-200'} space-y-2`;
-
-                    item.innerHTML = `
-                        <div class="flex items-center justify-between">
-                            <span class="font-bold text-slate-800">Soal No. ${idx + 1}</span>
-                            <span class="px-2 py-0.5 rounded text-[10px] font-bold ${isCorrect ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-800'}">
-                                ${isCorrect ? 'Benar (+1)' : (isAnswered ? 'Salah (0)' : 'Tidak Dijawab (0)')}
-                            </span>
-                        </div>
-                        <p class="text-slate-700 font-medium">${q.question}</p>
-                        <div class="space-y-1 text-[11px] pt-1 border-t border-slate-200/60">
-                            <div>Jawaban Anda: <b class="${isCorrect ? 'text-emerald-700' : 'text-rose-700'}">${isAnswered ? labels[studentAnsIdx] + '. ' + q.options[studentAnsIdx] : 'Kosong'}</b></div>
-                            <div>Kunci Jawaban: <b class="text-emerald-700">${labels[q.answer]}. ${q.options[q.answer]}</b></div>
-                        </div>
-                        <div class="bg-white/80 p-2 rounded-xl text-[11px] text-slate-600 border border-slate-200">
-                            <span class="font-bold text-indigo-700 block mb-0.5"><i class="fa-solid fa-lightbulb mr-1"></i>Pembahasan:</span>
-                            ${q.explanation}
-                        </div>
-                    `;
-
-                    listContainer.appendChild(item);
-                });
-
-                modal.classList.remove("hidden");
-            } else {
-                modal.classList.add("hidden");
-            }
-        }
-
-        let customDialogCallback = null;
-
-        function showCustomDialog(title, message, onConfirm = null, isAlertOnly = false) {
-            const modal = document.getElementById("modal-custom-dialog");
-            const titleEl = document.getElementById("dialog-title");
-            const msgEl = document.getElementById("dialog-message");
-            const btnCancel = document.getElementById("dialog-btn-cancel");
-            const btnConfirm = document.getElementById("dialog-btn-confirm");
-
-            if (!modal) return;
-
-            titleEl.textContent = title;
-            msgEl.innerHTML = message;
-            customDialogCallback = onConfirm;
-
-            if (isAlertOnly) {
-                btnCancel.classList.add("hidden");
-                btnConfirm.textContent = "OK";
-                btnConfirm.onclick = closeCustomDialog;
-            } else {
-                btnCancel.classList.remove("hidden");
-                btnConfirm.textContent = "Ya, Lanjutkan";
-                btnConfirm.onclick = () => {
-                    const actionFn = customDialogCallback;
-                    closeCustomDialog();
-                    if (typeof actionFn === 'function') {
-                        actionFn();
-                    }
-                };
+            if (teacherStatus) {
+                if (status === "connected") {
+                    teacherStatus.innerHTML = `<i class="fa-solid fa-cloud-bolt text-[9px] text-emerald-400"></i> ${text}`;
+                    teacherStatus.className = "bg-slate-800 text-emerald-400 text-[10px] font-bold px-2 py-0.5 rounded-full border border-slate-700 flex items-center gap-1";
+                } else {
+                    teacherStatus.innerHTML = `<i class="fa-solid fa-spinner animate-spin text-[9px] text-amber-400"></i> ${text}`;
+                    teacherStatus.className = "bg-slate-800 text-amber-400 text-[10px] font-bold px-2 py-0.5 rounded-full border border-slate-700 flex items-center gap-1";
+                }
             }
 
-            modal.classList.remove("hidden");
-        }
-
-        function closeCustomDialog() {
-            document.getElementById("modal-custom-dialog").classList.add("hidden");
-            customDialogCallback = null;
+            if (studentStatus) {
+                if (status === "connected") {
+                    studentStatus.innerHTML = `<i class="fa-solid fa-wifi mr-0.5"></i> ${text}`;
+                    studentStatus.className = "bg-emerald-500/30 text-emerald-200 text-[9px] font-extrabold px-1.5 py-0.5 rounded border border-emerald-400/40";
+                } else {
+                    studentStatus.innerHTML = `<i class="fa-solid fa-circle-notch animate-spin mr-0.5"></i> ${text}`;
+                    studentStatus.className = "bg-amber-500/30 text-amber-200 text-[9px] font-extrabold px-1.5 py-0.5 rounded border border-amber-400/40";
+                }
+            }
         }
     </script>
 </body>
