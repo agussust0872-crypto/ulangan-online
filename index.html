@@ -1937,23 +1937,10 @@
                     if (currentRole === 'teacher') loadAdminQuestionsForSubject();
                 }
             } else if (msg.type === 'command') {
-                if (msg.data.type === 'FORCE_SUBMIT_STUDENT' && msg.data.sessionId === currentSessionId) {
+                if (msg.data && msg.data.type === 'FORCE_SUBMIT_STUDENT' && msg.data.sessionId === currentSessionId) {
                     if (isExamActive) {
                         finalizeExamSubmit();
                         showCustomDialog("Ujian Dihentikan Proktor", "Ujian Anda telah dihentikan secara langsung oleh Guru/Proktor.", null, true);
-                    }
-                }
-            } else if (msg.type === 'student_finished') {
-                if (msg.data && msg.data.sessionId) {
-                    delete activeStudentsMap[msg.data.sessionId];
-                    renderActiveStudentsLive();
-                    if (msg.data.result) {
-                        const exists = examResultsLog.some(r => r.studentId === msg.data.result.studentId && r.timestamp === msg.data.result.timestamp);
-                        if (!exists) {
-                            examResultsLog.push(msg.data.result);
-                            saveExamLogsToStorage();
-                            renderStudentResultsRekap();
-                        }
                     }
                 }
             } else if (msg.type === 'request_bank') {
@@ -2052,6 +2039,7 @@
         }
 
         function forceSubmitStudent(sessionId) {
+            if (!sessionId) return;
             showCustomDialog("Hentikan Ujian Siswa", "Apakah Anda yakin ingin menghentikan dan mengumpulkan lembar ujian siswa ini secara paksa?", () => {
                 publishMqttMessage('command', {
                     type: 'FORCE_SUBMIT_STUDENT',
@@ -2507,11 +2495,11 @@
             if (isAlert) {
                 if (btnCancel) btnCancel.classList.add("hidden");
                 if (btnConfirm) {
+                    btnConfirm.textContent = "Tutup";
                     btnConfirm.onclick = () => {
                         closeCustomDialog();
                         if (onConfirm) onConfirm();
                     };
-                    btnConfirm.textContent = "Tutup";
                 }
             } else {
                 if (btnCancel) btnCancel.classList.remove("hidden");
