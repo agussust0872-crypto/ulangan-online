@@ -263,6 +263,7 @@
                                 <th class="py-3 px-4 text-center">Nilai Akhir</th>
                                 <th class="py-3 px-3 text-center">Status</th>
                                 <th class="py-3 px-3 text-right no-print">Waktu Selesai</th>
+                                <th class="py-3 px-3 text-center no-print">Aksi</th>
                             </tr>
                         </thead>
                         <tbody id="table-rekap-body" class="divide-y divide-slate-100">
@@ -1920,6 +1921,20 @@
 
             if (msg.type === 'heartbeat') {
                 handleIncomingHeartbeat(msg.data);
+            } else if (msg.type === 'student_finished') {
+                if (msg.data && msg.data.result) {
+                    const res = msg.data.result;
+                    const exists = examResultsLog.some(r => r.studentId === res.studentId && r.timestamp === res.timestamp && r.subjectKey === res.subjectKey);
+                    if (!exists) {
+                        examResultsLog.push(res);
+                        saveExamLogsToStorage();
+                        renderStudentResultsRekap();
+                    }
+                    if (msg.data.sessionId && activeStudentsMap[msg.data.sessionId]) {
+                        delete activeStudentsMap[msg.data.sessionId];
+                        renderActiveStudentsLive();
+                    }
+                }
             } else if (msg.type === 'bank_sync') {
                 if (msg.data && msg.data.subjectKey) {
                     if (msg.data.action === 'delete') {
@@ -1943,98 +1958,98 @@
                         showCustomDialog("Ujian Dihentikan Proktor", "Ujian Anda telah dihentikan secara langsung oleh Guru/Proktor.", null, true);
                     }
                 }
-            } else if (msg.type === 'request_bank') {
-                if (isTeacherAuthenticated || currentRole === 'teacher' || Object.keys(DEFAULT_QUIZ_BANKS).length > 0) {
-                    publishMqttMessage('bank_sync_full', DEFAULT_QUIZ_BANKS);
-                }
-            } else if (msg.type === 'bank_sync_full') {
-                if (msg.data && Object.keys(msg.data).length > 0) {
-                    DEFAULT_QUIZ_BANKS = msg.data;
-                    saveQuizBanksToStorage();
-                    populateSubjectSelects();
+        function renderStudentResultsRekap() {
+            const tbody = document.getElementById("table-rekap-body");
+            const emptyState = document.getElementById("rekap-empty-state");
+            const searchVal = document.getElementById("rekap-search-laptop")?.value.toLowerCase().trim() || "";
+            const filterMapel = document.getElementById("rekap-filter-mapel")?.value || "all";
 
-                    if (currentSubjectKey && DEFAULT_QUIZ_BANKS[currentSubjectKey]) {
-                        const studentSelect = document.getElementById("select-subject-student");
-                        if (studentSelect) studentSelect.value = currentSubjectKey;
-                    }
-                    handleStudentSubjectChange();
-                    if (currentRole === 'teacher') loadAdminQuestionsForSubject();
-                }
-            }
-        }
+            if (!tbody) return;
 
-        function handleIncomingHeartbeat(data) {
-            if (!data || !data.sessionId) return;
-            activeStudentsMap[data.sessionId] = {
-                data: data,
-                lastSeen: Date.now()
-            };
-            renderActiveStudentsLive();
-        }
+            let filtered = examResultsLog.filter(log => {
+                const matchSearch = (log.studentName || "").toLowerCase().includes(searchVal) ||
+                                    (log.studentId || "").toLowerCase().includes(searchVal) ||
+                                    (log.studentClass || "").toLowerCase().includes(searchVal);
+                const matchMapel = (filterMapel === "all" || log.subjectKey === filterMapel);
+                return matchSearch && matchMapel;
+            });
 
-        function renderActiveStudentsLive() {
-            const container = document.getElementById("active-students-container");
-            const emptyEl = document.getElementById("active-students-empty");
-            const counter = document.getElementById("live-active-counter");
-            const activeStat = document.getElementById("stat-active-students-count");
+            document.getElementById("stat-total-students-laptop").textContent = examResultsLog.length;
+            document.getElementById("badge-total-students").textContent = examResultsLog.length;
 
-            if (!container) return;
+            let totalScore = 0;
+            let totalViolations = 0;
+            examResultsLog.forEach(l => {
+                totalScore += (l.score || 0);
+                totalViolations += (l.violations || 0);
+            });
 
-            const now = Date.now();
-            const activeList = Object.values(activeStudentsMap).filter(item => (now - item.lastSeen) < 12000);
+            const avgScore = examResultsLog.length > 0 ? Math.round(totalScore / examResultsLog.length) : 0;
+            document.getElementById("stat-avg-score-laptop").textContent = avgScore;
+            document.getElementById("stat-total-violations").textContent = totalViolations;
 
-            if (counter) counter.textContent = activeList.length;
-            if (activeStat) activeStat.textContent = activeList.length;
-
-            if (activeList.length === 0) {
-                container.innerHTML = "";
-                if (emptyEl) emptyEl.classList.remove("hidden");
+            if (filtered.length === 0) {
+                tbody.innerHTML = "";
+                if (emptyState) emptyState.classList.remove("hidden");
                 return;
             }
 
-            if (emptyEl) emptyEl.classList.add("hidden");
-            container.innerHTML = "";
+            if (emptyState) emptyState.classList.add("hidden");
+            tbody.innerHTML = "";
 
-            activeList.forEach(item => {
-                const s = item.data;
-                const card = document.createElement("div");
-                const hasViolations = (s.violations || 0) > 0;
+            filtered.forEach((log, idx) => {
+                const tr = document.createElement("tr");
+                tr.className = "hover:bg-slate-50/80 transition";
 
-                card.className = `bg-slate-800/90 border ${hasViolations ? 'border-rose-500/80 bg-rose-950/20' : 'border-slate-700'} p-3.5 rounded-2xl text-xs space-y-2 relative overflow-hidden shadow-md`;
+                const isPassed = log.score >= globalKkmTarget;
 
-                const answered = s.answeredCount || 0;
-                const total = s.totalQuestions || 10;
-                const pct = Math.round((answered / total) * 100);
-
-                const mins = Math.floor((s.timeRemaining || 0) / 60);
-                const secs = (s.timeRemaining || 0) % 60;
-                const timeStr = `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
-
-                card.innerHTML = `
-                    <div class="flex items-center justify-between">
-                        <span class="font-extrabold text-white text-sm truncate max-w-[170px]">${s.studentName}</span>
-                        <span class="font-mono text-[11px] font-bold px-2 py-0.5 rounded ${s.timeRemaining < 180 ? 'bg-rose-500/30 text-rose-300 border border-rose-500/40 animate-pulse' : 'bg-indigo-500/20 text-indigo-300'}">
-                            <i class="fa-regular fa-clock mr-1"></i>${timeStr}
+                tr.innerHTML = `
+                    <td class="py-3.5 px-3 font-extrabold text-slate-400">${idx + 1}</td>
+                    <td class="py-3.5 px-4 font-black text-slate-800">${log.studentName}</td>
+                    <td class="py-3.5 px-3 font-mono font-bold text-slate-600">${log.studentId}</td>
+                    <td class="py-3.5 px-3 font-semibold text-slate-700">${log.studentClass}</td>
+                    <td class="py-3.5 px-3 font-semibold text-indigo-700">${log.subjectTitle || log.subjectKey}</td>
+                    <td class="py-3.5 px-3 text-center font-bold">
+                        <span class="text-emerald-600" title="Benar">${log.correctCount}</span> / 
+                        <span class="text-rose-600" title="Salah">${log.wrongCount}</span> / 
+                        <span class="text-slate-400" title="Kosong">${log.emptyCount}</span>
+                    </td>
+                    <td class="py-3.5 px-3 text-center font-bold ${log.violations > 0 ? 'text-rose-600 bg-rose-50 rounded-lg' : 'text-slate-400'}">
+                        ${log.violations > 0 ? `<i class="fa-solid fa-triangle-exclamation mr-1 text-rose-500"></i>${log.violations}x` : '0x'}
+                    </td>
+                    <td class="py-3.5 px-4 text-center">
+                        <span class="text-base font-black ${isPassed ? 'text-emerald-600' : 'text-rose-600'}">${log.score}</span>
+                    </td>
+                    <td class="py-3.5 px-3 text-center">
+                        <span class="px-2.5 py-1 rounded-full text-[10px] font-extrabold ${isPassed ? 'bg-emerald-100 text-emerald-800 border border-emerald-300' : 'bg-rose-100 text-rose-800 border border-rose-300'}">
+                            ${isPassed ? 'LULUS' : 'REMIDI'}
                         </span>
-                    </div>
-                    <div class="flex items-center justify-between text-[11px] text-slate-400">
-                        <span>${s.studentClass} | NIS: ${s.studentId}</span>
-                        <span class="font-bold text-indigo-300">Soal ${s.currentQIndex + 1}/${total}</span>
-                    </div>
-                    <div class="w-full bg-slate-700 h-1.5 rounded-full overflow-hidden">
-                        <div class="bg-emerald-400 h-full transition-all duration-300" style="width: ${pct}%"></div>
-                    </div>
-                    <div class="flex items-center justify-between pt-1 border-t border-slate-700/60 text-[11px]">
-                        <span class="${hasViolations ? 'text-rose-400 font-black flex items-center gap-1' : 'text-slate-400'}">
-                            ${hasViolations ? `<i class="fa-solid fa-triangle-exclamation animate-bounce"></i> ${s.violations}x Pindah Tab` : '<i class="fa-solid fa-shield-halved text-emerald-400 mr-1"></i>Layar Aman'}
-                        </span>
-                        <button onclick="forceSubmitStudent('${s.sessionId}')" class="text-[10px] bg-rose-600/80 hover:bg-rose-600 text-white font-bold px-2 py-1 rounded-lg transition">
-                            Hentikan Ujian
+                    </td>
+                    <td class="py-3.5 px-3 text-right text-slate-400 font-mono text-[11px] no-print">${log.timestamp || '-'}</td>
+                    <td class="py-3.5 px-3 text-center no-print">
+                        <button onclick="deleteSingleRekap(${idx})" class="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition" title="Hapus Rekap Ini">
+                            <i class="fa-solid fa-trash-can"></i>
                         </button>
-                    </div>
+                    </td>
                 `;
 
-                container.appendChild(card);
+                tbody.appendChild(tr);
+            });
+        }
+
+        function deleteSingleRekap(index) {
+            showCustomDialog("Hapus Item Rekap", "Apakah Anda yakin ingin menghapus data hasil ujian siswa ini dari tabel rekap?", () => {
+                examResultsLog.splice(index, 1);
+                saveExamLogsToStorage();
+                renderStudentResultsRekap();
+            });
+        }
+
+        function clearRekapData() {
+            showCustomDialog("Reset Rekap Nilai", "Apakah Anda yakin ingin menghapus seluruh data rekap nilai siswa?", () => {
+                examResultsLog = [];
+                saveExamLogsToStorage();
+                renderStudentResultsRekap();
             });
         }
 
