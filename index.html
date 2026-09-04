@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!DOCTYPE html> 
 <html lang="id">
 <head>
     <meta charset="UTF-8">
@@ -1926,27 +1926,128 @@ async function syncQuestionToSupabase(subjectKey, questionObj, questionNumber) {
             });
         }
 
-        function exportRekapToCSV() {
-            if (examResultsLog.length === 0) {
-                showCustomDialog("Rekap Kosong", "Belum ada data rekap nilai untuk diexport.", null, true);
-                return;
-            }
+        async function exportRekapToCSV() {
+    try {
+        // Ambil nilai dari Supabase
+        const { data, error } = await stemgaSupabase
+            .from("results")
+            .select(`
+                score,
+                total_questions,
+                correct_answers,
+                finished_at,
+                students (
+                    name,
+                    nis,
+                    class_name,
+                    rooms (
+                        subject,
+                        title
+                    )
+                )
+            `)
+            .order("finished_at", { ascending: false });
 
-            let csv = "No,Nama Siswa,NIS,Kelas,Mata Pelajaran,Benar,Salah,Kosong,Pindah Tab,Nilai Akhir,Status,Waktu Selesai\n";
+        if (error) {
+            console.error("Gagal mengambil nilai dari Supabase:", error);
 
-            examResultsLog.forEach((l, idx) => {
-                csv += `"${idx + 1}","${l.studentName}","${l.studentId}","${l.studentClass}","${l.subjectTitle || l.subjectKey}","${l.correctCount}","${l.wrongCount}","${l.emptyCount}","${l.violations || 0}","${l.score}","${l.score >= globalKkmTarget ? 'LULUS' : 'REMIDI'}","${l.timestamp}"\n`;
-            });
-
-            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement("a");
-            a.href = url;
-            a.download = `Rekap_Nilai_CBT_STemga_${Date.now()}.csv`;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
+            showCustomDialog(
+                "Export Gagal",
+                "Gagal mengambil data nilai dari Supabase. Periksa koneksi internet.",
+                null,
+                true
+            );
+            return;
         }
+
+        if (!data || data.length === 0) {
+            showCustomDialog(
+                "Rekap Kosong",
+                "Belum ada data nilai di Supabase untuk diexport.",
+                null,
+                true
+            );
+            return;
+        }
+
+        // Header CSV
+        let csv =
+            "No,Nama Siswa,NIS,Kelas,Mata Pelajaran,Benar,Salah,Kosong,Nilai Akhir,Status,Waktu Selesai\n";
+
+        // Isi data
+        data.forEach((item, index) => {
+            const student = item.students || {};
+            const room = student.rooms || {};
+
+            const total = Number(item.total_questions || 0);
+            const correct = Number(item.correct_answers || 0);
+            const wrong = Math.max(total - correct, 0);
+            const score = Number(item.score || 0);
+
+            const status =
+                score >= globalKkmTarget
+                    ? `MEMENUHI KKM (${globalKkmTarget})`
+                    : `BELUM MEMENUHI KKM (${globalKkmTarget})`;
+
+            const finishedAt = item.finished_at
+                ? new Date(item.finished_at).toLocaleString("id-ID")
+                : "";
+
+            const row = [
+                index + 1,
+                student.name || "",
+                student.nis || "",
+                student.class_name || "",
+                room.title || room.subject || "",
+                correct,
+                wrong,
+                0,
+                score,
+                status,
+                finishedAt
+            ];
+
+            csv += row
+                .map(value => `"${String(value).replace(/"/g, '""')}"`)
+                .join(",") + "\n";
+        });
+
+        // Buat file CSV
+        const blob = new Blob(
+            ["\uFEFF" + csv],
+            { type: "text/csv;charset=utf-8;" }
+        );
+
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+
+        a.href = url;
+        a.download = `Rekap_Nilai_CBT_Stemga_${Date.now()}.csv`;
+
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+
+        URL.revokeObjectURL(url);
+
+        showCustomDialog(
+            "Export Berhasil",
+            `Berhasil mengexport ${data.length} data nilai dari Supabase.`,
+            null,
+            true
+        );
+
+    } catch (error) {
+        console.error("Export Supabase error:", error);
+
+        showCustomDialog(
+            "Export Gagal",
+            "Terjadi kesalahan saat mengexport nilai dari Supabase.",
+            null,
+            true
+        );
+    }
+}
 
         function openManualInputResultModal() {
             const modal = document.getElementById("modal-manual-result");
