@@ -2333,40 +2333,168 @@ async function syncQuestionToSupabase(subjectKey, questionObj, questionNumber) {
             }
         }
 
-        function handleStudentSubjectChange() {
-            const select = document.getElementById("select-subject-student");
-            const headerMapel = document.getElementById("student-header-mapel");
-            const durationBadge = document.getElementById("student-exam-duration");
-            const qrNotice = document.getElementById("student-qr-notice");
-            const qrTitle = document.getElementById("student-qr-notice-title");
+      async function handleStudentSubjectChange() {
+    const select = document.getElementById("select-subject-student");
+    const headerMapel = document.getElementById("student-header-mapel");
+    const durationBadge = document.getElementById("student-exam-duration");
+    const qrNotice = document.getElementById("student-qr-notice");
+    const qrTitle = document.getElementById("student-qr-notice-title");
 
-            if (!select || !select.value || !DEFAULT_QUIZ_BANKS[select.value]) {
-                if (headerMapel) headerMapel.textContent = "Pilih Mata Pelajaran Ujian";
-                if (durationBadge) durationBadge.textContent = "15 Menit";
-                return;
-            }
+    if (!select || !select.value) {
+        if (headerMapel) headerMapel.textContent = "Pilih Mata Pelajaran Ujian";
+        if (durationBadge) durationBadge.textContent = "15 Menit";
+        return;
+    }
 
-            currentSubjectKey = select.value;
-            const bank = DEFAULT_QUIZ_BANKS[currentSubjectKey];
-            const qCount = bank.questions ? bank.questions.length : 0;
-            const duration = bank.durationMinutes || 15;
+    currentSubjectKey = select.value;
 
-            if (headerMapel) headerMapel.textContent = bank.title;
-            if (durationBadge) durationBadge.textContent = `${duration} Menit`;
+    // Tampilkan status sementara
+    if (headerMapel) {
+        headerMapel.textContent = "Mengambil Soal...";
+    }
 
-            if (qrNotice && qrTitle) {
-                if (qCount > 0) {
-                    qrTitle.textContent = `${bank.title} (${qCount} Soal Ready - ${duration} Menit)`;
-                    qrNotice.className = "bg-emerald-500 text-white p-3.5 rounded-2xl shadow-md border border-emerald-400 flex items-center gap-3";
-                } else {
-                    qrTitle.textContent = `${bank.title} (Soal Belum Ada - 0 Soal)`;
-                    qrNotice.className = "bg-amber-500 text-white p-3.5 rounded-2xl shadow-md border border-amber-400 flex items-center gap-3";
-                }
-                qrNotice.classList.remove("hidden");
-            }
+    if (durationBadge) {
+        durationBadge.textContent = "Memuat...";
+    }
+
+    try {
+        // Ambil room dari Supabase berdasarkan kode ruang
+        const activeRoomCode = roomCode || "STEMGA1";
+
+        const { data: room, error: roomError } = await stemgaSupabase
+            .from("rooms")
+            .select("*")
+            .eq("room_code", activeRoomCode)
+            .eq("is_active", true)
+            .single();
+
+        if (roomError) {
+            console.error("Supabase room error:", roomError);
+            throw roomError;
         }
 
-        function updateNavigationButtons() {
+        // Ambil soal dari Supabase
+        const { data: cloudQuestions, error: questionError } =
+            await stemgaSupabase
+                .from("questions")
+                .select("*")
+                .eq("room_id", room.id)
+                .order("question_number", { ascending: true });
+
+        if (questionError) {
+            console.error("Supabase question error:", questionError);
+            throw questionError;
+        }
+
+        console.log(
+            "Soal dari Supabase:",
+            cloudQuestions ? cloudQuestions.length : 0
+        );
+
+        // Pastikan bank lokal tersedia
+        if (!DEFAULT_QUIZ_BANKS[currentSubjectKey]) {
+            DEFAULT_QUIZ_BANKS[currentSubjectKey] = {
+                title: room.title || currentSubjectKey,
+                durationMinutes: 15,
+                questions: []
+            };
+        }
+
+        const bank = DEFAULT_QUIZ_BANKS[currentSubjectKey];
+
+        // Jika Supabase memiliki soal, masukkan ke bank lokal
+        if (cloudQuestions && cloudQuestions.length > 0) {
+            bank.title = room.title || bank.title;
+            bank.questions = cloudQuestions.map((q) => ({
+                question: q.question_text,
+                options: [
+                    q.option_a || "",
+                    q.option_b || "",
+                    q.option_c || "",
+                    q.option_d || ""
+                ],
+                answer: parseInt(q.correct_answer) || 0,
+                explanation: q.explanation || ""
+            }));
+
+            saveQuizBanksToStorage();
+
+            console.log(
+                "Bank soal siswa berhasil diperbarui:",
+                bank.questions.length,
+                "soal"
+            );
+        }
+
+        const qCount = bank.questions ? bank.questions.length : 0;
+        const duration = bank.durationMinutes || 15;
+
+        if (headerMapel) {
+            headerMapel.textContent = bank.title;
+        }
+
+        if (durationBadge) {
+            durationBadge.textContent = `${duration} Menit`;
+        }
+
+        if (qrNotice && qrTitle) {
+            if (qCount > 0) {
+                qrTitle.textContent =
+                    `${bank.title} (${qCount} Soal Ready — ${duration} Menit)`;
+
+                qrNotice.className =
+                    "bg-emerald-500 text-white p-3.5 rounded-2xl shadow-md border border-emerald-400";
+            } else {
+                qrTitle.textContent =
+                    `${bank.title} (Soal Belum Ada - 0 Soal)`;
+
+                qrNotice.className =
+                    "bg-amber-500 text-white p-3.5 rounded-2xl shadow-md border border-amber-400";
+            }
+
+            qrNotice.classList.remove("hidden");
+        }
+
+    } catch (error) {
+        console.error("Gagal mengambil soal dari Supabase:", error);
+
+        // Jika cloud gagal, gunakan soal lokal sebagai cadangan
+        const bank = DEFAULT_QUIZ_BANKS[currentSubjectKey];
+
+        if (!bank) {
+            if (headerMapel) {
+                headerMapel.textContent = "Soal tidak tersedia";
+            }
+
+            if (durationBadge) {
+                durationBadge.textContent = "15 Menit";
+            }
+
+            return;
+        }
+
+        const qCount = bank.questions ? bank.questions.length : 0;
+        const duration = bank.durationMinutes || 15;
+
+        if (headerMapel) {
+            headerMapel.textContent = bank.title;
+        }
+
+        if (durationBadge) {
+            durationBadge.textContent = `${duration} Menit`;
+        }
+
+        if (qrNotice && qrTitle) {
+            qrTitle.textContent =
+                `${bank.title} (${qCount} Soal)`;
+
+            qrNotice.classList.remove("hidden");
+        }
+    }
+}
+
+
+       function updateNavigationButtons() {
             const prevBtn = document.getElementById("btn-prev-q");
             const nextText = document.getElementById("btn-next-text");
             const nextIcon = document.getElementById("btn-next-icon");
