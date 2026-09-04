@@ -2317,13 +2317,76 @@ async function syncQuestionToSupabase(subjectKey, questionObj, questionNumber) {
             });
         }
 
-        function clearRekapData() {
-            showCustomDialog("Reset Rekap Nilai", "Apakah Anda yakin ingin menghapus seluruh data rekap nilai siswa?", () => {
+        async function clearRekapData() {
+    showCustomDialog(
+        "Reset Rekap Nilai",
+        "Apakah Anda yakin ingin menghapus seluruh data rekap nilai siswa dari komputer dan Supabase?",
+        async () => {
+
+            try {
+                // Hapus seluruh nilai dari Supabase
+                const { error: resultError } = await stemgaSupabase
+                    .from("results")
+                    .delete()
+                    .not("id", "is", null);
+
+                if (resultError) {
+                    console.error("Gagal menghapus results:", resultError);
+                    showCustomDialog(
+                        "Reset Gagal",
+                        "Data nilai Supabase gagal dihapus.",
+                        null,
+                        true
+                    );
+                    return;
+                }
+
+                // Hapus seluruh data siswa dari Supabase
+                const { error: studentError } = await stemgaSupabase
+                    .from("students")
+                    .delete()
+                    .not("id", "is", null);
+
+                if (studentError) {
+                    console.error("Gagal menghapus students:", studentError);
+                    showCustomDialog(
+                        "Reset Sebagian",
+                        "Nilai berhasil dihapus, tetapi data siswa gagal dihapus.",
+                        null,
+                        true
+                    );
+                    return;
+                }
+
+                // Bersihkan data lokal
                 examResultsLog = [];
                 saveExamLogsToStorage();
+
+                // Refresh tampilan
                 renderStudentResultsRekap();
-            });
+
+                showCustomDialog(
+                    "Reset Berhasil",
+                    "Seluruh rekap nilai lokal dan Supabase berhasil dihapus.",
+                    null,
+                    true
+                );
+
+                console.log("✅ Rekap nilai berhasil di-reset.");
+
+            } catch (error) {
+                console.error("Reset Supabase error:", error);
+
+                showCustomDialog(
+                    "Reset Gagal",
+                    "Terjadi kesalahan saat menghapus data rekap.",
+                    null,
+                    true
+                );
+            }
         }
+    );
+}
 
         function forceSubmitStudent(sessionId) {
             if (!sessionId) return;
