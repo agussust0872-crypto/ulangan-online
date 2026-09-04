@@ -32,6 +32,58 @@
 
     console.log('STEMGA Supabase: Connected');
 </script>
+    <script>
+async function syncQuestionToSupabase(subjectKey, questionObj, questionNumber) {
+    try {
+        const bank = DEFAULT_QUIZ_BANKS[subjectKey];
+        if (!bank) return false;
+
+        const { data: room, error: roomError } = await stemgaSupabase
+            .from('rooms')
+            .upsert({
+                room_code: roomCode || 'STEMGA1',
+                subject: subjectKey,
+                title: bank.title,
+                is_active: true
+            }, {
+                onConflict: 'room_code'
+            })
+            .select()
+            .single();
+
+        if (roomError) {
+            console.error('Supabase room error:', roomError);
+            return false;
+        }
+
+        const { error: questionError } = await stemgaSupabase
+            .from('questions')
+            .insert({
+                room_id: room.id,
+                question_number: questionNumber,
+                question_text: questionObj.question,
+                option_a: questionObj.options[0],
+                option_b: questionObj.options[1],
+                option_c: questionObj.options[2],
+                option_d: questionObj.options[3],
+                correct_answer: String(questionObj.answer),
+                explanation: questionObj.explanation || ''
+            });
+
+        if (questionError) {
+            console.error('Supabase question error:', questionError);
+            return false;
+        }
+
+        console.log('Soal berhasil dikirim ke Supabase:', questionNumber);
+        return true;
+
+    } catch (error) {
+        console.error('Supabase sync error:', error);
+        return false;
+    }
+}
+</script>
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -1208,56 +1260,93 @@
             broadcastBankToRoom();
         }
 
-        function saveNewQuestion() {
-            const selectEl = document.getElementById("admin-soal-subject-select");
-            if (selectEl) currentSubjectKey = selectEl.value;
+       async function saveNewQuestion() {
+    const selectEl = document.getElementById("admin-soal-subject-select");
+    if (selectEl) currentSubjectKey = selectEl.value;
 
-            if (!currentSubjectKey || !DEFAULT_QUIZ_BANKS[currentSubjectKey]) {
-                showCustomDialog("Peringatan", "Silakan buat atau pilih Mata Pelajaran terlebih dahulu!", null, true);
-                return;
-            }
+    if (!currentSubjectKey || !DEFAULT_QUIZ_BANKS[currentSubjectKey]) {
+        showCustomDialog(
+            "Peringatan",
+            "Silakan buat atau pilih Mata Pelajaran terlebih dahulu!",
+            null,
+            true
+        );
+        return;
+    }
 
-            const qText = document.getElementById("input-new-q-text")?.value.trim();
-            const opt0 = document.getElementById("input-opt-0")?.value.trim();
-            const opt1 = document.getElementById("input-opt-1")?.value.trim();
-            const opt2 = document.getElementById("input-opt-2")?.value.trim();
-            const opt3 = document.getElementById("input-opt-3")?.value.trim();
-            const correctAns = parseInt(document.getElementById("input-correct-answer")?.value) || 0;
-            const expText = document.getElementById("input-new-q-exp")?.value.trim() || "";
+    const qText = document.getElementById("input-new-q-text")?.value.trim();
+    const opt0 = document.getElementById("input-opt-0")?.value.trim();
+    const opt1 = document.getElementById("input-opt-1")?.value.trim();
+    const opt2 = document.getElementById("input-opt-2")?.value.trim();
+    const opt3 = document.getElementById("input-opt-3")?.value.trim();
 
-            if (!qText || !opt0 || !opt1 || !opt2 || !opt3) {
-                showCustomDialog("Peringatan", "Mohon isi pertanyaan soal dan keempat pilihan jawaban (A, B, C, D)!", null, true);
-                return;
-            }
+    const correctAns =
+        parseInt(document.getElementById("input-correct-answer")?.value) || 0;
 
-            const newQuestionObj = {
-                question: qText,
-                options: [opt0, opt1, opt2, opt3],
-                answer: correctAns,
-                explanation: expText
-            };
+    const expText =
+        document.getElementById("input-new-q-exp")?.value.trim() || "";
 
-            if (!DEFAULT_QUIZ_BANKS[currentSubjectKey].questions) {
-                DEFAULT_QUIZ_BANKS[currentSubjectKey].questions = [];
-            }
+    if (!qText || !opt0 || !opt1 || !opt2 || !opt3) {
+        showCustomDialog(
+            "Peringatan",
+            "Mohon isi pertanyaan soal dan keempat pilihan jawaban (A, B, C, D)!",
+            null,
+            true
+        );
+        return;
+    }
 
-            DEFAULT_QUIZ_BANKS[currentSubjectKey].questions.push(newQuestionObj);
-            saveQuizBanksToStorage();
+    const bank = DEFAULT_QUIZ_BANKS[currentSubjectKey];
 
-            // Clear input fields
-            document.getElementById("input-new-q-text").value = "";
-            document.getElementById("input-opt-0").value = "";
-            document.getElementById("input-opt-1").value = "";
-            document.getElementById("input-opt-2").value = "";
-            document.getElementById("input-opt-3").value = "";
-            document.getElementById("input-new-q-exp").value = "";
+    if (!bank.questions) {
+        bank.questions = [];
+    }
 
-            loadAdminQuestionsForSubject();
-            populateSubjectSelects();
-            broadcastBankToRoom();
+    const newQuestionObj = {
+        question: qText,
+        options: [opt0, opt1, opt2, opt3],
+        answer: correctAns,
+        explanation: expText
+    };
 
-            showCustomDialog("Soal Berhasil Disimpan", "Soal baru telah berhasil ditambahkan ke Bank Soal & langsung disinkronkan!", null, true);
-        }
+    const questionNumber = bank.questions.length + 1;
+
+    bank.questions.push(newQuestionObj);
+    saveQuizBanksToStorage();
+
+    const cloudSuccess = await syncQuestionToSupabase(
+        currentSubjectKey,
+        newQuestionObj,
+        questionNumber
+    );
+
+    document.getElementById("input-new-q-text").value = "";
+    document.getElementById("input-opt-0").value = "";
+    document.getElementById("input-opt-1").value = "";
+    document.getElementById("input-opt-2").value = "";
+    document.getElementById("input-opt-3").value = "";
+    document.getElementById("input-new-q-exp").value = "";
+
+    loadAdminQuestionsForSubject();
+    populateSubjectSelects();
+    broadcastBankToRoom();
+
+    if (cloudSuccess) {
+        showCustomDialog(
+            "Soal Berhasil Disimpan",
+            "Soal berhasil disimpan ke Bank Soal dan Supabase. Siswa nantinya dapat mengambil soal dari cloud.",
+            null,
+            true
+        );
+    } else {
+        showCustomDialog(
+            "Tersimpan Lokal",
+            "Soal tersimpan di komputer guru, tetapi gagal dikirim ke Supabase. Periksa koneksi internet.",
+            null,
+            true
+        );
+    }
+}
 
         function loadAdminQuestionsForSubject() {
             const selectEl = document.getElementById("admin-soal-subject-select");
