@@ -19,7 +19,19 @@
 
     <!-- MQTT.js for Universal Real-Time Cloud Sync -->
     <script src="https://unpkg.com/mqtt@4.3.7/dist/mqtt.min.js"></script>
+<!-- Supabase -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+    const STEMGA_SUPABASE_URL = 'https://tcvfdnbknbmtuygczxib.supabase.co';
+    const STEMGA_SUPABASE_KEY = 'sb_publishable_rg2wipFIDqeQO2zOr5JY-w_4wxa8UhW';
 
+    const stemgaSupabase = window.supabase.createClient(
+        STEMGA_SUPABASE_URL,
+        STEMGA_SUPABASE_KEY
+    );
+
+    console.log('STEMGA Supabase: Connected');
+</script>
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
