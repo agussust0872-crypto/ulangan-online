@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!DOCTYPE html> 
 <html lang="id">
 <head>
     <meta charset="UTF-8">
@@ -889,40 +889,65 @@ async function syncQuestionToSupabase(subjectKey, questionObj, questionNumber) {
         </div>
     </div>
 
-    <!-- MODAL PIN GURU SECURITY -->
-    <div id="modal-teacher-pin" class="hidden fixed inset-0 z-50 bg-slate-900/70 backdrop-blur-md flex items-center justify-center p-4">
-        <div class="bg-white w-full max-w-sm rounded-3xl p-6 space-y-4 shadow-2xl text-center">
-            <div class="w-14 h-14 bg-indigo-100 text-indigo-600 rounded-3xl flex items-center justify-center mx-auto text-2xl shadow-inner">
-                <i class="fa-solid fa-lock"></i>
-            </div>
-            <div class="space-y-1">
-                <h3 class="font-extrabold text-slate-800 text-lg">Akses Khusus Guru</h3>
-                <p class="text-xs text-slate-500">Masukkan PIN Keamanan Proktor/Guru untuk masuk ke Dashboard Admin.</p>
-            </div>
-            <form onsubmit="handleTeacherPinSubmit(event)" class="space-y-3 pt-2">
-                <div class="relative">
-                    <input type="password" id="input-teacher-pin" maxlength="10" value="1234" placeholder="Masukkan PIN (Default: 1234)" class="w-full text-center tracking-widest text-lg font-black px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                </div>
-                <div class="grid grid-cols-2 gap-2 pt-1">
-                    <button type="button" onclick="closePinModal()" class="py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-2xl text-xs font-bold transition">
-                        Batal
-                    </button>
-                    <button type="submit" class="py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-2xl text-xs font-bold transition shadow-md shadow-indigo-100">
-                        Masuk Dashboard
-                    </button>
-                </div>
-                <div class="pt-2 flex flex-col gap-2">
-                    <button type="button" onclick="quickBypassTeacherLogin()" class="w-full py-2.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 shadow-sm">
-                        <i class="fa-solid fa-key"></i> Akses Langsung (Bypass PIN)
-                    </button>
-                    <button type="button" onclick="resetTeacherPinToDefault()" class="text-[11px] text-indigo-600 hover:text-indigo-800 font-bold underline">
-                        <i class="fa-solid fa-rotate-left mr-1"></i>Reset & Isi PIN 1234
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
+ <!-- MODAL LOGIN GURU SUPABASE -->
+<div id="modal-teacher-pin" class="hidden fixed inset-0 z-50 bg-slate-900/70 backdrop-blur-md flex items-center justify-center p-4">
+    <div class="bg-white w-full max-w-sm rounded-3xl p-6 space-y-4 shadow-2xl text-center">
 
+        <div class="w-14 h-14 bg-indigo-100 text-indigo-600 rounded-3xl flex items-center justify-center mx-auto text-2xl shadow-inner">
+            <i class="fa-solid fa-user-shield"></i>
+        </div>
+
+        <div class="space-y-1">
+            <h3 class="font-extrabold text-slate-800 text-lg">
+                Login Guru
+            </h3>
+            <p class="text-xs text-slate-500">
+                Masuk menggunakan akun Guru yang terdaftar di Supabase.
+            </p>
+        </div>
+
+        <form onsubmit="handleTeacherPinSubmit(event)" class="space-y-3 pt-2">
+
+            <input
+                type="email"
+                id="input-teacher-email"
+                autocomplete="username"
+                placeholder="Email Guru"
+                class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                required
+            >
+
+            <input
+                type="password"
+                id="input-teacher-pin"
+                autocomplete="current-password"
+                placeholder="Password"
+                class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                required
+            >
+
+            <div class="grid grid-cols-2 gap-2 pt-1">
+                <button
+                    type="button"
+                    onclick="closePinModal()"
+                    class="py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-2xl text-xs font-bold transition">
+                    Batal
+                </button>
+
+                <button
+                    type="submit"
+                    class="py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-2xl text-xs font-bold transition shadow-md">
+                    Masuk Dashboard
+                </button>
+            </div>
+
+            <div id="teacher-login-status"
+                 class="hidden text-xs font-semibold rounded-xl p-3">
+            </div>
+
+        </form>
+    </div>
+</div>
     <!-- MODAL TAMBAH MAPEL BARU -->
     <div id="modal-add-subject" class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
         <div class="bg-white w-full max-w-sm rounded-3xl p-6 space-y-4 shadow-2xl text-center">
@@ -1648,67 +1673,173 @@ async function syncQuestionToSupabase(subjectKey, questionObj, questionNumber) {
             }
         }
 
-        function openPinModal() {
-            if (isTeacherAuthenticated) {
-                switchMainRole('teacher');
-                return;
+      function openPinModal() {
+    if (isTeacherAuthenticated) {
+        switchMainRole('teacher');
+        return;
+    }
+
+    const modal = document.getElementById("modal-teacher-pin");
+    const emailInput = document.getElementById("input-teacher-email");
+    const passwordInput = document.getElementById("input-teacher-pin");
+
+    if (modal) {
+        modal.classList.remove("hidden");
+
+        if (emailInput) {
+            emailInput.value = "";
+            emailInput.focus();
+        }
+
+        if (passwordInput) {
+            passwordInput.value = "";
+        }
+    }
+}
+
+
+function closePinModal() {
+    const modal = document.getElementById("modal-teacher-pin");
+
+    if (modal) {
+        modal.classList.add("hidden");
+    }
+}
+
+
+async function handleTeacherPinSubmit(e) {
+    if (e) e.preventDefault();
+
+    const email =
+        document.getElementById("input-teacher-email")?.value.trim();
+
+    const password =
+        document.getElementById("input-teacher-pin")?.value;
+
+    const status =
+        document.getElementById("teacher-login-status");
+
+    if (!email || !password) {
+        if (status) {
+            status.textContent = "Email dan password wajib diisi.";
+            status.className =
+                "text-xs font-semibold rounded-xl p-3 bg-amber-50 text-amber-700 border border-amber-200";
+            status.classList.remove("hidden");
+        }
+        return;
+    }
+
+    if (status) {
+        status.textContent = "Memverifikasi akun Guru...";
+        status.className =
+            "text-xs font-semibold rounded-xl p-3 bg-indigo-50 text-indigo-700 border border-indigo-200";
+        status.classList.remove("hidden");
+    }
+
+    try {
+
+        const { data, error } =
+            await stemgaSupabase.auth.signInWithPassword({
+                email: email,
+                password: password
+            });
+
+        if (error) {
+            console.error("Supabase Guru Login:", error);
+
+            if (status) {
+                status.textContent =
+                    "Login gagal. Email atau password tidak sesuai.";
+                status.className =
+                    "text-xs font-semibold rounded-xl p-3 bg-rose-50 text-rose-700 border border-rose-200";
             }
-            const modal = document.getElementById("modal-teacher-pin");
-            const pinInput = document.getElementById("input-teacher-pin");
-            if (modal) {
-                modal.classList.remove("hidden");
-                if (pinInput) {
-                    pinInput.value = teacherPin || "1234";
-                    pinInput.focus();
-                }
-            }
+
+            return;
         }
 
-        function closePinModal() {
-            const modal = document.getElementById("modal-teacher-pin");
-            if (modal) modal.classList.add("hidden");
+        if (!data || !data.user) {
+            throw new Error("User Guru tidak ditemukan.");
         }
 
-        function handleTeacherPinSubmit(e) {
-            if (e) e.preventDefault();
-            const inputVal = document.getElementById("input-teacher-pin")?.value.trim();
-            
-            if (inputVal === teacherPin || inputVal === "1234" || inputVal === "stemga" || inputVal === "admin" || inputVal === "guru") {
-                isTeacherAuthenticated = true;
-                sessionStorage.setItem("CBT_TEACHER_LOGGED_IN", "true");
-                closePinModal();
-                switchMainRole('teacher');
-            } else {
-                showCustomDialog("PIN Salah", "PIN Akses Guru tidak sesuai. Gunakan PIN '1234' atau klik Bypass PIN.", null, true);
-            }
+        // Login berhasil
+        isTeacherAuthenticated = true;
+
+        sessionStorage.setItem(
+            "CBT_TEACHER_LOGGED_IN",
+            "true"
+        );
+
+        console.log(
+            "✅ Guru berhasil login:",
+            data.user.email
+        );
+
+        closePinModal();
+
+        switchMainRole('teacher');
+
+    } catch (error) {
+
+        console.error(
+            "Teacher authentication error:",
+            error
+        );
+
+        if (status) {
+            status.textContent =
+                "Terjadi kesalahan saat login. Coba lagi.";
+            status.className =
+                "text-xs font-semibold rounded-xl p-3 bg-rose-50 text-rose-700 border border-rose-200";
+        }
+    }
+}
+
+
+async function logoutTeacher() {
+
+    try {
+
+        const { error } =
+            await stemgaSupabase.auth.signOut();
+
+        if (error) {
+            console.error(
+                "Supabase logout error:",
+                error
+            );
         }
 
-        function quickBypassTeacherLogin() {
-            isTeacherAuthenticated = true;
-            sessionStorage.setItem("CBT_TEACHER_LOGGED_IN", "true");
-            closePinModal();
-            switchMainRole('teacher');
-        }
+        isTeacherAuthenticated = false;
 
-        function resetTeacherPinToDefault() {
-            teacherPin = "1234";
-            const pinSetting = document.getElementById("setting-teacher-pin");
-            if (pinSetting) pinSetting.value = "1234";
-            saveGlobalSettings();
-            
-            const pinInput = document.getElementById("input-teacher-pin");
-            if (pinInput) pinInput.value = "1234";
-            
-            showCustomDialog("PIN Direset", "PIN Keamanan Guru direset menjadi 1234. Klik 'Masuk Dashboard' untuk melanjutkan.", null, true);
-        }
+        sessionStorage.removeItem(
+            "CBT_TEACHER_LOGGED_IN"
+        );
 
-        function logoutTeacher() {
-            isTeacherAuthenticated = false;
-            sessionStorage.removeItem("CBT_TEACHER_LOGGED_IN");
-            switchMainRole('student');
-            showCustomDialog("Logout Berhasil", "Sesi Modul Guru telah ditutup.", null, true);
-        }
+        switchMainRole('student');
 
+        showCustomDialog(
+            "Logout Berhasil",
+            "Sesi Guru telah ditutup.",
+            null,
+            true
+        );
+
+    } catch (error) {
+
+        console.error(
+            "Teacher logout error:",
+            error
+        );
+
+        isTeacherAuthenticated = false;
+
+        sessionStorage.removeItem(
+            "CBT_TEACHER_LOGGED_IN"
+        );
+
+        switchMainRole('student');
+    }
+}
         function switchMainRole(role) {
             currentRole = role;
             const teacherDash = document.getElementById("view-teacher-dashboard");
