@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!DOCTYPE html> 
 <html lang="id">
 <head>
     <meta charset="UTF-8">
@@ -1448,15 +1448,74 @@ async function syncQuestionToSupabase(subjectKey, questionObj, questionNumber) {
             });
         }
 
-        function clearAllQuizBanks() {
-            showCustomDialog("Hapus Semua Soal", "Apakah Anda yakin ingin MENGHAPUS SELURUH Bank Soal dan Mata Pelajaran?", () => {
+       async function clearAllQuizBanks() {
+    showCustomDialog(
+        "Hapus Semua Soal",
+        "Apakah Anda yakin ingin MENGHAPUS SELURUH Bank Soal dan Mata Pelajaran?",
+        async () => {
+
+            try {
+                // ==========================================
+                // 1. HAPUS SOAL DARI SUPABASE
+                // ==========================================
+                const { error } = await stemgaSupabase
+                    .from("questions")
+                    .delete()
+                    .neq("id", "00000000-0000-0000-0000-000000000000");
+
+                if (error) {
+                    console.error(
+                        "Gagal menghapus soal dari Supabase:",
+                        error
+                    );
+
+                    alert(
+                        "Gagal menghapus soal dari Supabase.\n\n" +
+                        error.message
+                    );
+
+                    return;
+                }
+
+                console.log(
+                    "Semua soal berhasil dihapus dari Supabase."
+                );
+
+                // ==========================================
+                // 2. HAPUS BANK SOAL LOKAL
+                // ==========================================
                 DEFAULT_QUIZ_BANKS = {};
+
                 saveQuizBanksToStorage();
                 populateSubjectSelects();
                 loadAdminQuestionsForSubject();
+
+                // ==========================================
+                // 3. BERSIHKAN SINKRONISASI MQTT
+                // ==========================================
                 broadcastBankToRoom();
-            });
+
+                alert(
+                    "Semua soal berhasil dihapus.\n\n" +
+                    "✓ Supabase\n" +
+                    "✓ Penyimpanan lokal"
+                );
+
+            } catch (error) {
+
+                console.error(
+                    "Error saat menghapus semua soal:",
+                    error
+                );
+
+                alert(
+                    "Terjadi kesalahan saat menghapus soal:\n\n" +
+                    error.message
+                );
+            }
         }
+    );
+}
 
         function openBulkImportModal() {
             document.getElementById("modal-bulk-import")?.classList.remove("hidden");
