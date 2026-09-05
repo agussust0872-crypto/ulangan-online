@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!DOCTYPE html> 
 <html lang="id">
 <head>
     <meta charset="UTF-8">
@@ -1557,18 +1557,11 @@ async function syncQuestionToSupabase(subjectKey, questionObj, questionNumber) {
             // Clone questions
             currentQuestions = JSON.parse(JSON.stringify(bank.questions));
 
-            // Shuffle options if enabled
-            if (shuffleOptionsConfig === "enabled") {
-                currentQuestions.forEach(q => {
-                    const originalAnsText = q.options[q.answer];
-                    // Fisher-yates shuffle
-                    for (let i = q.options.length - 1; i > 0; i--) {
-                        const j = Math.floor(Math.random() * (i + 1));
-                        [q.options[i], q.options[j]] = [q.options[j], q.options[i]];
-                    }
-                    q.answer = q.options.indexOf(originalAnsText);
-                });
-            }
+           // Supabase grading:
+// Jangan acak opsi di sisi siswa.
+// Posisi A/B/C/D harus tetap sama dengan database
+// agar index jawaban yang dikirim cocok dengan kunci di Supabase.
+console.log("Mode cloud: opsi jawaban tidak diacak.");
 
             currentQuestionIndex = 0;
             userAnswers = {};
