@@ -1,4 +1,4 @@
-<!DOCTYPE html> 
+<!DOCTYPE html>
 <html lang="id">
 <head>
     <meta charset="UTF-8">
@@ -1632,7 +1632,152 @@ async function syncQuestionToSupabase(subjectKey, questionObj, questionNumber) {
             showCustomDialog("Import Berhasil", `Berhasil menambahkan <b>${addedCount} soal</b> ke dalam bank soal!`, null, true);
         }
 
-       async function handleStartExam(e) {
+       async function loginStudent() {
+
+    const email = document
+        .getElementById("student-login-email")
+        ?.value.trim();
+
+    const password = document
+        .getElementById("student-login-password")
+        ?.value;
+
+    const message =
+        document.getElementById("student-login-message");
+
+    if (!email || !password) {
+        message.textContent =
+            "Email dan password wajib diisi.";
+
+        message.className =
+            "text-sm text-center font-semibold text-amber-700 bg-amber-50 border border-amber-200 rounded-xl p-3";
+
+        return;
+    }
+
+    message.textContent =
+        "Memverifikasi akun siswa...";
+
+    message.className =
+        "text-sm text-center font-semibold text-indigo-700 bg-indigo-50 border border-indigo-200 rounded-xl p-3";
+
+    try {
+
+        const { data, error } =
+            await stemgaSupabase.auth.signInWithPassword({
+                email: email,
+                password: password
+            });
+
+        if (error) {
+            console.error("Login siswa gagal:", error);
+
+            message.textContent =
+                "Login gagal. Email atau password tidak sesuai.";
+
+            message.className =
+                "text-sm text-center font-semibold text-rose-700 bg-rose-50 border border-rose-200 rounded-xl p-3";
+
+            return;
+        }
+
+        console.log(
+            "Siswa berhasil login:",
+            data.user.email
+        );
+
+        // Ambil profil siswa
+        const { data: profile, error: profileError } =
+            await stemgaSupabase
+                .from("profiles")
+                .select("name, nis, class_name, role")
+                .eq("id", data.user.id)
+                .single();
+
+        if (profileError || !profile) {
+
+            console.error(
+                "Profil siswa tidak ditemukan:",
+                profileError
+            );
+
+            await stemgaSupabase.auth.signOut();
+
+            message.textContent =
+                "Akun berhasil login, tetapi profil siswa belum tersedia.";
+
+            message.className =
+                "text-sm text-center font-semibold text-rose-700 bg-rose-50 border border-rose-200 rounded-xl p-3";
+
+            return;
+        }
+
+        // Pastikan akun adalah siswa
+        if (profile.role !== "student") {
+
+            await stemgaSupabase.auth.signOut();
+
+            message.textContent =
+                "Akun ini bukan akun siswa.";
+
+            message.className =
+                "text-sm text-center font-semibold text-rose-700 bg-rose-50 border border-rose-200 rounded-xl p-3";
+
+            return;
+        }
+
+        // Isi identitas siswa otomatis
+        document.getElementById("input-student-name").value =
+            profile.name || "";
+
+        document.getElementById("input-student-id").value =
+            profile.nis || "";
+
+        document.getElementById("input-student-class").value =
+            profile.class_name || "";
+
+        // Sembunyikan kotak login
+        const authBox =
+            document.getElementById("student-auth-box");
+
+        if (authBox) {
+            authBox.classList.add("hidden");
+        }
+
+        // Tampilkan form ujian
+        const examForm =
+            document.querySelector(
+                '#view-student-login form[onsubmit="handleStartExam(event)"]'
+            );
+
+        if (examForm) {
+            examForm.classList.remove("hidden");
+        }
+
+        message.textContent =
+            "Login berhasil. Silakan pilih mata pelajaran.";
+
+        message.className =
+            "text-sm text-center font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-xl p-3";
+
+    } catch (error) {
+
+        console.error(
+            "Student authentication error:",
+            error
+        );
+
+        message.textContent =
+            "Terjadi kesalahan saat login.";
+
+        message.className =
+            "text-sm text-center font-semibold text-rose-700 bg-rose-50 border border-rose-200 rounded-xl p-3";
+    }
+}
+        
+        
+        
+        async function handleStartExam(e) {
             if (e) e.preventDefault();
     // Cek apakah siswa sudah login Supabase
     const {
