@@ -1,4 +1,4 @@
-<!DOCTYPE html> 
+<!DOCTYPE html>
 <html lang="id">
 <head>
     <meta charset="UTF-8">
@@ -1556,12 +1556,36 @@ async function syncQuestionToSupabase(subjectKey, questionObj, questionNumber) {
 
             // Clone questions
             currentQuestions = JSON.parse(JSON.stringify(bank.questions));
+// Shuffle opsi jawaban untuk setiap siswa
+// q.optionMap menyimpan posisi asli opsi di database.
+if (shuffleOptionsConfig === "enabled") {
+    currentQuestions.forEach(q => {
 
-           // Supabase grading:
-// Jangan acak opsi di sisi siswa.
-// Posisi A/B/C/D harus tetap sama dengan database
-// agar index jawaban yang dikirim cocok dengan kunci di Supabase.
-console.log("Mode cloud: opsi jawaban tidak diacak.");
+        // Posisi asli: A=0, B=1, C=2, D=3
+        q.optionMap = [0, 1, 2, 3];
+
+        // Fisher-Yates shuffle
+        for (let i = q.options.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+
+            // Acak teks pilihan
+            [q.options[i], q.options[j]] =
+                [q.options[j], q.options[i]];
+
+            // Acak juga peta posisi aslinya
+            [q.optionMap[i], q.optionMap[j]] =
+                [q.optionMap[j], q.optionMap[i]];
+        }
+    });
+
+    console.log("Opsi jawaban berhasil diacak untuk siswa.");
+} else {
+    // Jika shuffle dimatikan, posisi asli tetap A=0, B=1, C=2, D=3
+    currentQuestions.forEach(q => {
+        q.optionMap = [0, 1, 2, 3];
+    });
+}
+           
 
             currentQuestionIndex = 0;
             userAnswers = {};
@@ -1601,11 +1625,21 @@ console.log("Mode cloud: opsi jawaban tidak diacak.");
                 optContainer.innerHTML = "";
                 const optionLabels = ["A", "B", "C", "D"];
 
-                q.options.forEach((opt, idx) => {
-                    const isSelected = (userAnswers[currentQuestionIndex] === idx);
-                    const btn = document.createElement("button");
-                    btn.type = "button";
-                    btn.onclick = () => selectOption(idx);
+               q.options.forEach((opt, idx) => {
+
+    // idx = posisi yang terlihat oleh siswa
+    // optionMap[idx] = posisi asli di database
+    const originalIndex = q.optionMap
+        ? q.optionMap[idx]
+        : idx;
+
+    const isSelected =
+        (userAnswers[currentQuestionIndex] === originalIndex);
+
+    const btn = document.createElement("button");
+    btn.type = "button";
+
+    btn.onclick = () => selectOption(idx);
 
                     btn.className = `w-full text-left p-3.5 rounded-2xl border text-xs sm:text-sm transition flex items-start gap-3 ${isSelected ? 'bg-indigo-600 text-white font-bold border-indigo-700 shadow-md shadow-indigo-100' : 'bg-slate-50 hover:bg-slate-100 text-slate-800 border-slate-200'}`;
 
@@ -1637,11 +1671,20 @@ console.log("Mode cloud: opsi jawaban tidak diacak.");
             updateNavigationButtons();
             sendStudentHeartbeat();
         }
+function selectOption(optIdx) {
+    const q = currentQuestions[currentQuestionIndex];
 
-        function selectOption(optIdx) {
-            userAnswers[currentQuestionIndex] = optIdx;
-            renderCurrentQuestion();
-        }
+    // Ubah posisi pilihan yang terlihat siswa
+    // menjadi posisi asli pilihan di database.
+    const originalIndex = q.optionMap
+        ? q.optionMap[optIdx]
+        : optIdx;
+
+    userAnswers[currentQuestionIndex] = originalIndex;
+
+    renderCurrentQuestion();
+}
+      
 
         function toggleFlagCurrentQuestion() {
             flaggedQuestions[currentQuestionIndex] = !flaggedQuestions[currentQuestionIndex];
