@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!DOCTYPE html> 
 <html lang="id">
 <head>
     <meta charset="UTF-8">
@@ -621,12 +621,7 @@ async function syncQuestionToSupabase(subjectKey, questionObj, questionNumber) {
             Password
         </label>
 
-        <input
-            type="password"
-            id="student-login-password"
-            placeholder="Masukkan password"
-            class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500"
-        >
+        student-login-password
     </div>
 
     <button
@@ -1631,7 +1626,25 @@ async function syncQuestionToSupabase(subjectKey, questionObj, questionNumber) {
 
             showCustomDialog("Import Berhasil", `Berhasil menambahkan <b>${addedCount} soal</b> ke dalam bank soal!`, null, true);
         }
+function toggleStudentPassword() {
+    const passwordInput =
+        document.getElementById("student-login-password");
 
+    const eyeIcon =
+        document.getElementById("student-password-eye");
+
+    if (!passwordInput || !eyeIcon) return;
+
+    if (passwordInput.type === "password") {
+        passwordInput.type = "text";
+        eyeIcon.classList.remove("fa-eye");
+        eyeIcon.classList.add("fa-eye-slash");
+    } else {
+        passwordInput.type = "password";
+        eyeIcon.classList.remove("fa-eye-slash");
+        eyeIcon.classList.add("fa-eye");
+    }
+}
        async function loginStudent() {
 
     const email = document
