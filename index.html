@@ -1,4 +1,4 @@
-<!DOCTYPE html> 
+<!DOCTYPE html>
 <html lang="id">
 <head>
     <meta charset="UTF-8">
@@ -621,7 +621,23 @@ async function syncQuestionToSupabase(subjectKey, questionObj, questionNumber) {
             Password
         </label>
 
-        student-login-password
+        <div class="relative">
+    <input
+        type="password"
+        id="student-login-password"
+        placeholder="Masukkan password"
+        class="w-full px-4 py-3 pr-12 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500"
+    >
+
+    <button
+        type="button"
+        onclick="toggleStudentPassword()"
+        class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-indigo-600"
+        aria-label="Tampilkan password"
+    >
+        <i id="student-password-eye" class="fa-solid fa-eye"></i>
+    </button>
+</div>
     </div>
 
     <button
