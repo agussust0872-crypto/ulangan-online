@@ -1,4 +1,4 @@
-<!DOCTYPE html> 
+<!DOCTYPE html>
 <html lang="id">
 <head>
     <meta charset="UTF-8">
@@ -2671,7 +2671,7 @@ async function logoutTeacher() {
         // Ambil soal dari Supabase
         const { data: cloudQuestions, error: questionError } =
             await stemgaSupabase
-                .from("questions")
+                .from("questions_public")
                 .select("*")
                 .eq("room_id", room.id)
                 .order("question_number", { ascending: true });
@@ -2991,25 +2991,97 @@ async function syncResultToSupabase(resultRecord) {
             stopStudentHeartbeat();
             if (timerInterval) clearInterval(timerInterval);
 
-            let correctCount = 0;
-            let wrongCount = 0;
-            let emptyCount = 0;
+                // ============================================
+    // HITUNG NILAI DI SUPABASE
+    // ============================================
 
-            currentQuestions.forEach((q, idx) => {
-                const userAns = userAnswers[idx];
-                if (userAns === undefined) {
-                    emptyCount++;
-                } else if (userAns === q.answer) {
-                    correctCount++;
-                } else {
-                    wrongCount++;
-                }
-            });
+    const answersPayload = {};
 
-            const score = Math.round((correctCount / currentQuestions.length) * 100);
-            const now = new Date();
-            const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    currentQuestions.forEach((q, idx) => {
+        const userAns = userAnswers[idx];
 
+        if (
+            userAns !== undefined &&
+            userAns !== null &&
+            userAns !== ""
+        ) {
+            answersPayload[String(idx + 1)] = Number(userAns);
+        }
+    });
+
+    console.log(
+        "Jawaban siswa dikirim ke Supabase:",
+        answersPayload
+    );
+
+    const { data: gradingResult, error: gradingError } =
+        await stemgaSupabase.rpc(
+            "grade_stemga_exam",
+            {
+                p_room_code: roomCode || "STEMGA1",
+                p_name: studentData.name,
+                p_nis: studentData.id,
+                p_class_name: studentData.class,
+                p_answers: answersPayload
+            }
+        );
+
+    if (gradingError) {
+        console.error(
+            "Supabase grading error:",
+            gradingError
+        );
+
+        showCustomDialog(
+            "Gagal Menghitung Nilai",
+            "Nilai belum dapat dihitung oleh server. Periksa koneksi internet lalu coba lagi.",
+            null,
+            true
+        );
+
+        return;
+    }
+    if (!gradingResult || gradingResult.length === 0) {
+        console.error(
+            "Hasil grading kosong:",
+            gradingResult
+        );
+
+        showCustomDialog(
+            "Gagal Menghitung Nilai",
+            "Server tidak mengembalikan hasil penilaian.",
+            null,
+            true
+        );
+
+        return;
+    }
+
+    const grading = gradingResult[0];
+
+    const correctCount = Number(
+        grading.correct_answers || 0
+    );
+
+    const wrongCount = Number(
+        grading.wrong_answers || 0
+    );
+
+    const emptyCount = Number(
+        grading.empty_answers || 0
+    );
+
+    const score = Number(
+        grading.score || 0
+    );
+
+    const now = new Date();
+
+    const timeStr = now.toLocaleTimeString([], {
+        hour: "2-digit",
+        minute: "2-digit"
+    });
+            
             const bank = DEFAULT_QUIZ_BANKS[currentSubjectKey];
             const resultRecord = {
                 studentName: studentData.name,
@@ -3030,20 +3102,7 @@ async function syncResultToSupabase(resultRecord) {
 examResultsLog.push(resultRecord);
 saveExamLogsToStorage();
 
-// Kirim hasil ujian ke Supabase
-const cloudSuccess = await syncResultToSupabase(resultRecord);
-
-if (cloudSuccess) {
-    console.log(
-        "✅ Nilai berhasil dikirim ke Supabase:",
-        resultRecord.studentName,
-        resultRecord.score
-    );
-} else {
-    console.warn(
-        "⚠️ Nilai tersimpan lokal, tetapi gagal dikirim ke Supabase."
-    );
-}
+// Kirim hasil ujian ke monitoring live/proktor
 
             publishMqttMessage('student_finished', {
                 sessionId: currentSessionId,
