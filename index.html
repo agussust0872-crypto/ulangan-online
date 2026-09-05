@@ -1,4 +1,4 @@
-<!DOCTYPE html>  
+<!DOCTYPE html> 
 <html lang="id">
 <head>
     <meta charset="UTF-8">
@@ -1576,9 +1576,22 @@ async function syncQuestionToSupabase(subjectKey, questionObj, questionNumber) {
             showCustomDialog("Import Berhasil", `Berhasil menambahkan <b>${addedCount} soal</b> ke dalam bank soal!`, null, true);
         }
 
-        function handleStartExam(e) {
+       async function handleStartExam(e) {
             if (e) e.preventDefault();
+    // Cek apakah siswa sudah login Supabase
+    const {
+        data: { session }
+    } = await stemgaSupabase.auth.getSession();
 
+    if (!session) {
+        showCustomDialog(
+            "Login Diperlukan",
+            "Silakan login sebagai siswa terlebih dahulu sebelum memulai ujian.",
+            null,
+            true
+        );
+        return;
+    }
             const name = document.getElementById("input-student-name")?.value.trim();
             const id = document.getElementById("input-student-id")?.value.trim();
             const sClass = document.getElementById("input-student-class")?.value.trim();
