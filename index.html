@@ -1,4 +1,4 @@
-<!DOCTYPE html>  
+<!DOCTYPE html>   
 <html lang="id">
 <head>
     <meta charset="UTF-8">
@@ -2013,15 +2013,11 @@ async function handleStudentExcelImport(event) {
                     ? String(row[classKey]).trim()
                     : "";
 
-            // Jika NIS berupa angka 1, 2, 3...
-            // ubah menjadi 001, 002, 003
-            if (
-                nis &&
-                /^\d+$/.test(nis) &&
-                nis.length < 3
-            ) {
-                nis = nis.padStart(3, "0");
-            }
+           // Normalisasi NIS menjadi 3 digit
+// Contoh: 1 -> 001, 2 -> 002, 99 -> 099
+if (nis && /^\d+$/.test(nis)) {
+    nis = nis.padStart(3, "0");
+}
 
             if (!nis && !name && !className) {
                 continue;
