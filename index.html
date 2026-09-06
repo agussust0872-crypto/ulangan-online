@@ -1,4 +1,4 @@
-<!DOCTYPE html>    
+<!DOCTYPE html>     
 <html lang="id">
 <head>
     <meta charset="UTF-8">
@@ -1856,8 +1856,8 @@ function toggleStudentPassword() {
         if (examForm) {
             examForm.classList.remove("hidden");
         }
-// Setelah login berhasil, baru muat soal
-await handleStudentSubjectChange();
+// Setelah login berhasil, tampilkan ujian yang dibuka Admin
+await loadOpenExamsForStudent();
         message.textContent =
             "Login berhasil. Silakan pilih mata pelajaran.";
 
@@ -1880,7 +1880,324 @@ await handleStudentSubjectChange();
 }
         
         
-        
+     // ==========================================
+// UJIAN TERBUKA UNTUK SISWA
+// ==========================================
+
+async function loadOpenExamsForStudent() {
+
+    const container =
+        document.getElementById("student-available-exams");
+
+    if (!container) return;
+
+    container.innerHTML = `
+        <div class="text-sm text-slate-500 text-center py-4">
+            Memeriksa ujian yang dibuka Admin...
+        </div>
+    `;
+
+    try {
+
+        const { data: exams, error } =
+            await stemgaSupabase
+                .from("exam_controls")
+                .select(`
+                    id,
+                    room_id,
+                    exam_name,
+                    subject,
+                    duration_minutes,
+                    is_open
+                `)
+                .eq("is_open", true)
+                .order("created_at", {
+                    ascending: false
+                });
+
+        if (error) {
+            console.error(
+                "Gagal mengambil ujian terbuka:",
+                error
+            );
+
+            container.innerHTML = `
+                <div class="text-sm text-rose-600 text-center py-4">
+                    Gagal mengambil daftar ujian.
+                </div>
+            `;
+
+            return;
+        }
+
+        if (!exams || exams.length === 0) {
+
+            container.innerHTML = `
+                <div class="bg-slate-50 border border-slate-200 rounded-2xl p-5 text-center">
+                    <div class="text-3xl mb-2">🔒</div>
+                    <div class="font-bold text-slate-700">
+                        Belum ada ujian yang dibuka
+                    </div>
+                    <div class="text-xs text-slate-500 mt-1">
+                        Silakan menunggu Admin membuka ujian.
+                    </div>
+                </div>
+            `;
+
+            return;
+        }
+
+        container.innerHTML = "";
+
+        exams.forEach(exam => {
+
+            const card = document.createElement("div");
+
+            card.className =
+                "bg-emerald-50 border border-emerald-200 rounded-2xl p-4 shadow-sm";
+
+            card.innerHTML = `
+                <div class="flex items-center justify-between gap-3">
+
+                    <div>
+                        <div class="text-xs font-bold text-emerald-700 uppercase">
+                            Ujian Tersedia
+                        </div>
+
+                        <div class="text-lg font-black text-slate-800 mt-1">
+                            ${exam.exam_name}
+                        </div>
+
+                        <div class="text-sm text-slate-600 mt-1">
+                            ${exam.subject}
+                            • ${exam.duration_minutes} Menit
+                        </div>
+                    </div>
+
+                    <button
+                        type="button"
+                        class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-4 py-2.5 rounded-xl text-sm"
+                        onclick="startAdminOpenedExam('${exam.id}')"
+                    >
+                        Mulai Ujian
+                    </button>
+
+                </div>
+            `;
+
+            container.appendChild(card);
+        });
+
+    } catch (error) {
+
+        console.error(
+            "Error loadOpenExamsForStudent:",
+            error
+        );
+
+        container.innerHTML = `
+            <div class="text-sm text-rose-600 text-center py-4">
+                Terjadi kesalahan saat mengambil ujian.
+            </div>
+        `;
+    }
+}   
+        // ==========================================
+// MULAI UJIAN YANG DIBUKA ADMIN
+// ==========================================
+
+async function startAdminOpenedExam(examId) {
+
+    try {
+
+        // Pastikan siswa masih login
+        const {
+            data: { session }
+        } = await stemgaSupabase.auth.getSession();
+
+        if (!session) {
+            showCustomDialog(
+                "Login Diperlukan",
+                "Silakan login sebagai siswa terlebih dahulu.",
+                null,
+                true
+            );
+            return;
+        }
+
+        // Ambil data ujian yang dipilih
+        const { data: exam, error: examError } =
+            await stemgaSupabase
+                .from("exam_controls")
+                .select(`
+                    id,
+                    room_id,
+                    exam_name,
+                    subject,
+                    duration_minutes,
+                    is_open
+                `)
+                .eq("id", examId)
+                .eq("is_open", true)
+                .single();
+
+        if (examError || !exam) {
+
+            console.error(
+                "Ujian tidak ditemukan:",
+                examError
+            );
+
+            showCustomDialog(
+                "Ujian Tidak Tersedia",
+                "Ujian sudah ditutup atau tidak tersedia.",
+                null,
+                true
+            );
+
+            return;
+        }
+
+        // Pastikan room tersedia
+        let room = null;
+
+        if (exam.room_id) {
+
+            const { data, error } =
+                await stemgaSupabase
+                    .from("rooms")
+                    .select("*")
+                    .eq("id", exam.room_id)
+                    .eq("is_active", true)
+                    .single();
+
+            if (error || !data) {
+                throw new Error(
+                    "Ruang ujian tidak ditemukan atau tidak aktif."
+                );
+            }
+
+            room = data;
+
+        } else {
+
+            // Untuk data ujian lama yang belum memiliki room_id
+            const { data: rooms, error: roomError } =
+                await stemgaSupabase
+                    .from("rooms")
+                    .select("*")
+                    .eq("subject", exam.subject)
+                    .eq("is_active", true);
+
+            if (roomError) {
+                throw roomError;
+            }
+
+            if (!rooms || rooms.length === 0) {
+                throw new Error(
+                    "Belum ada ruang ujian untuk mata pelajaran ini."
+                );
+            }
+
+            if (rooms.length > 1) {
+                throw new Error(
+                    "Terdapat lebih dari satu ruang untuk mata pelajaran ini. Admin perlu menentukan ruang ujian."
+                );
+            }
+
+            room = rooms[0];
+
+            // Hubungkan exam_controls dengan room
+            const { error: linkError } =
+                await stemgaSupabase
+                    .from("exam_controls")
+                    .update({
+                        room_id: room.id
+                    })
+                    .eq("id", exam.id);
+
+            if (linkError) {
+                console.warn(
+                    "Room belum berhasil ditautkan:",
+                    linkError
+                );
+            }
+        }
+
+        // Simpan kode ruang yang dipakai ujian
+        roomCode = room.room_code;
+
+        const roomInput =
+            document.getElementById("input-student-room");
+
+        if (roomInput) {
+            roomInput.value = roomCode;
+        }
+
+        // Pilih mata pelajaran secara otomatis
+        const select =
+            document.getElementById("select-subject-student");
+
+        if (!select) {
+            throw new Error(
+                "Elemen mata pelajaran siswa tidak ditemukan."
+            );
+        }
+
+        select.value = room.subject || exam.subject;
+
+        currentSubjectKey =
+            select.value;
+
+        // Muat soal dari Supabase
+        await handleStudentSubjectChange();
+
+        // Pastikan bank soal tersedia
+        const bank =
+            DEFAULT_QUIZ_BANKS[currentSubjectKey];
+
+        if (!bank || !bank.questions || bank.questions.length === 0) {
+
+            showCustomDialog(
+                "Soal Belum Tersedia",
+                "Ujian sudah dibuka, tetapi soal belum tersedia.",
+                null,
+                true
+            );
+
+            return;
+        }
+
+        // Gunakan durasi yang ditentukan Admin
+        bank.durationMinutes =
+            Number(exam.duration_minutes || 15);
+
+        console.log(
+            "Ujian Admin siap dimulai:",
+            exam.exam_name,
+            bank.questions.length,
+            "soal"
+        );
+
+        // Mulai CBT
+        await handleStartExam();
+
+    } catch (error) {
+
+        console.error(
+            "Gagal memulai ujian Admin:",
+            error
+        );
+
+        showCustomDialog(
+            "Gagal Memulai Ujian",
+            error.message ||
+            "Terjadi kesalahan saat memulai ujian.",
+            null,
+            true
+        );
+    }
+}
         // =====================================================
 // IMPORT DATA SISWA DARI EXCEL
 // =====================================================
