@@ -1888,7 +1888,7 @@ async function handleStudentExcelImport(event) {
 
     const file =
         event.target.files?.[0];
-
+ 
     if (!file) return;
 
     // Pastikan XLSX tersedia
@@ -1971,32 +1971,30 @@ async function handleStudentExcelImport(event) {
                 Object.keys(row);
 
             // Cari nama kolom secara fleksibel
-            const nisKey =
-                keys.find(k =>
-                    k.trim().toLowerCase() === "nis"
-                );
+           const normalizeHeader = (value) =>
+    String(value || "")
+        .replace(/\u00A0/g, " ")
+        .trim()
+        .toLowerCase()
+        .replace(/[\s_-]+/g, "");
 
-            const nameKey =
-                keys.find(k =>
-                    [
-                        "nama",
-                        "name",
-                        "nama siswa"
-                    ].includes(
-                        k.trim().toLowerCase()
-                    )
-                );
+const nisKey = keys.find(k =>
+    ["nis", "nissiswa", "nomorinduksiswa"].includes(
+        normalizeHeader(k)
+    )
+);
 
-            const classKey =
-                keys.find(k =>
-                    [
-                        "kelas",
-                        "class",
-                        "class_name"
-                    ].includes(
-                        k.trim().toLowerCase()
-                    )
-                );
+const nameKey = keys.find(k =>
+    ["nama", "namasiswa", "name"].includes(
+        normalizeHeader(k)
+    )
+);
+
+const classKey = keys.find(k =>
+    ["kelas", "class", "classname"].includes(
+        normalizeHeader(k)
+    )
+);
 
             let nis =
                 nisKey
