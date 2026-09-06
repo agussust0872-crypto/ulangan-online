@@ -1,4 +1,4 @@
-<!DOCTYPE html>  
+<!DOCTYPE html>   
 <html lang="id">
 <head>
     <meta charset="UTF-8">
@@ -1845,7 +1845,8 @@ function toggleStudentPassword() {
         if (examForm) {
             examForm.classList.remove("hidden");
         }
-
+// Setelah login berhasil, baru muat soal
+await handleStudentSubjectChange();
         message.textContent =
             "Login berhasil. Silakan pilih mata pelajaran.";
 
@@ -3376,6 +3377,14 @@ async function logoutTeacher() {
         }
 
       async function handleStudentSubjectChange() {
+              // Jangan memuat soal sebelum siswa login
+    const {
+        data: { session }
+    } = await stemgaSupabase.auth.getSession();
+
+    if (!session) {
+        return;
+    }
     const select = document.getElementById("select-subject-student");
     const headerMapel = document.getElementById("student-header-mapel");
     const durationBadge = document.getElementById("student-exam-duration");
