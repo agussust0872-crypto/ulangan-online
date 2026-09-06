@@ -1,4 +1,4 @@
-<!DOCTYPE html>  
+<!DOCTYPE html> 
 <html lang="id">
 <head>
     <meta charset="UTF-8">
@@ -1965,71 +1965,37 @@ async function handleStudentExcelImport(event) {
         // Ambil kolom NIS / Nama / Kelas
         // ==============================
         const students = [];
+for (const row of rows) {
 
-        for (const row of rows) {
+    // Kolom Excel:
+    // A = NIS
+    // B = Nama
+    // C = Kelas
 
-            const keys =
-                Object.keys(row);
-console.log("HEADER EXCEL:", keys);
-    console.log("BARIS EXCEL:", row);
-            // Cari nama kolom secara fleksibel
-           const normalizeHeader = (value) =>
-    String(value || "")
-        .replace(/\u00A0/g, " ")
-        .trim()
-        .toLowerCase()
-        .replace(/[\s_-]+/g, "");
+    const nis = String(row[0] ?? "").trim();
+    const name = String(row[1] ?? "").trim();
+    const className = String(row[2] ?? "").trim();
 
-const nisKey = keys.find(k =>
-    ["nis", "nissiswa", "nomorinduksiswa"].includes(
-        normalizeHeader(k)
-    )
-);
+    // Lewati baris kosong
+    if (!nis && !name && !className) {
+        continue;
+    }
 
-const nameKey = keys.find(k =>
-    ["nama", "namasiswa", "name"].includes(
-        normalizeHeader(k)
-    )
-);
+    // Lewati data yang tidak lengkap
+    if (!nis || !name || !className) {
+        continue;
+    }
 
-const classKey = keys.find(k =>
-    ["kelas", "class", "classname"].includes(
-        normalizeHeader(k)
-    )
-);
-
-            let nis =
-                nisKey
-                    ? String(row[nisKey]).trim()
-                    : "";
-
-            const name =
-                nameKey
-                    ? String(row[nameKey]).trim()
-                    : "";
-
-            const className =
-                classKey
-                    ? String(row[classKey]).trim()
-                    : "";
-
-           // Normalisasi NIS menjadi 3 digit
-// Contoh: 1 -> 001, 2 -> 002, 99 -> 099
-if (nis && /^\d+$/.test(nis)) {
-    nis = nis.padStart(3, "0");
+    students.push({
+        nis: nis,
+        name: name,
+        class_name: className
+    });
 }
 
-            if (!nis && !name && !className) {
-                continue;
-            }
-
-            students.push({
-                nis,
-                name,
-                class_name: className
-            });
-        }
-
+console.log("HASIL PARSING SISWA:", students);
+console.log("JUMLAH SISWA TERBACA:", students.length);
+      
         // ==============================
         // Validasi data
         // ==============================
