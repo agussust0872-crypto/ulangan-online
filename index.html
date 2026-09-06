@@ -1,4 +1,4 @@
-<!DOCTYPE html>  
+<!DOCTYPE html>   
 <html lang="id">
 <head>
     <meta charset="UTF-8">
@@ -358,7 +358,35 @@ async function syncQuestionToSupabase(subjectKey, questionObj, questionNumber) {
                         <p class="text-[11px] text-slate-500">Tambah manual atau import sekaligus secara masal.</p>
                     </div>
                     <button onclick="clearAllQuizBanks()" class="bg-rose-50 hover:bg-rose-100 text-rose-600 text-[10px] font-extrabold px-2.5 py-1 rounded-xl transition border border-rose-200 flex items-center gap-1">
-                        <i class="fa-solid fa-eraser"></i> Hapus Semua Soal
+                        <i class="fa-solid fa-eraser"></i> Hapus Semua Soal<!-- IMPORT DATA SISWA -->
+<div class="bg-emerald-600 text-white p-3.5 rounded-2xl flex items-center justify-between mt-3">
+    <div>
+        <span class="font-bold text-xs block">
+            <i class="fa-solid fa-users mr-1"></i>
+            Import Data Siswa
+        </span>
+        <span class="text-[11px] text-emerald-100">
+            Import NIS, Nama, dan Kelas dari file Excel
+        </span>
+    </div>
+
+    <button
+        type="button"
+        onclick="openStudentImport()"
+        class="bg-white text-emerald-700 font-extrabold text-xs px-3 py-2 rounded-xl hover:bg-emerald-50 transition"
+    >
+        <i class="fa-solid fa-file-excel mr-1"></i>
+        Import Siswa
+    </button>
+</div>
+
+<input
+    type="file"
+    id="student-excel-file"
+    accept=".xlsx,.xls"
+    class="hidden"
+    onchange="handleStudentExcelImport(event)"
+>
                     </button>
                 </div>
 
@@ -1807,6 +1835,391 @@ function toggleStudentPassword() {
         
         
         
+        // =====================================================
+// IMPORT DATA SISWA DARI EXCEL
+// =====================================================
+
+function openStudentImport() {
+    const fileInput =
+        document.getElementById("student-excel-file");
+
+    if (fileInput) {
+        fileInput.value = "";
+        fileInput.click();
+    }
+}
+
+
+async function handleStudentExcelImport(event) {
+
+    const file =
+        event.target.files?.[0];
+
+    if (!file) return;
+
+    // Pastikan XLSX tersedia
+    if (typeof XLSX === "undefined") {
+
+        alert(
+            "Library Excel belum tersedia.\n" +
+            "Silakan refresh halaman terlebih dahulu."
+        );
+
+        return;
+    }
+
+    try {
+
+        // ==============================
+        // Cek login guru
+        // ==============================
+        const {
+            data: { session }
+        } = await stemgaSupabase.auth.getSession();
+
+        if (!session) {
+
+            alert(
+                "Silakan login sebagai guru terlebih dahulu."
+            );
+
+            return;
+        }
+
+        // ==============================
+        // Baca file Excel
+        // ==============================
+        const arrayBuffer =
+            await file.arrayBuffer();
+
+        const workbook =
+            XLSX.read(arrayBuffer, {
+                type: "array"
+            });
+
+        const sheetName =
+            workbook.SheetNames[0];
+
+        const worksheet =
+            workbook.Sheets[sheetName];
+
+        const rows =
+            XLSX.utils.sheet_to_json(
+                worksheet,
+                {
+                    defval: "",
+                    raw: false
+                }
+            );
+
+        if (!rows.length) {
+
+            alert(
+                "File Excel tidak berisi data siswa."
+            );
+
+            return;
+        }
+
+        console.log(
+            "Data Excel siswa:",
+            rows
+        );
+
+        // ==============================
+        // Ambil kolom NIS / Nama / Kelas
+        // ==============================
+        const students = [];
+
+        for (const row of rows) {
+
+            const keys =
+                Object.keys(row);
+
+            // Cari nama kolom secara fleksibel
+            const nisKey =
+                keys.find(k =>
+                    k.trim().toLowerCase() === "nis"
+                );
+
+            const nameKey =
+                keys.find(k =>
+                    [
+                        "nama",
+                        "name",
+                        "nama siswa"
+                    ].includes(
+                        k.trim().toLowerCase()
+                    )
+                );
+
+            const classKey =
+                keys.find(k =>
+                    [
+                        "kelas",
+                        "class",
+                        "class_name"
+                    ].includes(
+                        k.trim().toLowerCase()
+                    )
+                );
+
+            let nis =
+                nisKey
+                    ? String(row[nisKey]).trim()
+                    : "";
+
+            const name =
+                nameKey
+                    ? String(row[nameKey]).trim()
+                    : "";
+
+            const className =
+                classKey
+                    ? String(row[classKey]).trim()
+                    : "";
+
+            // Jika NIS berupa angka 1, 2, 3...
+            // ubah menjadi 001, 002, 003
+            if (
+                nis &&
+                /^\d+$/.test(nis) &&
+                nis.length < 3
+            ) {
+                nis = nis.padStart(3, "0");
+            }
+
+            if (!nis && !name && !className) {
+                continue;
+            }
+
+            students.push({
+                nis,
+                name,
+                class_name: className
+            });
+        }
+
+        // ==============================
+        // Validasi data
+        // ==============================
+        if (!students.length) {
+
+            alert(
+                "Tidak ditemukan data siswa.\n\n" +
+                "Pastikan Excel memiliki kolom:\n" +
+                "NIS | Nama | Kelas"
+            );
+
+            return;
+        }
+
+        const dataTidakLengkap =
+            students.filter(
+                s =>
+                    !s.nis ||
+                    !s.name ||
+                    !s.class_name
+            );
+
+        if (dataTidakLengkap.length > 0) {
+
+            alert(
+                "Ada " +
+                dataTidakLengkap.length +
+                " data siswa yang belum lengkap.\n\n" +
+                "Pastikan kolom NIS, Nama, dan Kelas terisi."
+            );
+
+            console.warn(
+                "Data tidak lengkap:",
+                dataTidakLengkap
+            );
+
+            return;
+        }
+
+        // ==============================
+        // Konfirmasi
+        // ==============================
+        const lanjut =
+            confirm(
+                "Ditemukan " +
+                students.length +
+                " siswa.\n\n" +
+                "Semua akun akan dibuat dengan:\n\n" +
+                "Username = NIS\n" +
+                "Password = 1234\n\n" +
+                "Lanjutkan import?"
+            );
+
+        if (!lanjut) {
+            return;
+        }
+
+        // ==============================
+        // Import secara batch
+        // ==============================
+        const BATCH_SIZE = 25;
+
+        let totalBerhasil = 0;
+        let totalGagal = 0;
+
+        const gagalList = [];
+
+        for (
+            let i = 0;
+            i < students.length;
+            i += BATCH_SIZE
+        ) {
+
+            const batch =
+                students.slice(
+                    i,
+                    i + BATCH_SIZE
+                );
+
+            console.log(
+                `Import batch ${i + 1} - ${i + batch.length}`
+            );
+
+            const {
+                data,
+                error
+            } =
+                await stemgaSupabase.functions.invoke(
+                    "import-students",
+                    {
+                        body: {
+                            students: batch
+                        }
+                    }
+                );
+
+            if (error) {
+
+                console.error(
+                    "Batch import error:",
+                    error
+                );
+
+                totalGagal += batch.length;
+
+                batch.forEach(student => {
+                    gagalList.push({
+                        nis: student.nis,
+                        name: student.name,
+                        message: error.message
+                    });
+                });
+
+            } else {
+
+                console.log(
+                    "Hasil batch:",
+                    data
+                );
+
+                totalBerhasil +=
+                    Number(data?.berhasil || 0);
+
+                totalGagal +=
+                    Number(data?.gagal || 0);
+
+                if (Array.isArray(data?.results)) {
+
+                    data.results
+                        .filter(
+                            r =>
+                                r.status === "gagal"
+                        )
+                        .forEach(r => {
+                            gagalList.push(r);
+                        });
+                }
+            }
+
+            // Jeda sebentar antar batch
+            await new Promise(
+                resolve =>
+                    setTimeout(resolve, 500)
+            );
+        }
+
+        // ==============================
+        // Hasil akhir
+        // ==============================
+        console.log(
+            "IMPORT SELESAI",
+            {
+                total: students.length,
+                berhasil: totalBerhasil,
+                gagal: totalGagal,
+                gagalList
+            }
+        );
+
+        let pesan =
+            "IMPORT SISWA SELESAI\n\n" +
+            "Total siswa : " +
+            students.length +
+            "\n" +
+            "Berhasil    : " +
+            totalBerhasil +
+            "\n" +
+            "Gagal       : " +
+            totalGagal;
+
+        if (gagalList.length > 0) {
+
+            pesan +=
+                "\n\nBeberapa data gagal:\n";
+
+            gagalList
+                .slice(0, 10)
+                .forEach(item => {
+
+                    pesan +=
+                        "\n" +
+                        item.nis +
+                        " - " +
+                        item.name +
+                        "\n" +
+                        (item.message || "Gagal");
+                });
+
+            if (gagalList.length > 10) {
+
+                pesan +=
+                    "\n\n...dan " +
+                    (gagalList.length - 10) +
+                    " data gagal lainnya.";
+            }
+        }
+
+        alert(pesan);
+
+    } catch (error) {
+
+        console.error(
+            "Error import Excel siswa:",
+            error
+        );
+
+        alert(
+            "Terjadi kesalahan saat membaca/import Excel:\n\n" +
+            (
+                error instanceof Error
+                    ? error.message
+                    : String(error)
+            )
+        );
+
+    } finally {
+
+        event.target.value = "";
+    }
+}
         async function handleStartExam(e) {
             if (e) e.preventDefault();
     // Cek apakah siswa sudah login Supabase
