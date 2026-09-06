@@ -1,4 +1,4 @@
-<!DOCTYPE html>    
+<!DOCTYPE html>   
 <html lang="id">
 <head>
     <meta charset="UTF-8">
@@ -1964,13 +1964,13 @@ async function handleStudentExcelImport(event) {
         // Ambil kolom NIS / Nama / Kelas
         // ==============================
         const students = [];
-console.log("HEADER EXCEL:", keys);
-console.log("BARIS PERTAMA EXCEL:", rows[0]);
+
         for (const row of rows) {
 
             const keys =
                 Object.keys(row);
-
+console.log("HEADER EXCEL:", keys);
+    console.log("BARIS EXCEL:", row);
             // Cari nama kolom secara fleksibel
            const normalizeHeader = (value) =>
     String(value || "")
