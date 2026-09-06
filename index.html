@@ -1,4 +1,4 @@
-<!DOCTYPE html> 
+<!DOCTYPE html>  
 <html lang="id">
 <head>
     <meta charset="UTF-8">
@@ -349,27 +349,42 @@ async function syncQuestionToSupabase(subjectKey, questionObj, questionNumber) {
         <!-- TAB 2: KELOLA & IMPORT SOAL -->
         <div id="ttab-soal" class="hidden grid grid-cols-1 lg:grid-cols-12 gap-6">
             <div class="lg:col-span-5 bg-white p-5 rounded-3xl border border-slate-200 shadow-sm space-y-4">
-                <div class="flex items-center justify-between border-b border-slate-100 pb-3">
-                    <div>
-                        <h3 class="font-extrabold text-slate-800 text-sm flex items-center gap-2">
-                            <i class="fa-solid fa-file-circle-plus text-indigo-600"></i>
-                            <span>Input & Import Soal</span>
-                        </h3>
-                        <p class="text-[11px] text-slate-500">Tambah manual atau import sekaligus secara masal.</p>
-                    </div>
-                    <button onclick="clearAllQuizBanks()" class="bg-rose-50 hover:bg-rose-100 text-rose-600 text-[10px] font-extrabold px-2.5 py-1 rounded-xl transition border border-rose-200 flex items-center gap-1">
-                        <i class="fa-solid fa-eraser"></i> Hapus Semua Soal<!-- IMPORT DATA SISWA -->
+                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-slate-100 pb-3">
 
-  
-                    <div class="bg-indigo-600 text-white p-3.5 rounded-2xl flex items-center justify-between">
-                    <div>
-                        <span class="font-bold text-xs block"><i class="fa-solid fa-file-import mr-1"></i> Mode Import Masal</span>
-                        <span class="text-[11px] text-indigo-200">Upload banyak soal sekaligus via teks/CSV</span>
-                    </div>
-                    <button onclick="openBulkImportModal()" class="bg-white text-indigo-700 font-extrabold text-xs px-3 py-2 rounded-xl hover:bg-indigo-50 transition shadow-sm">
-                        Import Banyak Soal
-                    </button>
-                </div>
+    <!-- Judul -->
+    <div>
+        <h3 class="font-extrabold text-slate-800 text-sm flex items-center gap-2">
+            <i class="fa-solid fa-file-circle-plus text-indigo-600"></i>
+            <span>Input & Import Soal</span>
+        </h3>
+
+        <p class="text-[11px] text-slate-500 mt-1">
+            Tambah manual atau import sekaligus secara masal.
+        </p>
+    </div>
+
+    <!-- Tombol -->
+    <div class="flex flex-wrap items-center gap-2">
+
+        <button
+            onclick="clearAllQuizBanks()"
+            class="bg-rose-50 hover:bg-rose-100 text-rose-600 text-[10px] font-extrabold px-3 py-2 rounded-xl transition flex items-center gap-1.5"
+        >
+            <i class="fa-solid fa-eraser"></i>
+            Hapus Semua Soal
+        </button>
+
+        <button
+            onclick="openBulkImportModal()"
+            class="bg-indigo-600 hover:bg-indigo-700 text-white text-[10px] font-extrabold px-3 py-2 rounded-xl transition flex items-center gap-1.5"
+        >
+            <i class="fa-solid fa-file-import"></i>
+            Import Banyak Soal
+        </button>
+
+    </div>
+
+</div>
 
                 <div class="bg-indigo-50/70 p-3 rounded-2xl border border-indigo-100 space-y-2">
                     <label class="block font-bold text-indigo-900 text-xs">Pilih Mata Pelajaran Target</label>
