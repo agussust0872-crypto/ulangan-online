@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!DOCTYPE html> 
 <html lang="id">
 <head>
     <meta charset="UTF-8">
@@ -1846,7 +1846,12 @@ function toggleStudentPassword() {
         if (authBox) {
             authBox.classList.add("hidden");
         }
+const examPanel =
+    document.getElementById("student-exam-panel");
 
+if (examPanel) {
+    examPanel.classList.remove("hidden");
+}
         // Tampilkan form ujian
         const examForm =
             document.querySelector(
