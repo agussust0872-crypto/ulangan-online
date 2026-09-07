@@ -1,4 +1,4 @@
-<!DOCTYPE html>               
+<!DOCTYPE html>                
 <html lang="id">
 <head>
     <meta charset="UTF-8">
@@ -3076,13 +3076,23 @@ async function logoutTeacher() {
             }
         }
 async function loadExamControls() {
-    const container = document.getElementById("exam-controls-list");
+    const select = document.getElementById("teacher-exam-select");
+    const info = document.getElementById("teacher-exam-info");
 
-    if (!container) return;
+    if (!select || !info) {
+        console.error("Dropdown atau info ujian tidak ditemukan.");
+        return;
+    }
 
-    container.innerHTML = `
-        <div class="text-center text-slate-400 py-5">
+    select.innerHTML = `
+        <option value="">
             Memuat daftar ujian...
+        </option>
+    `;
+
+    info.innerHTML = `
+        <div class="text-center text-slate-400 text-xs">
+            Memuat data ujian...
         </div>
     `;
 
@@ -3106,118 +3116,157 @@ async function loadExamControls() {
             throw error;
         }
 
+        window.teacherExamControls = exams || [];
+
         if (!exams || exams.length === 0) {
-            container.innerHTML = `
-                <div class="bg-slate-50 border border-slate-200 rounded-2xl p-5 text-center">
-                    <div class="text-3xl mb-2">📋</div>
-                    <div class="font-bold text-slate-700">
-                        Belum ada ujian
-                    </div>
-                    <div class="text-xs text-slate-500 mt-1">
-                        Belum ada ujian yang dibuat.
-                    </div>
+            select.innerHTML = `
+                <option value="">
+                    Belum ada ujian
+                </option>
+            `;
+
+            info.innerHTML = `
+                <div class="text-center text-slate-400 text-xs py-3">
+                    Belum ada ujian yang dibuat.
                 </div>
             `;
+
             return;
         }
 
-        container.innerHTML = "";
+        select.innerHTML = `
+            <option value="">
+                -- Pilih Ujian --
+            </option>
+        `;
 
         exams.forEach(exam => {
-            const isOpen = exam.is_open === true;
+            const option = document.createElement("option");
 
-            const card = document.createElement("div");
+            option.value = exam.id;
+            option.textContent =
+                `${exam.exam_name} — ${exam.subject}`;
 
-            card.className = `
-                bg-white
-                border
-                ${isOpen ? "border-emerald-300" : "border-slate-200"}
-                rounded-2xl
-                p-4
-                shadow-sm
-            `;
-
-            card.innerHTML = `
-                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-
-                    <div>
-                        <div class="mb-2">
-                            <span class="
-                                inline-flex
-                                items-center
-                                px-2.5
-                                py-1
-                                rounded-full
-                                text-[10px]
-                                font-black
-                                ${isOpen
-                                    ? "bg-emerald-100 text-emerald-700"
-                                    : "bg-slate-100 text-slate-600"}
-                            ">
-                                ${isOpen
-                                    ? "🟢 UJIAN DIBUKA"
-                                    : "🔴 UJIAN DITUTUP"}
-                            </span>
-                        </div>
-
-                        <div class="text-base font-black text-slate-800">
-                            ${exam.exam_name}
-                        </div>
-
-                        <div class="text-xs text-slate-500 mt-1">
-                            ${exam.subject}
-                            •
-                            ${exam.duration_minutes} Menit
-                        </div>
-                    </div>
-
-                    <div class="shrink-0">
-
-                        ${
-                            isOpen
-                                ? `
-                                    <button
-                                        type="button"
-                                        onclick="closeExamControl('${exam.id}')"
-                                        class="bg-rose-600 hover:bg-rose-700 text-white px-4 py-2.5 rounded-xl text-xs font-black shadow-sm"
-                                    >
-                                        <i class="fa-solid fa-lock"></i>
-                                        Tutup Ujian
-                                    </button>
-                                `
-                                : `
-                                    <button
-                                        type="button"
-                                        onclick="openExamControl('${exam.id}')"
-                                        class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2.5 rounded-xl text-xs font-black shadow-sm"
-                                    >
-                                        <i class="fa-solid fa-lock-open"></i>
-                                        Buka Ujian
-                                    </button>
-                                `
-                        }
-
-                    </div>
-                </div>
-            `;
-
-            container.appendChild(card);
+            select.appendChild(option);
         });
+
+        // Otomatis pilih ujian pertama
+        select.value = exams[0].id;
+
+        handleTeacherExamChange();
 
     } catch (error) {
         console.error("loadExamControls error:", error);
 
-        container.innerHTML = `
-            <div class="bg-rose-50 border border-rose-200 rounded-2xl p-4 text-center">
-                <div class="font-bold text-rose-700">
+        select.innerHTML = `
+            <option value="">
+                Gagal memuat ujian
+            </option>
+        `;
+
+        info.innerHTML = `
+            <div class="bg-rose-50 border border-rose-200 rounded-xl p-3 text-center">
+                <div class="font-bold text-rose-700 text-xs">
                     Gagal memuat daftar ujian
                 </div>
-                <div class="text-xs text-rose-500 mt-1">
+                <div class="text-[11px] text-rose-500 mt-1">
                     ${error.message || "Terjadi kesalahan."}
                 </div>
             </div>
         `;
     }
+}
+
+
+function handleTeacherExamChange() {
+    const select = document.getElementById("teacher-exam-select");
+    const info = document.getElementById("teacher-exam-info");
+
+    if (!select || !info) return;
+
+    const examId = select.value;
+
+    if (!examId) {
+        info.innerHTML = `
+            <div class="text-center text-slate-400 text-xs py-3">
+                Pilih ujian terlebih dahulu.
+            </div>
+        `;
+        return;
+    }
+
+    const exam = (window.teacherExamControls || [])
+        .find(item => item.id === examId);
+
+    if (!exam) {
+        info.innerHTML = `
+            <div class="text-center text-rose-500 text-xs py-3">
+                Data ujian tidak ditemukan.
+            </div>
+        `;
+        return;
+    }
+
+    const isOpen = exam.is_open === true;
+
+    info.innerHTML = `
+        <div class="space-y-4">
+
+            <div class="flex items-center justify-between gap-3">
+                <div>
+                    <div class="text-base font-black text-slate-800">
+                        ${exam.exam_name}
+                    </div>
+
+                    <div class="text-xs text-slate-500 mt-1">
+                        ${exam.subject} • ${exam.duration_minutes} Menit
+                    </div>
+                </div>
+
+                <span class="
+                    px-3 py-1.5
+                    rounded-full
+                    text-[10px]
+                    font-black
+                    shrink-0
+                    ${isOpen
+                        ? "bg-emerald-100 text-emerald-700"
+                        : "bg-rose-100 text-rose-700"}
+                ">
+                    ${isOpen ? "● UJIAN DIBUKA" : "● UJIAN DITUTUP"}
+                </span>
+            </div>
+
+            <div class="border-t border-slate-200 pt-3">
+
+                ${
+                    isOpen
+                    ? `
+                        <button
+                            type="button"
+                            onclick="closeExamControl('${exam.id}')"
+                            class="w-full bg-rose-600 hover:bg-rose-700 text-white px-4 py-3 rounded-xl text-xs font-black shadow-sm transition flex items-center justify-center gap-2"
+                        >
+                            <i class="fa-solid fa-lock"></i>
+                            Tutup Ujian
+                        </button>
+                    `
+                    : `
+                        <button
+                            type="button"
+                            onclick="openExamControl('${exam.id}')"
+                            class="w-full bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-3 rounded-xl text-xs font-black shadow-sm transition flex items-center justify-center gap-2"
+                        >
+                            <i class="fa-solid fa-lock-open"></i>
+                            Buka Ujian untuk Siswa
+                        </button>
+                    `
+                }
+
+            </div>
+
+        </div>
+    `;
 }
         async function openExamControl(examId) {
 
