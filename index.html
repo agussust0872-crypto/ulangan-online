@@ -1,4 +1,4 @@
-<!DOCTYPE html>                  
+<!DOCTYPE html>                   
 <html lang="id">
 <head>
     <meta charset="UTF-8">
@@ -1634,7 +1634,7 @@ async function syncQuestionToSupabase(subjectKey, questionObj, questionNumber) {
             document.getElementById("modal-bulk-import")?.classList.add("hidden");
         }
 
-       
+       let isBulkImporting = false;
            async function processBulkImport() {
     const rawText =
         document.getElementById("input-bulk-text")?.value.trim();
@@ -1783,7 +1783,8 @@ async function syncQuestionToSupabase(subjectKey, questionObj, questionNumber) {
         true
     );
 }
-function toggleStudentPassword() {
+   
+        function toggleStudentPassword() {
     const passwordInput =
         document.getElementById("student-login-password");
 
