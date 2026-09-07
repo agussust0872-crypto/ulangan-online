@@ -1,4 +1,4 @@
-<!DOCTYPE html>    
+<!DOCTYPE html>     
 <html lang="id">
 <head>
     <meta charset="UTF-8">
@@ -567,6 +567,37 @@ async function syncQuestionToSupabase(subjectKey, questionObj, questionNumber) {
 >
         <!-- TAB 4: PENGATURAN -->
         <div id="ttab-settings" class="hidden bg-white p-6 rounded-3xl border border-slate-200 shadow-sm max-w-2xl mx-auto space-y-5 text-xs">
+            <!-- KONTROL BUKA / TUTUP UJIAN -->
+<div class="bg-gradient-to-br from-indigo-50 to-white p-5 rounded-3xl border border-indigo-200 space-y-4">
+
+    <div class="flex items-center justify-between gap-3">
+        <div>
+            <h3 class="font-black text-slate-800 text-base flex items-center gap-2">
+                <i class="fa-solid fa-toggle-on text-indigo-600"></i>
+                Kontrol Ujian
+            </h3>
+
+            <p class="text-xs text-slate-500 mt-1">
+                Admin menentukan ujian yang boleh dikerjakan siswa.
+            </p>
+        </div>
+
+        <button
+            type="button"
+            onclick="loadExamControls()"
+            class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-2 rounded-xl text-xs font-bold"
+        >
+            <i class="fa-solid fa-rotate"></i>
+        </button>
+    </div>
+
+    <div id="exam-controls-list" class="space-y-3">
+        <div class="text-center text-slate-400 py-5">
+            Memuat daftar ujian...
+        </div>
+    </div>
+
+</div>
             <div class="border-b border-slate-100 pb-3">
                 <h3 class="font-extrabold text-slate-800 text-sm">Pengaturan Ujian & Keamanan</h3>
                 <p class="text-slate-500">Konfigurasikan Kode Ruang, KKM, perlindungan anti-kecurangan, dan PIN Keamanan Guru.</p>
@@ -2949,9 +2980,227 @@ async function logoutTeacher() {
                 loadAdminQuestionsForSubject();
             } else if (tabName === 'rekap') {
                 renderStudentResultsRekap();
+                } else if (tabName === 'settings') {
+    loadExamControls();
             }
         }
+async function loadExamControls() {
+    const container = document.getElementById("exam-controls-list");
 
+    if (!container) return;
+
+    container.innerHTML = `
+        <div class="text-center text-slate-400 py-5">
+            Memuat daftar ujian...
+        </div>
+    `;
+
+    try {
+        const { data: exams, error } = await stemgaSupabase
+            .from("exam_controls")
+            .select(`
+                id,
+                room_id,
+                exam_name,
+                subject,
+                duration_minutes,
+                is_open,
+                opened_at,
+                closed_at
+            `)
+            .order("created_at", { ascending: false });
+
+        if (error) {
+            console.error("Gagal mengambil exam_controls:", error);
+            throw error;
+        }
+
+        if (!exams || exams.length === 0) {
+            container.innerHTML = `
+                <div class="bg-slate-50 border border-slate-200 rounded-2xl p-5 text-center">
+                    <div class="text-3xl mb-2">📋</div>
+                    <div class="font-bold text-slate-700">
+                        Belum ada ujian
+                    </div>
+                    <div class="text-xs text-slate-500 mt-1">
+                        Belum ada ujian yang dibuat.
+                    </div>
+                </div>
+            `;
+            return;
+        }
+
+        container.innerHTML = "";
+
+        exams.forEach(exam => {
+            const isOpen = exam.is_open === true;
+
+            const card = document.createElement("div");
+
+            card.className = `
+                bg-white
+                border
+                ${isOpen ? "border-emerald-300" : "border-slate-200"}
+                rounded-2xl
+                p-4
+                shadow-sm
+            `;
+
+            card.innerHTML = `
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+
+                    <div>
+                        <div class="mb-2">
+                            <span class="
+                                inline-flex
+                                items-center
+                                px-2.5
+                                py-1
+                                rounded-full
+                                text-[10px]
+                                font-black
+                                ${isOpen
+                                    ? "bg-emerald-100 text-emerald-700"
+                                    : "bg-slate-100 text-slate-600"}
+                            ">
+                                ${isOpen
+                                    ? "🟢 UJIAN DIBUKA"
+                                    : "🔴 UJIAN DITUTUP"}
+                            </span>
+                        </div>
+
+                        <div class="text-base font-black text-slate-800">
+                            ${exam.exam_name}
+                        </div>
+
+                        <div class="text-xs text-slate-500 mt-1">
+                            ${exam.subject}
+                            •
+                            ${exam.duration_minutes} Menit
+                        </div>
+                    </div>
+
+                    <div class="shrink-0">
+
+                        ${
+                            isOpen
+                                ? `
+                                    <button
+                                        type="button"
+                                        onclick="closeExamControl('${exam.id}')"
+                                        class="bg-rose-600 hover:bg-rose-700 text-white px-4 py-2.5 rounded-xl text-xs font-black shadow-sm"
+                                    >
+                                        <i class="fa-solid fa-lock"></i>
+                                        Tutup Ujian
+                                    </button>
+                                `
+                                : `
+                                    <button
+                                        type="button"
+                                        onclick="openExamControl('${exam.id}')"
+                                        class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2.5 rounded-xl text-xs font-black shadow-sm"
+                                    >
+                                        <i class="fa-solid fa-lock-open"></i>
+                                        Buka Ujian
+                                    </button>
+                                `
+                        }
+
+                    </div>
+                </div>
+            `;
+
+            container.appendChild(card);
+        });
+
+    } catch (error) {
+        console.error("loadExamControls error:", error);
+
+        container.innerHTML = `
+            <div class="bg-rose-50 border border-rose-200 rounded-2xl p-4 text-center">
+                <div class="font-bold text-rose-700">
+                    Gagal memuat daftar ujian
+                </div>
+                <div class="text-xs text-rose-500 mt-1">
+                    ${error.message || "Terjadi kesalahan."}
+                </div>
+            </div>
+        `;
+    }
+}
+        async function openExamControl(examId) {
+
+    try {
+        const { error } = await stemgaSupabase
+            .from("exam_controls")
+            .update({
+                is_open: true,
+                opened_at: new Date().toISOString(),
+                closed_at: null
+            })
+            .eq("id", examId);
+
+        if (error) {
+            throw error;
+        }
+
+        await loadExamControls();
+
+        showCustomDialog(
+            "Ujian Dibuka",
+            "Ujian sekarang dapat dilihat dan dimulai oleh siswa.",
+            null,
+            true
+        );
+
+    } catch (error) {
+
+        console.error("Gagal membuka ujian:", error);
+
+        showCustomDialog(
+            "Gagal",
+            error.message || "Ujian gagal dibuka.",
+            null,
+            true
+        );
+    }
+}
+        async function closeExamControl(examId) {
+
+    try {
+        const { error } = await stemgaSupabase
+            .from("exam_controls")
+            .update({
+                is_open: false,
+                closed_at: new Date().toISOString()
+            })
+            .eq("id", examId);
+
+        if (error) {
+            throw error;
+        }
+
+        await loadExamControls();
+
+        showCustomDialog(
+            "Ujian Ditutup",
+            "Ujian tidak lagi tersedia untuk siswa.",
+            null,
+            true
+        );
+
+    } catch (error) {
+
+        console.error("Gagal menutup ujian:", error);
+
+        showCustomDialog(
+            "Gagal",
+            error.message || "Ujian gagal ditutup.",
+            null,
+            true
+        );
+    }
+}
         function broadcastBankToRoom() {
             if (mqttClient && isMqttConnected) {
                 publishMqttMessage('bank_sync_full', DEFAULT_QUIZ_BANKS);
