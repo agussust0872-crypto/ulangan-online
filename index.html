@@ -1,4 +1,4 @@
-<!DOCTYPE html>                 
+<!DOCTYPE html>                  
 <html lang="id">
 <head>
     <meta charset="UTF-8">
@@ -2205,10 +2205,7 @@ async function startAdminOpenedExam(examId) {
         if (roomInput) {
             roomInput.value = roomCode;
         }
-
-        // Pilih mata pelajaran secara otomatis
-        const select =
-            // Pilih mata pelajaran secara otomatis
+// Pilih mata pelajaran secara otomatis
 const select =
     document.getElementById("select-subject-student");
 
@@ -2218,41 +2215,13 @@ if (!select) {
     );
 }
 
-// Tentukan key mata pelajaran dari room ujian
-const subjectKey =
-    room.subject ||
-    exam.subject ||
-    "Informatika";
+select.value = room.subject || exam.subject;
 
-// Pastikan option tersedia di dropdown siswa
-let subjectOption = Array.from(select.options)
-    .find(option => option.value === subjectKey);
-
-if (!subjectOption) {
-    subjectOption = document.createElement("option");
-    subjectOption.value = subjectKey;
-    subjectOption.textContent =
-        exam.subject ||
-        room.subject ||
-        subjectKey;
-
-    select.appendChild(subjectOption);
-}
-
-// Pilih mata pelajaran
-select.value = subjectKey;
-
-// Simpan sebagai subject aktif
-currentSubjectKey = subjectKey;
-
-console.log(
-    "Subject ujian dipilih:",
-    currentSubjectKey
-);
+currentSubjectKey =
+    select.value;
 
 // Muat soal dari Supabase
 await handleStudentSubjectChange();
-
         // Pastikan bank soal tersedia
         const bank =
             DEFAULT_QUIZ_BANKS[currentSubjectKey];
