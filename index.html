@@ -1,4 +1,4 @@
-<!DOCTYPE html>                     
+<!DOCTYPE html>                      
 <html lang="id">
 <head>
     <meta charset="UTF-8">
@@ -1813,7 +1813,53 @@ if (room?.id) {
 
     // Tutup modal
     closeBulkImportModal();
+// ==========================================
+// OTOMATIS BUAT UJIAN DARI BANK SOAL
+// ==========================================
 
+if (room?.id && addedCount > 0) {
+
+    const { data: existingExam, error: examCheckError } =
+        await stemgaSupabase
+            .from("exam_controls")
+            .select("id")
+            .eq("room_id", room.id)
+            .eq("exam_name", bank.title)
+            .limit(1);
+
+    if (examCheckError) {
+        console.error(
+            "Gagal mengecek ujian:",
+            examCheckError
+        );
+    } else if (!existingExam || existingExam.length === 0) {
+
+        const { error: examCreateError } =
+            await stemgaSupabase
+                .from("exam_controls")
+                .insert({
+                    room_id: room.id,
+                    exam_name: bank.title,
+                    subject: bank.title,
+                    duration_minutes:
+                        Number(bank.durationMinutes || 15),
+                    is_open: false
+                });
+
+        if (examCreateError) {
+            console.error(
+                "Gagal membuat ujian otomatis:",
+                examCreateError
+            );
+        } else {
+            console.log(
+                "Ujian otomatis berhasil dibuat:",
+                bank.title
+            );
+        }
+    }
+}
+               await loadExamControls();
     showCustomDialog(
         "Import Selesai",
         `
