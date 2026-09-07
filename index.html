@@ -1,4 +1,4 @@
-<!DOCTYPE html>     
+<!DOCTYPE html>      
 <html lang="id">
 <head>
     <meta charset="UTF-8">
@@ -1679,57 +1679,155 @@ async function syncQuestionToSupabase(subjectKey, questionObj, questionNumber) {
             document.getElementById("modal-bulk-import")?.classList.add("hidden");
         }
 
-        function processBulkImport() {
-            const rawText = document.getElementById("input-bulk-text")?.value.trim();
-            if (!rawText) {
-                showCustomDialog("Peringatan", "Teks import masal tidak boleh kosong!", null, true);
-                return;
-            }
+       
+           async function processBulkImport() {
+    const rawText =
+        document.getElementById("input-bulk-text")?.value.trim();
 
-            if (!currentSubjectKey || !DEFAULT_QUIZ_BANKS[currentSubjectKey]) {
-                showCustomDialog("Peringatan", "Silakan buat atau pilih Mata Pelajaran terlebih dahulu!", null, true);
-                return;
-            }
+    if (!rawText) {
+        showCustomDialog(
+            "Peringatan",
+            "Teks import masal tidak boleh kosong!",
+            null,
+            true
+        );
+        return;
+    }
 
-            const lines = rawText.split("\n");
-            let addedCount = 0;
+    if (!currentSubjectKey || !DEFAULT_QUIZ_BANKS[currentSubjectKey]) {
+        showCustomDialog(
+            "Peringatan",
+            "Silakan buat atau pilih Mata Pelajaran terlebih dahulu!",
+            null,
+            true
+        );
+        return;
+    }
 
-            lines.forEach(line => {
-                const parts = line.split(";").map(p => p.trim());
-                if (parts.length >= 6) {
-                    const qText = parts[0];
-                    const opt0 = parts[1];
-                    const opt1 = parts[2];
-                    const opt2 = parts[3];
-                    const opt3 = parts[4];
-                    const keyStr = parts[5].toUpperCase();
-                    const expText = parts[6] || "";
+    const bank = DEFAULT_QUIZ_BANKS[currentSubjectKey];
 
-                    let keyIdx = 0;
-                    if (keyStr === 'B' || keyStr === '1') keyIdx = 1;
-                    else if (keyStr === 'C' || keyStr === '2') keyIdx = 2;
-                    else if (keyStr === 'D' || keyStr === '3') keyIdx = 3;
+    if (!bank.questions) {
+        bank.questions = [];
+    }
 
-                    if (qText && opt0 && opt1 && opt2 && opt3) {
-                        DEFAULT_QUIZ_BANKS[currentSubjectKey].questions.push({
-                            question: qText,
-                            options: [opt0, opt1, opt2, opt3],
-                            answer: keyIdx,
-                            explanation: expText
-                        });
-                        addedCount++;
-                    }
-                }
-            });
+    const lines = rawText
+        .split("\n")
+        .map(line => line.trim())
+        .filter(line => line);
 
-            saveQuizBanksToStorage();
-            closeBulkImportModal();
-            loadAdminQuestionsForSubject();
-            populateSubjectSelects();
-            broadcastBankToRoom();
+    let addedCount = 0;
+    let cloudSuccessCount = 0;
+    let cloudFailedCount = 0;
 
-            showCustomDialog("Import Berhasil", `Berhasil menambahkan <b>${addedCount} soal</b> ke dalam bank soal!`, null, true);
+    for (const line of lines) {
+
+        const parts = line
+            .split(";")
+            .map(p => p.trim());
+
+        if (parts.length < 6) {
+            continue;
         }
+
+        const qText = parts[0];
+        const opt0 = parts[1];
+        const opt1 = parts[2];
+        const opt2 = parts[3];
+        const opt3 = parts[4];
+        const keyStr = parts[5].toUpperCase();
+        const expText = parts[6] || "";
+
+        let keyIdx = 0;
+
+        if (keyStr === "B" || keyStr === "1") {
+            keyIdx = 1;
+        } else if (keyStr === "C" || keyStr === "2") {
+            keyIdx = 2;
+        } else if (keyStr === "D" || keyStr === "3") {
+            keyIdx = 3;
+        }
+
+        if (!qText || !opt0 || !opt1 || !opt2 || !opt3) {
+            continue;
+        }
+
+        const newQuestionObj = {
+            question: qText,
+            options: [
+                opt0,
+                opt1,
+                opt2,
+                opt3
+            ],
+            answer: keyIdx,
+            explanation: expText
+        };
+
+        // Nomor soal
+        const questionNumber =
+            bank.questions.length + 1;
+
+        // Simpan lokal
+        bank.questions.push(newQuestionObj);
+
+        addedCount++;
+
+        // Simpan ke Supabase
+        const cloudSuccess =
+            await syncQuestionToSupabase(
+                currentSubjectKey,
+                newQuestionObj,
+                questionNumber
+            );
+
+        if (cloudSuccess) {
+            cloudSuccessCount++;
+        } else {
+            cloudFailedCount++;
+        }
+    }
+
+    // Simpan bank lokal
+    saveQuizBanksToStorage();
+
+    // Refresh tampilan
+    loadAdminQuestionsForSubject();
+    populateSubjectSelects();
+    broadcastBankToRoom();
+
+    // Tutup modal
+    closeBulkImportModal();
+
+    showCustomDialog(
+        "Import Selesai",
+        `
+        <div class="space-y-2">
+            <p>
+                Berhasil mengimport
+                <b>${addedCount} soal</b>.
+            </p>
+
+            <p class="text-emerald-700">
+                ✓ Tersimpan ke Supabase:
+                <b>${cloudSuccessCount}</b>
+            </p>
+
+            ${
+                cloudFailedCount > 0
+                    ? `
+                    <p class="text-rose-600">
+                        ✗ Gagal ke Supabase:
+                        <b>${cloudFailedCount}</b>
+                    </p>
+                    `
+                    : ""
+            }
+        </div>
+        `,
+        null,
+        true
+    );
+}
 function toggleStudentPassword() {
     const passwordInput =
         document.getElementById("student-login-password");
