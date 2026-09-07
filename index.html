@@ -1,4 +1,4 @@
-<!DOCTYPE html>         
+<!DOCTYPE html>          
 <html lang="id">
 <head>
     <meta charset="UTF-8">
@@ -2989,23 +2989,61 @@ async function logoutTeacher() {
     }
 }
         function switchMainRole(role) {
-            currentRole = role;
-            const teacherDash = document.getElementById("view-teacher-dashboard");
-            const studentDash = document.getElementById("view-student-container");
+    currentRole = role;
 
-            if (role === 'teacher') {
-                if (!isTeacherAuthenticated) {
-                    openPinModal();
-                    return;
-                }
-                teacherDash.classList.remove("hidden");
-                studentDash.classList.add("hidden");
-                switchTeacherTab(activeTeacherTab);
-            } else {
-                teacherDash.classList.add("hidden");
-                studentDash.classList.remove("hidden");
-            }
+    const teacherDash =
+        document.getElementById("view-teacher-dashboard");
+
+    const studentDash =
+        document.getElementById("view-student-container");
+
+    if (!teacherDash || !studentDash) {
+        console.error("Panel Guru atau Panel Siswa tidak ditemukan.");
+        return;
+    }
+
+    if (role === "teacher") {
+
+        if (!isTeacherAuthenticated) {
+            openPinModal();
+            return;
         }
+
+        // Tampilkan Guru
+        teacherDash.classList.remove("hidden");
+        teacherDash.style.display = "";
+
+        // Sembunyikan Siswa
+        studentDash.classList.add("hidden");
+        studentDash.style.display = "none";
+
+        switchTeacherTab(activeTeacherTab);
+
+    } else {
+
+        // Sembunyikan Guru
+        teacherDash.classList.add("hidden");
+        teacherDash.style.display = "none";
+
+        // Tampilkan Siswa
+        studentDash.classList.remove("hidden");
+        studentDash.style.display = "";
+
+        // Pastikan halaman login siswa terlihat
+        document
+            .getElementById("view-student-login")
+            ?.classList.remove("hidden");
+
+        // Jangan tampilkan halaman ujian sebelum mulai
+        document
+            .getElementById("view-student-exam")
+            ?.classList.add("hidden");
+
+        document
+            .getElementById("view-student-result")
+            ?.classList.add("hidden");
+    }
+}
 
         function switchTeacherTab(tabName) {
             activeTeacherTab = tabName;
