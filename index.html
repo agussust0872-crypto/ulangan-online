@@ -1,4 +1,4 @@
-<!DOCTYPE html>        
+<!DOCTYPE html>         
 <html lang="id">
 <head>
     <meta charset="UTF-8">
@@ -559,86 +559,47 @@ async function syncQuestionToSupabase(subjectKey, questionObj, questionNumber) {
     class="hidden"
     onchange="handleStudentExcelImport(event)"
 >
-        <!-- TAB 4: PENGATURAN -->
-        <div id="ttab-settings" class="hidden bg-white p-6 rounded-3xl border border-slate-200 shadow-sm max-w-2xl mx-auto space-y-5 text-xs">
-            <!-- KONTROL BUKA / TUTUP UJIAN -->
-<div class="bg-gradient-to-br from-indigo-50 to-white p-5 rounded-3xl border border-indigo-200 space-y-4">
+       
+<!-- PILIH UJIAN -->
+<div class="bg-white border border-indigo-200 rounded-3xl p-5 space-y-4">
 
-    <div class="flex items-center justify-between gap-3">
-        <div>
-            <h3 class="font-black text-slate-800 text-base flex items-center gap-2">
-                <i class="fa-solid fa-toggle-on text-indigo-600"></i>
-                Kontrol Ujian
-            </h3>
+    <div>
+        <h3 class="font-black text-slate-800 text-base flex items-center gap-2">
+            <i class="fa-solid fa-clipboard-list text-indigo-600"></i>
+            Pilih Ujian
+        </h3>
 
-            <p class="text-xs text-slate-500 mt-1">
-                Admin menentukan ujian yang boleh dikerjakan siswa.
-            </p>
-        </div>
-
-        <button
-            type="button"
-            onclick="loadExamControls()"
-            class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-2 rounded-xl text-xs font-bold"
-        >
-            <i class="fa-solid fa-rotate"></i>
-        </button>
+        <p class="text-xs text-slate-500 mt-1">
+            Pilih ujian yang akan dikelola atau dibuka untuk siswa.
+        </p>
     </div>
 
-    <div id="exam-controls-list" class="space-y-3">
-        <div class="text-center text-slate-400 py-5">
-            Memuat daftar ujian...
+    <div>
+        <label class="block text-xs font-bold text-slate-700 mb-2">
+            Ujian
+        </label>
+
+        <select
+            id="teacher-exam-select"
+            onchange="handleTeacherExamChange()"
+            class="w-full px-4 py-3 rounded-2xl border border-slate-200 bg-slate-50 font-bold text-slate-700 outline-none focus:border-indigo-500"
+        >
+            <option value="">
+                Memuat daftar ujian...
+            </option>
+        </select>
+    </div>
+
+    <div
+        id="teacher-exam-info"
+        class="bg-slate-50 border border-slate-200 rounded-2xl p-4"
+    >
+        <div class="text-center text-slate-400 text-xs">
+            Pilih ujian terlebih dahulu.
         </div>
     </div>
 
 </div>
-            <div class="border-b border-slate-100 pb-3">
-                <h3 class="font-extrabold text-slate-800 text-sm">Pengaturan Ujian & Keamanan</h3>
-                <p class="text-slate-500">Konfigurasikan Kode Ruang, KKM, perlindungan anti-kecurangan, dan PIN Keamanan Guru.</p>
-            </div>
-
-            <div class="space-y-4">
-                <div class="bg-indigo-50/60 p-3.5 rounded-2xl border border-indigo-100 space-y-2">
-                    <label class="block font-bold text-indigo-900">Kode Ruang Live (Sync Multi-Device)</label>
-                    <input type="text" id="setting-room-code" value="STEMGA1" placeholder="Contoh: STEMGA1" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl font-mono font-extrabold text-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 uppercase">
-                    <p class="text-[11px] text-indigo-600">Kode ruang ini yang dimasukkan siswa di HP atau terintegrasi di QR Code.</p>
-                </div>
-
-                <div class="bg-slate-50 p-3.5 rounded-2xl border border-slate-200 space-y-2">
-                    <label class="block font-bold text-slate-800">PIN Keamanan Modul Guru</label>
-                    <input type="password" id="setting-teacher-pin" maxlength="10" value="1234" placeholder="Ubah PIN Guru" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl font-mono font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                    <p class="text-[11px] text-slate-500">PIN ini digunakan untuk memproteksi Dashboard Admin dari akses siswa di HP.</p>
-                </div>
-
-                <div>
-                    <label class="block font-bold text-slate-700 mb-1">Standar Nilai KKM Kelulusan</label>
-                    <input type="number" id="setting-kkm-value" min="0" max="100" value="75" class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                </div>
-
-                <div>
-                    <label class="block font-bold text-slate-700 mb-1">Sensor Pindah Tab / Keluar Layar HP</label>
-                    <select id="setting-anti-cheat" class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                        <option value="enabled">Aktif (Peringatan & Catat di Rekap Guru)</option>
-                        <option value="disabled">Nonaktif</option>
-                    </select>
-                </div>
-
-                <div>
-                    <label class="block font-bold text-slate-700 mb-1">Acak Pilihan Jawaban (A, B, C, D)</label>
-                    <select id="setting-shuffle-options" class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                        <option value="enabled">Aktif (Setiap HP Berbeda Urutan)</option>
-                        <option value="disabled">Sesuai Urutan Asli</option>
-                    </select>
-                </div>
-            </div>
-
-            <button onclick="saveGlobalSettings()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 rounded-2xl text-xs transition shadow-md shadow-indigo-100">
-                Simpan Konfigurasi & PIN
-            </button>
-        </div>
-
-    </div>
-
     <!-- 2. LAYAR SISWA SMARTPHONE / HP -->
     <div id="view-student-container" class="w-full flex-grow flex flex-col justify-between">
         
