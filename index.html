@@ -1,4 +1,4 @@
-<!DOCTYPE html>                   
+<!DOCTYPE html>                    
 <html lang="id">
 <head>
     <meta charset="UTF-8">
@@ -1636,6 +1636,12 @@ async function syncQuestionToSupabase(subjectKey, questionObj, questionNumber) {
 
        let isBulkImporting = false;
            async function processBulkImport() {
+               if (isBulkImporting) {
+    console.log("Import masih berjalan, proses kedua dibatalkan.");
+    return;
+}
+
+isBulkImporting = true;
     const rawText =
         document.getElementById("input-bulk-text")?.value.trim();
 
@@ -1659,11 +1665,66 @@ async function syncQuestionToSupabase(subjectKey, questionObj, questionNumber) {
         return;
     }
 
-    const bank = DEFAULT_QUIZ_BANKS[currentSubjectKey];
+  const bank = DEFAULT_QUIZ_BANKS[currentSubjectKey];
 
-    if (!bank.questions) {
-        bank.questions = [];
+if (!bank) {
+    showCustomDialog(
+        "Peringatan",
+        "Bank soal tidak ditemukan.",
+        null,
+        true
+    );
+    return;
+}
+
+// ==========================================
+// IMPORT BARU = GANTI BANK SOAL LAMA
+// ==========================================
+
+// 1. Bersihkan bank soal lokal
+bank.questions = [];
+
+// 2. Cari room aktif
+const { data: room, error: roomError } =
+    await stemgaSupabase
+        .from("rooms")
+        .select("id")
+        .eq("room_code", roomCode || "STEMGA1")
+        .maybeSingle();
+
+if (roomError) {
+    console.error("Gagal mencari room:", roomError);
+    return;
+}
+
+// 3. Hapus soal lama dari room tersebut
+if (room?.id) {
+    const { error: deleteError } =
+        await stemgaSupabase
+            .from("questions")
+            .delete()
+            .eq("room_id", room.id);
+
+    if (deleteError) {
+        console.error(
+            "Gagal menghapus soal lama:",
+            deleteError
+        );
+
+        showCustomDialog(
+            "Gagal Import",
+            "Soal lama gagal dibersihkan. Import dibatalkan.",
+            null,
+            true
+        );
+
+        return;
     }
+
+    console.log(
+        "Soal lama berhasil dibersihkan dari Supabase."
+    );
+}
 
     const lines = rawText
         .split("\n")
@@ -1782,6 +1843,7 @@ async function syncQuestionToSupabase(subjectKey, questionObj, questionNumber) {
         null,
         true
     );
+});
 }
    
         function toggleStudentPassword() {
