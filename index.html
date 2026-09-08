@@ -1,4 +1,4 @@
-<!DOCTYPE html>                          
+<!DOCTYPE html>                           
 <html lang="id">
 <head>
     <meta charset="UTF-8">
@@ -4333,14 +4333,29 @@ function handleTeacherExamChange() {
     const qrNotice = document.getElementById("student-qr-notice");
     const qrTitle = document.getElementById("student-qr-notice-title");
 
-    if (!select || !select.value) {
-        if (headerMapel) headerMapel.textContent = "Pilih Mata Pelajaran Ujian";
-        if (durationBadge) durationBadge.textContent = "15 Menit";
-        return;
+  if (!select) {
+    if (headerMapel) {
+        headerMapel.textContent = "Pilih Mata Pelajaran Ujian";
     }
+    if (durationBadge) {
+        durationBadge.textContent = "15 Menit";
+    }
+    return;
+}
 
-    currentSubjectKey = select.value;
+const selectedSubject = select.value || currentSubjectKey;
 
+if (!selectedSubject) {
+    if (headerMapel) {
+        headerMapel.textContent = "Pilih Mata Pelajaran Ujian";
+    }
+    if (durationBadge) {
+        durationBadge.textContent = "15 Menit";
+    }
+    return;
+}
+
+currentSubjectKey = selectedSubject;
     // Tampilkan status sementara
     if (headerMapel) {
         headerMapel.textContent = "Mengambil Soal...";
