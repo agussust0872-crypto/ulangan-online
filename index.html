@@ -1,4 +1,4 @@
-<!DOCTYPE html>                             
+<!DOCTYPE html>                              
 <html lang="id">
 <head>
     <meta charset="UTF-8">
@@ -3921,7 +3921,10 @@ function handleTeacherExamChange() {
                 mqttClient.on('connect', () => {
                     isMqttConnected = true;
                     updatePeerStatusUI("connected", "Cloud Connected");
-                    const topic = `stemga/cbt/room/${roomCode || 'STEMGA1'}`;
+                   const topic =
+    (currentRole === 'teacher' || isTeacherAuthenticated)
+        ? 'stemga/cbt/room/+'
+        : `stemga/cbt/room/${roomCode || 'STEMGA1'}`;
                     mqttClient.subscribe(topic, () => {
                         if (currentRole === 'student' || !isTeacherAuthenticated) {
                             publishMqttMessage('request_bank', { mapelKey: currentSubjectKey });
