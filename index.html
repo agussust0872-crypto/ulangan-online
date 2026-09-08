@@ -1,4 +1,4 @@
-<!DOCTYPE html>                           
+<!DOCTYPE html>                            
 <html lang="id">
 <head>
     <meta charset="UTF-8">
@@ -4382,6 +4382,8 @@ currentSubjectKey = selectedSubject;
         }
 
         // Ambil soal dari Supabase
+       console.log("ROOM ID UNTUK AMBIL SOAL =", room?.id);
+console.log("ROOM CODE UNTUK AMBIL SOAL =", room?.room_code);
         const { data: cloudQuestions, error: questionError } =
             await stemgaSupabase
                 .from("questions_public")
