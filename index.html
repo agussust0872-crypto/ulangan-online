@@ -1,4 +1,4 @@
-<!DOCTYPE html>                         
+<!DOCTYPE html>                          
 <html lang="id">
 <head>
     <meta charset="UTF-8">
@@ -3356,23 +3356,21 @@ console.log(
 
 window.teacherExamControls = activeExams;
 
-        if (error) {
-          
        if (!activeExams || activeExams.length === 0) {
-            select.innerHTML = `
-                <option value="">
-                    Belum ada ujian
-                </option>
-            `;
+    select.innerHTML = `
+        <option value="">
+            Belum ada ujian
+        </option>
+    `;
 
-            info.innerHTML = `
-                <div class="text-center text-slate-400 text-xs py-3">
-                    Belum ada ujian yang dibuat.
-                </div>
-            `;
+    info.innerHTML = `
+        <div class="text-center text-slate-400 text-xs py-3">
+            Belum ada ujian yang memiliki soal.
+        </div>
+    `;
 
-            return;
-        }
+    return;
+}
 
         select.innerHTML = `
             <option value="">
