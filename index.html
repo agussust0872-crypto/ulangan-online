@@ -1,4 +1,4 @@
-<!DOCTYPE html>                      
+<!DOCTYPE html>                       
 <html lang="id">
 <head>
     <meta charset="UTF-8">
@@ -37,50 +37,75 @@
 async function syncQuestionToSupabase(subjectKey, questionObj, questionNumber) {
     try {
         const bank = DEFAULT_QUIZ_BANKS[subjectKey];
+
         if (!bank) return false;
 
-        const { data: room, error: roomError } = await stemgaSupabase
-            .from('rooms')
-            .upsert({
-                room_code: roomCode || 'STEMGA1',
-                subject: subjectKey,
-                title: bank.title,
-                is_active: true
-            }, {
-                onConflict: 'room_code'
-            })
-            .select()
-            .single();
+        // Setiap mapel mempunyai room sendiri
+        const mapelRoomCode = subjectKey;
+
+        const { data: room, error: roomError } =
+            await stemgaSupabase
+                .from("rooms")
+                .upsert(
+                    {
+                        room_code: mapelRoomCode,
+                        subject: subjectKey,
+                        title: bank.title,
+                        is_active: true
+                    },
+                    {
+                        onConflict: "room_code"
+                    }
+                )
+                .select()
+                .single();
 
         if (roomError) {
-            console.error('Supabase room error:', roomError);
+            console.error(
+                "Supabase room error:",
+                roomError
+            );
             return false;
         }
 
-        const { error: questionError } = await stemgaSupabase
-            .from('questions')
-            .insert({
-                room_id: room.id,
-                question_number: questionNumber,
-                question_text: questionObj.question,
-                option_a: questionObj.options[0],
-                option_b: questionObj.options[1],
-                option_c: questionObj.options[2],
-                option_d: questionObj.options[3],
-                correct_answer: String(questionObj.answer),
-                explanation: questionObj.explanation || ''
-            });
+        const { error: questionError } =
+            await stemgaSupabase
+                .from("questions")
+                .insert({
+                    room_id: room.id,
+                    question_number: questionNumber,
+                    question_text: questionObj.question,
+                    option_a: questionObj.options[0],
+                    option_b: questionObj.options[1],
+                    option_c: questionObj.options[2],
+                    option_d: questionObj.options[3],
+                    correct_answer: String(questionObj.answer),
+                    explanation: questionObj.explanation || ""
+                });
 
         if (questionError) {
-            console.error('Supabase question error:', questionError);
+            console.error(
+                "Supabase question error:",
+                questionError
+            );
             return false;
         }
 
-        console.log('Soal berhasil dikirim ke Supabase:', questionNumber);
+        console.log(
+            "Soal berhasil dikirim ke Supabase:",
+            questionNumber,
+            "Room:",
+            mapelRoomCode
+        );
+
         return true;
 
     } catch (error) {
-        console.error('Supabase sync error:', error);
+        console.error(
+            "Supabase sync error:",
+            error
+        );
+
         return false;
     }
 }
@@ -1556,76 +1581,117 @@ async function syncQuestionToSupabase(subjectKey, questionObj, questionNumber) {
                 broadcastBankToRoom();
             });
         }
-
-       async function clearAllQuizBanks() {
+async function clearAllQuizBanks() {
     showCustomDialog(
-        "Hapus Semua Soal",
-        "Apakah Anda yakin ingin MENGHAPUS SELURUH Bank Soal dan Mata Pelajaran?",
+        "Bersihkan Semua Data Soal",
+        "Semua soal dan daftar ujian akan dihapus. Data siswa dan hasil ujian tidak ikut dihapus. Lanjutkan?",
         async () => {
 
             try {
-                // ==========================================
-                // 1. HAPUS SOAL DARI SUPABASE
-                // ==========================================
-                const { error } = await stemgaSupabase
-                    .from("questions")
-                    .delete()
-                    .neq("id", "00000000-0000-0000-0000-000000000000");
 
-                if (error) {
+                // ==========================================
+                // 1. HAPUS SEMUA UJIAN
+                // ==========================================
+
+                const { error: examError } =
+                    await stemgaSupabase
+                        .from("exam_controls")
+                        .delete()
+                        .neq(
+                            "id",
+                            "00000000-0000-0000-0000-000000000000"
+                        );
+
+                if (examError) {
                     console.error(
-                        "Gagal menghapus soal dari Supabase:",
-                        error
+                        "Gagal menghapus daftar ujian:",
+                        examError
                     );
 
                     alert(
-                        "Gagal menghapus soal dari Supabase.\n\n" +
-                        error.message
+                        "Gagal menghapus daftar ujian.\n\n" +
+                        examError.message
                     );
 
                     return;
                 }
 
-                console.log(
-                    "Semua soal berhasil dihapus dari Supabase."
-                );
+                // ==========================================
+                // 2. HAPUS SEMUA SOAL
+                // ==========================================
+
+                const { error: questionError } =
+                    await stemgaSupabase
+                        .from("questions")
+                        .delete()
+                        .neq(
+                            "id",
+                            "00000000-0000-0000-0000-000000000000"
+                        );
+
+                if (questionError) {
+                    console.error(
+                        "Gagal menghapus semua soal:",
+                        questionError
+                    );
+
+                    alert(
+                        "Gagal menghapus semua soal.\n\n" +
+                        questionError.message
+                    );
+
+                    return;
+                }
 
                 // ==========================================
-                // 2. HAPUS BANK SOAL LOKAL
+                // 3. KOSONGKAN BANK SOAL LOKAL
                 // ==========================================
+
                 DEFAULT_QUIZ_BANKS = {};
 
                 saveQuizBanksToStorage();
-                populateSubjectSelects();
-                loadAdminQuestionsForSubject();
 
                 // ==========================================
-                // 3. BERSIHKAN SINKRONISASI MQTT
+                // 4. REFRESH TAMPILAN
                 // ==========================================
+
+                populateSubjectSelects();
+                loadAdminQuestionsForSubject();
+                await loadExamControls();
+
+                // ==========================================
+                // 5. BERSIHKAN SINKRONISASI
+                // ==========================================
+
                 broadcastBankToRoom();
 
                 alert(
-                    "Semua soal berhasil dihapus.\n\n" +
-                    "✓ Supabase\n" +
-                    "✓ Penyimpanan lokal"
+                    "SEMUA DATA SOAL BERHASIL DIBERSIHKAN.\n\n" +
+                    "✓ Semua soal Supabase\n" +
+                    "✓ Semua daftar ujian\n" +
+                    "✓ Bank soal lokal\n\n" +
+                    "Data siswa dan hasil ujian tetap aman."
+                );
+
+                console.log(
+                    "STEMGA: Semua soal dan daftar ujian telah dibersihkan."
                 );
 
             } catch (error) {
 
                 console.error(
-                    "Error saat menghapus semua soal:",
+                    "Error saat membersihkan data:",
                     error
                 );
 
                 alert(
-                    "Terjadi kesalahan saat menghapus soal:\n\n" +
+                    "Terjadi kesalahan:\n\n" +
                     error.message
                 );
             }
         }
     );
 }
-
         function openBulkImportModal() {
             document.getElementById("modal-bulk-import")?.classList.remove("hidden");
         }
@@ -1817,45 +1883,80 @@ if (room?.id) {
 // OTOMATIS BUAT UJIAN DARI BANK SOAL
 // ==========================================
 
-if (room?.id && addedCount > 0) {
+// ==========================================
+// OTOMATIS BUAT UJIAN DARI BANK SOAL
+// MENGGUNAKAN ROOM MILIK MAPEL TERSEBUT
+// ==========================================
 
-    const { data: existingExam, error: examCheckError } =
+if (addedCount > 0) {
+
+    const { data: mapelRoom, error: mapelRoomError } =
         await stemgaSupabase
-            .from("exam_controls")
-            .select("id")
-            .eq("room_id", room.id)
-            .eq("exam_name", bank.title)
-            .limit(1);
+            .from("rooms")
+            .select("id, room_code, subject, title")
+            .eq("room_code", currentSubjectKey)
+            .eq("is_active", true)
+            .maybeSingle();
 
-    if (examCheckError) {
+    if (mapelRoomError) {
         console.error(
-            "Gagal mengecek ujian:",
-            examCheckError
+            "Gagal mencari room mapel:",
+            mapelRoomError
         );
-    } else if (!existingExam || existingExam.length === 0) {
+    } else if (!mapelRoom) {
 
-        const { error: examCreateError } =
+        console.error(
+            "Room untuk mapel tidak ditemukan:",
+            currentSubjectKey
+        );
+
+    } else {
+
+        const { data: existingExam, error: examCheckError } =
             await stemgaSupabase
                 .from("exam_controls")
-                .insert({
-                    room_id: room.id,
-                    exam_name: bank.title,
-                    subject: bank.title,
-                    duration_minutes:
-                        Number(bank.durationMinutes || 15),
-                    is_open: false
-                });
+                .select("id")
+                .eq("room_id", mapelRoom.id)
+                .eq("exam_name", bank.title)
+                .limit(1);
 
-        if (examCreateError) {
+        if (examCheckError) {
+
             console.error(
-                "Gagal membuat ujian otomatis:",
-                examCreateError
+                "Gagal mengecek ujian:",
+                examCheckError
             );
-        } else {
-            console.log(
-                "Ujian otomatis berhasil dibuat:",
-                bank.title
-            );
+
+        } else if (!existingExam || existingExam.length === 0) {
+
+            const { error: examCreateError } =
+                await stemgaSupabase
+                    .from("exam_controls")
+                    .insert({
+                        room_id: mapelRoom.id,
+                        exam_name: bank.title,
+                        subject: bank.title,
+                        duration_minutes:
+                            Number(bank.durationMinutes || 15),
+                        is_open: false
+                    });
+
+            if (examCreateError) {
+
+                console.error(
+                    "Gagal membuat ujian otomatis:",
+                    examCreateError
+                );
+
+            } else {
+
+                console.log(
+                    "Ujian otomatis berhasil dibuat:",
+                    bank.title,
+                    "Room:",
+                    mapelRoom.room_code
+                );
+            }
         }
     }
 }
