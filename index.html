@@ -1,4 +1,4 @@
-<!DOCTYPE html>                       
+<!DOCTYPE html>                        
 <html lang="id">
 <head>
     <meta charset="UTF-8">
@@ -3306,27 +3306,59 @@ async function loadExamControls() {
 
     try {
         const { data: exams, error } = await stemgaSupabase
-            .from("exam_controls")
-            .select(`
-                id,
-                room_id,
-                exam_name,
-                subject,
-                duration_minutes,
-                is_open,
-                opened_at,
-                closed_at
-            `)
-            .order("created_at", { ascending: false });
+    .from("exam_controls")
+    .select(`
+        id,
+        room_id,
+        exam_name,
+        subject,
+        duration_minutes,
+        is_open,
+        opened_at,
+        closed_at
+    `)
+    .order("created_at", { ascending: false });
+
+if (error) {
+    console.error("Gagal mengambil exam_controls:", error);
+    throw error;
+}
+
+// ==========================================
+// HANYA TAMPILKAN UJIAN YANG MASIH PUNYA SOAL
+// ==========================================
+
+const { data: questionRooms, error: questionError } =
+    await stemgaSupabase
+        .from("questions")
+        .select("room_id");
+
+if (questionError) {
+    console.error(
+        "Gagal mengecek soal aktif:",
+        questionError
+    );
+    throw questionError;
+}
+
+const activeRoomIds = new Set(
+    (questionRooms || []).map(q => q.room_id)
+);
+
+const activeExams = (exams || []).filter(exam =>
+    activeRoomIds.has(exam.room_id)
+);
+
+console.log(
+    "Ujian aktif yang masih memiliki soal:",
+    activeExams.length
+);
+
+window.teacherExamControls = activeExams;
 
         if (error) {
-            console.error("Gagal mengambil exam_controls:", error);
-            throw error;
-        }
-
-        window.teacherExamControls = exams || [];
-
-        if (!exams || exams.length === 0) {
+          
+       if (!activeExams || activeExams.length === 0) {
             select.innerHTML = `
                 <option value="">
                     Belum ada ujian
@@ -3348,7 +3380,7 @@ async function loadExamControls() {
             </option>
         `;
 
-        exams.forEach(exam => {
+        activeExams.forEach(...)
             const option = document.createElement("option");
 
             option.value = exam.id;
@@ -3359,8 +3391,7 @@ async function loadExamControls() {
         });
 
         // Otomatis pilih ujian pertama
-        select.value = exams[0].id;
-
+      select.value = activeExams[0].id;
         handleTeacherExamChange();
 
     } catch (error) {
