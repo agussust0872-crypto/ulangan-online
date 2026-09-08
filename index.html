@@ -1,4 +1,4 @@
-<!DOCTYPE html>                            
+<!DOCTYPE html>                             
 <html lang="id">
 <head>
     <meta charset="UTF-8">
@@ -2425,10 +2425,16 @@ if (!select) {
     );
 }
 
-select.value = room.subject || exam.subject;
+currentSubjectKey = room.subject || exam.subject;
 
-currentSubjectKey =
-    select.value;
+// Isi dropdown hanya jika option tersebut memang tersedia
+const optionExists = Array.from(select.options).some(
+    option => option.value === currentSubjectKey
+);
+
+if (optionExists) {
+    select.value = currentSubjectKey;
+}
 
 // Muat soal dari Supabase
 await handleStudentSubjectChange();
