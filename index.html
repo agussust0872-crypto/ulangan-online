@@ -328,13 +328,56 @@
     <div id="teacherDashboard" class="hidden flex-1 overflow-hidden">
       <div class="grid lg:grid-cols-[220px_1fr] h-full min-h-0">
         <aside class="border-r bg-slate-50 p-3">
-          <button class="teacher-menu active" onclick="teacherTab('materi')">📚 <button type="button" onclick="showGuruPanel('beranda')" class="guru-menu-item">🏠 Kelola Beranda CMS</button>
-Kelola Materi</button>
-          <button class="teacher-menu" onclick="teacherTab('dashboard')">📊 Ringkasan</button>
-          <button onclick="teacherLogout()" class="teacher-menu text-rose-600 mt-5">↪ Keluar</button>
+          <button type="button" class="guru-menu-item active" onclick="teacherTab('beranda')">🏠 Kelola Beranda</button>
+          <button type="button" class="teacher-menu" onclick="teacherTab('materi')">📚 Kelola Materi</button>
+          <button type="button" class="teacher-menu" onclick="teacherTab('dashboard')">📊 Ringkasan</button>
+          <button type="button" onclick="teacherLogout()" class="teacher-menu text-rose-600 mt-5">↪ Keluar</button>
         </aside>
 
         <main class="overflow-y-auto p-4 sm:p-6">
+          <section id="teacher-tab-beranda" class="min-h-full">
+            <div class="mb-6">
+              <p class="text-xs font-black uppercase tracking-widest text-indigo-600">PANEL GURU • BERANDA</p>
+              <h3 class="text-3xl font-black mt-1">Kelola Isi Beranda STEMGA</h3>
+              <p class="text-sm text-slate-500 mt-1">Semua konten utama Beranda dapat dikelola Guru dari sini.</p>
+            </div>
+
+            <div class="grid sm:grid-cols-2 xl:grid-cols-4 gap-4">
+              <button type="button" onclick="showGuruPanel('beranda'); setTimeout(()=>loadCmsSection('settings'),50)"
+                class="text-left rounded-2xl border border-slate-200 bg-white p-5 hover:border-indigo-400 hover:shadow-lg transition">
+                <div class="text-3xl mb-3">⚙️</div>
+                <h4 class="font-black text-lg">Pengaturan</h4>
+                <p class="text-sm text-slate-500 mt-1">Judul, subtitle, dan motto portal.</p>
+              </button>
+
+              <button type="button" onclick="showGuruPanel('beranda'); setTimeout(()=>loadCmsSection('ticker'),50)"
+                class="text-left rounded-2xl border border-slate-200 bg-white p-5 hover:border-indigo-400 hover:shadow-lg transition">
+                <div class="text-3xl mb-3">📣</div>
+                <h4 class="font-black text-lg">Running Text</h4>
+                <p class="text-sm text-slate-500 mt-1">Teks berjalan di bagian atas Beranda.</p>
+              </button>
+
+              <button type="button" onclick="showGuruPanel('beranda'); setTimeout(()=>loadCmsSection('news'),50)"
+                class="text-left rounded-2xl border border-slate-200 bg-white p-5 hover:border-indigo-400 hover:shadow-lg transition">
+                <div class="text-3xl mb-3">📰</div>
+                <h4 class="font-black text-lg">Berita & Agenda</h4>
+                <p class="text-sm text-slate-500 mt-1">Informasi, berita, dan agenda sekolah.</p>
+              </button>
+
+              <button type="button" onclick="showGuruPanel('beranda'); setTimeout(()=>loadCmsSection('slides'),50)"
+                class="text-left rounded-2xl border border-slate-200 bg-white p-5 hover:border-indigo-400 hover:shadow-lg transition">
+                <div class="text-3xl mb-3">🖼️</div>
+                <h4 class="font-black text-lg">Slider / Flyer</h4>
+                <p class="text-sm text-slate-500 mt-1">Kelola flyer dan pengumuman slider.</p>
+              </button>
+            </div>
+
+            <div class="mt-6 rounded-2xl border border-indigo-100 bg-indigo-50 p-5">
+              <h4 class="font-black text-lg">💡 Cara kerja</h4>
+              <p class="text-sm text-slate-600 mt-1">Guru cukup mengubah isi di Panel Guru, lalu menyimpan. Beranda siswa akan menampilkan data terbaru dari Supabase tanpa perlu mengedit GitHub.</p>
+            </div>
+          </section>
+
           <section id="teacher-tab-materi">
             <div class="flex flex-wrap items-center justify-between gap-3 mb-5">
               <div>
@@ -569,7 +612,15 @@ function openTeacherPanel(){
   const p=document.getElementById('teacherPanel');
   p.classList.remove('hidden');p.classList.add('flex');
   document.body.classList.add('overflow-hidden');
-  refreshTeacherSession();
+
+  // Setiap kali tombol Guru dibuka, tampilkan LOGIN terlebih dahulu.
+  // Dashboard tidak boleh langsung terbuka hanya karena sesi lama masih tersimpan.
+  document.getElementById('teacherLoginBox').classList.remove('hidden');
+  document.getElementById('teacherDashboard').classList.add('hidden');
+  document.getElementById('teacherStatus').textContent='Silakan login Guru';
+  const email=document.getElementById('teacherEmail');
+  const password=document.getElementById('teacherPassword');
+  if(email) email.focus();
 }
 function closeTeacherPanel(){
   const p=document.getElementById('teacherPanel');
@@ -606,8 +657,9 @@ async function showTeacherDashboard(profile){
   document.getElementById('teacherDashboard').classList.remove('hidden');
   const {data}=await stemgaSupabase.auth.getUser();
   document.getElementById('teacherStatus').textContent='Login: '+(profile?.name||data.user?.email||'Guru');
-  teacherTab('materi');
-  await loadTeacherMateri();
+
+  // Setelah login, Guru langsung melihat Dashboard Beranda.
+  teacherTab('beranda');
 }
 async function teacherLogout(){
   await stemgaSupabase.auth.signOut();
@@ -618,7 +670,9 @@ async function teacherLogout(){
 function teacherTab(tab){
   document.querySelectorAll('[id^="teacher-tab-"]').forEach(x=>x.classList.add('hidden'));
   document.getElementById('teacher-tab-'+tab)?.classList.remove('hidden');
-  document.querySelectorAll('.teacher-menu').forEach(x=>x.classList.remove('active'));
+  document.querySelectorAll('.teacher-menu, .guru-menu-item').forEach(x=>x.classList.remove('active'));
+  const active = document.querySelector('[onclick*="teacherTab(\''+tab+'\')"]');
+  if(active) active.classList.add('active');
   if(tab==='materi')loadTeacherMateri();
   if(tab==='dashboard')loadTeacherStats();
 }
@@ -717,7 +771,7 @@ async function loadTeacherStats(){
 </script>
 
 <!-- CMS BERANDA GURU -->
-<section id="guru-beranda-cms" class="hidden fixed inset-0 z-[140] bg-slate-950/75 backdrop-blur-sm p-3 sm:p-6 items-center justify-center">
+<section id="guru-beranda-cms" style="z-index:99999" class="hidden fixed inset-0 bg-slate-950/75 backdrop-blur-sm p-3 sm:p-6 items-center justify-center">
   <div class="w-full max-w-6xl max-h-[94vh] overflow-hidden bg-white rounded-3xl shadow-2xl flex flex-col">
     <div class="bg-gradient-to-r from-indigo-700 to-indigo-600 text-white p-5 flex items-start justify-between">
       <div>
@@ -781,11 +835,26 @@ async function loadTeacherStats(){
 </style>
 
 <script id="cms-beranda-js">
-function showGuruPanel(name){
-  if(name==='beranda'){
-    const el=document.getElementById('guru-beranda-cms');
-    el.classList.remove('hidden'); el.classList.add('flex');
-    loadCmsSection('settings');
+async function showGuruPanel(name){
+  if(name!=='beranda') return;
+  const el=document.getElementById('guru-beranda-cms');
+  if(!el) return;
+
+  el.classList.remove('hidden');
+  el.classList.add('flex');
+
+  try{
+    const {data:{session}} = await stemgaSupabase.auth.getSession();
+    if(!session){
+      cmsStatus('Sesi Guru belum aktif. Silakan login kembali.', false);
+      return;
+    }
+
+    // Tampilan awal CMS = isi Beranda.
+    // Pengaturan, Running Text, Berita, dan Slider/Flyer tersedia sebagai bagian Beranda.
+    await loadCmsSection('settings');
+  }catch(e){
+    cmsStatus(e.message || 'Gagal membuka CMS Beranda.', false);
   }
 }
 function closeGuruBeranda(){
