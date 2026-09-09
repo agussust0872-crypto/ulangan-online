@@ -66,7 +66,7 @@
 <div class="w-11 h-11 rounded-xl bg-white overflow-hidden flex items-center justify-center">
 <img src="logo-stemga.png" alt="Logo SMK Muhammadiyah 3 Klaten Utara" class="w-full h-full object-contain" onerror="this.style.display='none'">
 </div>
-<div><b>INFORMATIKA STEMGA</b><small class="block text-[10px] text-indigo-300">KELAS X • SMK MUHAMMADIYAH 3 KLATEN UTARA</small></div>
+<div><b id="homePortalTitle">INFORMATIKA STEMGA</b><small id="homePortalSubtitle" class="block text-[10px] text-indigo-300">KELAS X • SMK MUHAMMADIYAH 3 KLATEN UTARA</small></div>
 </a>
 <nav class="hidden lg:flex items-center gap-2 text-sm font-bold">
 <a href="#beranda" onclick="showPage('home')" class="px-3 py-2 rounded-xl border border-white/25 text-white hover:bg-white hover:text-indigo-900 transition">Beranda</a>
@@ -89,7 +89,7 @@
 </nav>
 </div></header>
 
-<div class="ticker bg-indigo-600 text-white text-xs sm:text-sm font-bold py-2.5"><span>🔔 INFO STEMGA • Selamat datang di Portal Informatika STEMGA Kelas X • 📢 Informasi pembelajaran, tugas, ujian dan kegiatan • 💻 Belajar • Berlatih • Berkarya • Berprestasi</span></div>
+<div class="ticker bg-indigo-600 text-white text-xs sm:text-sm font-bold py-2.5"><span id="homeTickerText">🔔 INFO STEMGA • Selamat datang di Portal Informatika STEMGA Kelas X • 📢 Informasi pembelajaran, tugas, ujian dan kegiatan • 💻 Belajar • Berlatih • Berkarya • Berprestasi</span></div>
 
 
 
@@ -98,63 +98,17 @@
 <div class="lg:col-span-2">
 <p class="text-indigo-600 text-xs font-black uppercase tracking-widest">Update News</p>
 <h2 class="text-3xl font-black mt-2">Berita dan Info Terbaru</h2>
-<div class="grid md:grid-cols-2 gap-5 mt-7">
-<article class="card bg-white rounded-3xl border border-slate-200 overflow-hidden">
-<div class="h-40 bg-gradient-to-br from-indigo-700 to-slate-950 flex items-center justify-center text-white">
-<i class="fa-solid fa-bullhorn text-5xl"></i>
-</div>
-<div class="p-5">
-<span class="text-[10px] font-black text-indigo-600 uppercase">Update New</span>
-<h3 class="font-black text-lg mt-2">Update New</h3>
-<p class="text-xs text-slate-500 mt-2">Informasi terbaru pembelajaran Informatika STEMGA akan ditampilkan di sini.</p>
-<button class="mt-4 text-xs font-black text-indigo-600">Baca selengkapnya →</button>
-</div>
-</article>
-<article class="card bg-white rounded-3xl border border-slate-200 overflow-hidden">
-<div class="h-40 bg-gradient-to-br from-emerald-600 to-slate-950 flex items-center justify-center text-white">
-<i class="fa-solid fa-calendar-days text-5xl"></i>
-</div>
-<div class="p-5">
-<span class="text-[10px] font-black text-emerald-600 uppercase">Agenda</span>
-<h3 class="font-black text-lg mt-2">Agenda Informatika</h3>
-<p class="text-xs text-slate-500 mt-2">Jadwal, tugas, kegiatan, dan pengumuman untuk siswa Kelas X.</p>
-<button class="mt-4 text-xs font-black text-indigo-600">Lihat agenda →</button>
-</div>
-</article>
-</div>
+<div id="homeNewsGrid" class="grid md:grid-cols-2 gap-5 mt-7"></div>
 </div>
 <div>
 <p class="text-indigo-600 text-xs font-black uppercase tracking-widest">Informasi Umum</p>
 <h2 class="text-3xl font-black mt-2">Flyer & Pengumuman</h2>
 
 <div class="mt-7 stemga-flyer-slider" id="stemgaFlyerSlider">
-  <div class="stemga-flyer-slide active">
-    <div style="position:absolute;inset:0;background:linear-gradient(135deg,#102a43,#16805c)"></div>
-    <div class="stemga-flyer-content">
-      <div><div class="stemga-flyer-tag">Flyer & Pengumuman</div><h3>Stemga Action</h3><p>Ruang flyer kegiatan dan pengumuman STEMGA.</p></div>
-    </div>
-  </div>
-  <div class="stemga-flyer-slide">
-    <div style="position:absolute;inset:0;background:linear-gradient(135deg,#155e75,#1d4ed8)"></div>
-    <div class="stemga-flyer-content">
-      <div><div class="stemga-flyer-tag">Informasi Kegiatan</div><h3>Flyer Kegiatan STEMGA</h3><p>Flyer kegiatan sekolah dapat ditampilkan di sini.</p></div>
-    </div>
-  </div>
-  <div class="stemga-flyer-slide">
-    <div style="position:absolute;inset:0;background:linear-gradient(135deg,#16805c,#102a43)"></div>
-    <div class="stemga-flyer-content">
-      <div><div class="stemga-flyer-tag">Pengumuman</div><h3>Informasi Terbaru</h3><p>Pengumuman umum sekolah dapat ditampilkan di sini.</p></div>
-    </div>
-  </div>
-
+  <div id="homeSlidesDynamic"></div>
   <button class="stemga-flyer-arrow stemga-flyer-prev" type="button" onclick="stemgaFlyerMove(-1)" aria-label="Flyer sebelumnya">‹</button>
   <button class="stemga-flyer-arrow stemga-flyer-next" type="button" onclick="stemgaFlyerMove(1)" aria-label="Flyer berikutnya">›</button>
-
-  <div class="stemga-flyer-dots">
-    <button class="stemga-flyer-dot active" type="button" onclick="stemgaFlyerGo(0)" aria-label="Flyer 1"></button>
-    <button class="stemga-flyer-dot" type="button" onclick="stemgaFlyerGo(1)" aria-label="Flyer 2"></button>
-    <button class="stemga-flyer-dot" type="button" onclick="stemgaFlyerGo(2)" aria-label="Flyer 3"></button>
-  </div>
+  <div id="homeSlidesDots" class="stemga-flyer-dots"></div>
 </div>
 
 </div>
@@ -455,7 +409,7 @@
 </div>
 </div>
 </div>
-<footer class="bg-slate-950 text-slate-400"><div class="max-w-7xl mx-auto px-4 py-8 flex flex-col md:flex-row justify-between gap-4"><div><b class="text-white">INFORMATIKA STEMGA</b><div class="text-xs mt-1">Portal Pembelajaran Informatika Kelas X</div><div class="text-xs">SMK Muhammadiyah 3 Klaten Utara</div></div><div class="text-xs md:text-right">© <span id="y"></span> Informatika STEMGA<br>Belajar • Berlatih • Berkarya • Berprestasi</div></div></footer>
+<footer class="bg-slate-950 text-slate-400"><div class="max-w-7xl mx-auto px-4 py-8 flex flex-col md:flex-row justify-between gap-4"><div><b class="text-white">INFORMATIKA STEMGA</b><div class="text-xs mt-1">Portal Pembelajaran Informatika Kelas X</div><div class="text-xs">SMK Muhammadiyah 3 Klaten Utara</div></div><div class="text-xs md:text-right">© <span id="y"></span> Informatika STEMGA<br><span data-home-motto>Belajar • Berlatih • Berkarya • Berprestasi</span></div></div></footer>
 <script>
 function m(){document.getElementById('mob').classList.toggle('hidden')}
 
@@ -584,7 +538,6 @@ showPage('home');
 <script id="stemga-flyer-slider-js">
 let stemgaFlyerIndex=0;
 let stemgaFlyerTimer=null;
-
 function stemgaFlyerGo(n){
   const slides=document.querySelectorAll('#stemgaFlyerSlider .stemga-flyer-slide');
   const dots=document.querySelectorAll('#stemgaFlyerSlider .stemga-flyer-dot');
@@ -596,7 +549,9 @@ function stemgaFlyerGo(n){
   stemgaFlyerTimer=setInterval(()=>stemgaFlyerGo(stemgaFlyerIndex+1),5000);
 }
 function stemgaFlyerMove(step){stemgaFlyerGo(stemgaFlyerIndex+step);}
-stemgaFlyerTimer=setInterval(()=>stemgaFlyerGo(stemgaFlyerIndex+1),5000);
+function stemgaFlyerReset(){stemgaFlyerIndex=0;clearInterval(stemgaFlyerTimer);stemgaFlyerGo(0);}
+window.stemgaFlyerGo=stemgaFlyerGo;window.stemgaFlyerMove=stemgaFlyerMove;window.stemgaFlyerReset=stemgaFlyerReset;
+window.addEventListener('DOMContentLoaded',()=>stemgaFlyerReset());
 </script>
 
 
@@ -985,5 +940,74 @@ async function deleteCms(table,id,reload){
 }
 function escapeHtml(v){return String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
 function escapeHtmlAttr(v){return escapeHtml(v)}
+</script>
+
+<script id="stemga-home-cms-reader">
+(function(){
+  const URL='https://tcvfdnbknbmtuygczxib.supabase.co';
+  const KEY='sb_publishable_rg2wipFIDqeQO2zOr5JY-w_4wxa8UhW';
+  let homeDb=null;
+  try { homeDb=window.supabase.createClient(URL,KEY); } catch(e){ console.error('Supabase Beranda:',e); return; }
+
+  const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));
+  const escAttr=v=>esc(v).replace(/\n/g,' ');
+
+  async function loadHomeSettings(){
+    const {data,error}=await homeDb.from('site_settings').select('setting_key,setting_value');
+    if(error){console.warn('site_settings:',error.message);return;}
+    const m=Object.fromEntries((data||[]).map(x=>[x.setting_key,x.setting_value]));
+    if(m.portal_title) document.getElementById('homePortalTitle').textContent=m.portal_title;
+    if(m.portal_subtitle) document.getElementById('homePortalSubtitle').textContent=m.portal_subtitle;
+    if(m.portal_motto) {
+      document.querySelectorAll('[data-home-motto]').forEach(x=>x.textContent=m.portal_motto);
+    }
+    document.title=(m.portal_title||'Informatika STEMGA')+' | Kelas X';
+  }
+
+  async function loadHomeTicker(){
+    const {data,error}=await homeDb.from('home_ticker').select('text_content,is_published,sort_order,created_at').eq('is_published',true).order('sort_order').order('created_at');
+    if(error){console.warn('home_ticker:',error.message);return;}
+    const row=(data||[])[0];
+    if(row?.text_content) document.getElementById('homeTickerText').textContent=row.text_content;
+  }
+
+  async function loadHomeNews(){
+    const box=document.getElementById('homeNewsGrid'); if(!box)return;
+    const {data,error}=await homeDb.from('home_news').select('id,title,category,summary,link_url,sort_order,published_at').eq('is_published',true).order('sort_order').order('published_at',{ascending:false});
+    if(error){console.warn('home_news:',error.message);return;}
+    const rows=(data||[]).slice(0,2);
+    if(!rows.length)return;
+    const icons=['fa-bullhorn','fa-calendar-days'];
+    const gradients=['from-indigo-700 to-slate-950','from-emerald-600 to-slate-950'];
+    const colors=['text-indigo-600','text-emerald-600'];
+    box.innerHTML=rows.map((r,i)=>`<article class="card bg-white rounded-3xl border border-slate-200 overflow-hidden">
+      <div class="h-40 bg-gradient-to-br ${gradients[i%2]} flex items-center justify-center text-white"><i class="fa-solid ${icons[i%2]} text-5xl"></i></div>
+      <div class="p-5"><span class="text-[10px] font-black ${colors[i%2]} uppercase">${esc(r.category||'INFO')}</span>
+      <h3 class="font-black text-lg mt-2">${esc(r.title||'')}</h3><p class="text-xs text-slate-500 mt-2">${esc(r.summary||'')}</p>
+      ${r.link_url?`<a href="${escAttr(r.link_url)}" target="_blank" rel="noopener" class="inline-block mt-4 text-xs font-black text-indigo-600">Baca selengkapnya →</a>`:''}</div></article>`).join('');
+  }
+
+  async function loadHomeSlides(){
+    const wrap=document.getElementById('homeSlidesDynamic'); const dots=document.getElementById('homeSlidesDots');
+    if(!wrap||!dots)return;
+    const {data,error}=await homeDb.from('home_slides').select('id,title,description,image_url,link_url,sort_order,created_at').eq('is_published',true).order('sort_order').order('created_at');
+    if(error){console.warn('home_slides:',error.message);return;}
+    const rows=data||[];
+    if(!rows.length)return;
+    wrap.innerHTML=rows.map((r,i)=>`<div class="stemga-flyer-slide ${i===0?'active':''}">
+      ${r.image_url?`<img src="${escAttr(r.image_url)}" alt="${escAttr(r.title||'Flyer STEMGA')}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover" onerror="this.style.display='none'">`:''}
+      <div style="position:absolute;inset:0;background:linear-gradient(135deg,#102a43,#16805c)"></div>
+      <div class="stemga-flyer-content"><div><div class="stemga-flyer-tag">${esc(r.title||'Flyer STEMGA')}</div><h3>${esc(r.title||'Informasi STEMGA')}</h3><p>${esc(r.description||'')}</p>${r.link_url?`<a href="${escAttr(r.link_url)}" target="_blank" rel="noopener" class="inline-block mt-3 text-xs font-black text-white underline">Lihat selengkapnya →</a>`:''}</div></div>
+    </div>`).join('');
+    dots.innerHTML=rows.map((r,i)=>`<button class="stemga-flyer-dot ${i===0?'active':''}" type="button" onclick="stemgaFlyerGo(${i})" aria-label="Flyer ${i+1}"></button>`).join('');
+    if(typeof window.stemgaFlyerReset==='function') window.stemgaFlyerReset();
+  }
+
+  async function loadHomeCms(){
+    await Promise.all([loadHomeSettings(),loadHomeTicker(),loadHomeNews(),loadHomeSlides()]);
+  }
+  window.stemgaReloadHome=loadHomeCms;
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',loadHomeCms); else loadHomeCms();
+})();
 </script>
 </body></html>
