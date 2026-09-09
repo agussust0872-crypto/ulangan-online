@@ -175,10 +175,97 @@
 <div class="materi-card card p-6 rounded-3xl bg-slate-50 border border-slate-200 cursor-pointer" onclick="openMateri(7)"><i class="fa-solid fa-robot text-indigo-600 text-3xl"></i><h3 class="font-black mt-4">AI & Teknologi</h3><p class="text-xs text-slate-500 mt-2">Pengenalan kecerdasan buatan dan pemanfaatan teknologi secara bijak.</p><span class="block mt-5 text-xs font-black text-indigo-600">Pelajari →</span></div></div>
 <div class="mt-10 rounded-3xl bg-indigo-50 border border-indigo-100 p-6"><div class="flex items-start gap-4"><div class="w-12 h-12 rounded-2xl bg-indigo-600 text-white flex items-center justify-center shrink-0"><i class="fa-solid fa-circle-info"></i></div><div><h3 class="font-black text-lg">Ruang Belajar Informatika Kelas X</h3><p class="text-sm text-slate-600 mt-1">Pilih salah satu materi untuk melihat ringkasan tujuan dan pokok bahasan. Materi dapat dikembangkan berikutnya dengan video, PDF, LKPD, dan latihan soal.</p></div></div></div></div></section>
 
-<section id="media" data-page="media" class="page-section hidden max-w-7xl mx-auto px-4 py-16"><p class="text-indigo-600 text-xs font-black uppercase">Visual Learning</p><h2 class="text-3xl font-black mt-2">Media Belajar</h2>
-<div class="grid md:grid-cols-3 gap-5 mt-8"><div class="card bg-white rounded-3xl border p-6"><i class="fa-solid fa-video text-rose-600 text-3xl"></i><h3 class="font-black mt-5">Video Pembelajaran</h3><p class="text-xs text-slate-500 mt-2">Video pembelajaran Informatika Kelas X.</p><span class="block mt-5 text-xs font-black text-indigo-600">Segera Hadir →</span></div>
-<div class="card bg-white rounded-3xl border p-6"><i class="fa-solid fa-diagram-project text-indigo-600 text-3xl"></i><h3 class="font-black mt-5">Simulasi & Visualisasi</h3><p class="text-xs text-slate-500 mt-2">Media interaktif untuk memahami konsep Informatika.</p><span class="block mt-5 text-xs font-black text-indigo-600">Segera Hadir →</span></div>
-<div class="card bg-white rounded-3xl border p-6"><i class="fa-solid fa-file-lines text-emerald-600 text-3xl"></i><h3 class="font-black mt-5">LKPD Digital</h3><p class="text-xs text-slate-500 mt-2">Lembar kerja dan aktivitas pembelajaran digital.</p><span class="block mt-5 text-xs font-black text-indigo-600">Segera Hadir →</span></div></div></section>
+
+<section id="media" data-page="media" class="page-section hidden max-w-7xl mx-auto px-4 py-16">
+  <p class="text-indigo-600 text-xs font-black uppercase tracking-widest">Visual Learning</p>
+  <h2 class="text-3xl font-black mt-2">Media Belajar Informatika</h2>
+  <p class="text-slate-500 text-sm mt-2 max-w-3xl">Ruang belajar visual dan interaktif untuk membantu siswa Kelas X memahami konsep Informatika melalui video, simulasi, dan aktivitas digital.</p>
+
+  <div class="grid md:grid-cols-3 gap-5 mt-8">
+    <div class="card bg-white rounded-3xl border border-slate-200 p-6 shadow-sm">
+      <div class="w-12 h-12 rounded-2xl bg-rose-50 text-rose-600 flex items-center justify-center text-xl"><i class="fa-solid fa-video"></i></div>
+      <h3 class="font-black mt-5">Video Pembelajaran</h3>
+      <p class="text-xs text-slate-500 mt-2 leading-relaxed">Kumpulan video penjelasan konsep Informatika Kelas X. Link video dapat ditambahkan bertahap.</p>
+      <button onclick="openMediaInfo('video')" class="mt-5 text-xs font-black text-indigo-600">Buka ruang video →</button>
+    </div>
+
+    <div class="card bg-white rounded-3xl border border-slate-200 p-6 shadow-sm">
+      <div class="w-12 h-12 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center text-xl"><i class="fa-solid fa-calculator"></i></div>
+      <h3 class="font-black mt-5">Simulasi Sistem Bilangan</h3>
+      <p class="text-xs text-slate-500 mt-2 leading-relaxed">Konversi Desimal, Biner, Oktal, dan Heksadesimal secara langsung untuk latihan.</p>
+      <button onclick="openBinaryLab()" class="mt-5 text-xs font-black text-indigo-600">Mulai simulasi →</button>
+    </div>
+
+    <div class="card bg-white rounded-3xl border border-slate-200 p-6 shadow-sm">
+      <div class="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-xl"><i class="fa-solid fa-table-cells"></i></div>
+      <h3 class="font-black mt-5">Tabel Kebenaran</h3>
+      <p class="text-xs text-slate-500 mt-2 leading-relaxed">Pilih operator logika dan lihat hasil tabel kebenaran secara interaktif.</p>
+      <button onclick="openTruthLab()" class="mt-5 text-xs font-black text-indigo-600">Mulai simulasi →</button>
+    </div>
+
+    <div class="card bg-white rounded-3xl border border-slate-200 p-6 shadow-sm">
+      <div class="w-12 h-12 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center text-xl"><i class="fa-solid fa-diagram-project"></i></div>
+      <h3 class="font-black mt-5">Visualisasi Algoritma</h3>
+      <p class="text-xs text-slate-500 mt-2 leading-relaxed">Pelajari alur Input → Proses → Output dan konsep percabangan secara visual.</p>
+      <button onclick="openMediaInfo('algoritma')" class="mt-5 text-xs font-black text-indigo-600">Lihat visualisasi →</button>
+    </div>
+
+    <div class="card bg-white rounded-3xl border border-slate-200 p-6 shadow-sm">
+      <div class="w-12 h-12 rounded-2xl bg-cyan-50 text-cyan-600 flex items-center justify-center text-xl"><i class="fa-solid fa-file-lines"></i></div>
+      <h3 class="font-black mt-5">LKPD Digital</h3>
+      <p class="text-xs text-slate-500 mt-2 leading-relaxed">Tempat mengembangkan LKPD digital berdasarkan setiap modul pembelajaran.</p>
+      <button onclick="openMediaInfo('lkpd')" class="mt-5 text-xs font-black text-indigo-600">Lihat koleksi →</button>
+    </div>
+
+    <div class="card bg-white rounded-3xl border border-slate-200 p-6 shadow-sm">
+      <div class="w-12 h-12 rounded-2xl bg-violet-50 text-violet-600 flex items-center justify-center text-xl"><i class="fa-solid fa-headphones"></i></div>
+      <h3 class="font-black mt-5">Belajar Mandiri</h3>
+      <p class="text-xs text-slate-500 mt-2 leading-relaxed">Gunakan modul, simulasi, dan latihan untuk belajar mandiri sesuai kecepatan masing-masing.</p>
+      <button onclick="showPage('materi')" class="mt-5 text-xs font-black text-indigo-600">Kembali ke materi →</button>
+    </div>
+  </div>
+
+  <div class="mt-8 rounded-3xl bg-gradient-to-r from-indigo-50 to-slate-50 border border-indigo-100 p-6">
+    <div class="flex items-start gap-4">
+      <div class="w-11 h-11 rounded-2xl bg-indigo-600 text-white flex items-center justify-center shrink-0"><i class="fa-solid fa-lightbulb"></i></div>
+      <div><h3 class="font-black">Ruang Media STEMGA</h3><p class="text-xs text-slate-600 mt-1">Media belajar akan dikembangkan bertahap. Video YouTube, PDF, LKPD, dan media interaktif dapat ditambahkan tanpa mengubah mesin CBT.</p></div>
+    </div>
+  </div>
+</section>
+
+<div id="mediaModal" class="hidden fixed inset-0 z-[110] bg-slate-950/80 backdrop-blur-sm p-4 items-center justify-center" onclick="if(event.target===this)closeMediaModal()">
+  <div class="bg-white rounded-3xl max-w-3xl w-full max-h-[90vh] overflow-y-auto shadow-2xl p-6 sm:p-8">
+    <div class="flex justify-between gap-4 items-start">
+      <div><p class="text-indigo-600 text-xs font-black uppercase">Media Belajar STEMGA</p><h3 id="mediaInfoTitle" class="text-2xl font-black mt-1"></h3></div>
+      <button onclick="closeMediaModal()" class="w-10 h-10 rounded-xl bg-slate-100 font-bold">✕</button>
+    </div>
+    <div id="mediaInfoBody" class="mt-6"></div>
+  </div>
+</div>
+
+<div id="binaryLab" class="hidden fixed inset-0 z-[110] bg-slate-950/80 backdrop-blur-sm p-4 items-center justify-center">
+  <div class="bg-white rounded-3xl max-w-3xl w-full max-h-[90vh] overflow-y-auto shadow-2xl p-6 sm:p-8">
+    <div class="flex justify-between gap-4"><div><p class="text-indigo-600 text-xs font-black uppercase">Simulasi Interaktif</p><h3 class="text-2xl font-black mt-1">Konversi Sistem Bilangan</h3></div><button onclick="closeBinaryLab()" class="w-10 h-10 rounded-xl bg-slate-100 font-bold">✕</button></div>
+    <p class="text-sm text-slate-500 mt-2">Masukkan bilangan desimal untuk melihat representasinya pada basis 2, 8, dan 16.</p>
+    <div class="mt-5 flex gap-2"><input id="decimalInput" type="number" min="0" max="4294967295" value="25" class="flex-1 border border-slate-300 rounded-xl px-4 py-3 font-bold"><button onclick="convertNumberLab()" class="px-5 rounded-xl bg-indigo-600 text-white font-black text-sm">Konversi</button></div>
+    <div id="numberResults" class="grid sm:grid-cols-3 gap-3 mt-5"></div>
+    <div class="mt-5 p-4 rounded-2xl bg-indigo-50 text-xs text-slate-600"><b>Contoh:</b> 25₁₀ = 11001₂ = 31₈ = 19₁₆.</div>
+  </div>
+</div>
+
+<div id="truthLab" class="hidden fixed inset-0 z-[110] bg-slate-950/80 backdrop-blur-sm p-4 items-center justify-center">
+  <div class="bg-white rounded-3xl max-w-4xl w-full max-h-[90vh] overflow-y-auto shadow-2xl p-6 sm:p-8">
+    <div class="flex justify-between gap-4"><div><p class="text-emerald-600 text-xs font-black uppercase">Simulasi Interaktif</p><h3 class="text-2xl font-black mt-1">Tabel Kebenaran</h3></div><button onclick="closeTruthLab()" class="w-10 h-10 rounded-xl bg-slate-100 font-bold">✕</button></div>
+    <div class="mt-5 flex flex-wrap gap-2">
+      <button class="truth-op active" onclick="renderTruth('and',this)">p ∧ q</button>
+      <button class="truth-op" onclick="renderTruth('or',this)">p ∨ q</button>
+      <button class="truth-op" onclick="renderTruth('imp',this)">p → q</button>
+      <button class="truth-op" onclick="renderTruth('iff',this)">p ↔ q</button>
+    </div>
+    <div id="truthTable" class="mt-5 overflow-x-auto"></div>
+  </div>
+</div>
+
 
 <section id="game" data-page="game" class="page-section hidden bg-slate-950 text-white"><div class="max-w-7xl mx-auto px-4 py-16"><p class="text-indigo-400 text-xs font-black uppercase">Fun Learning</p><h2 class="text-3xl font-black mt-2">Game Edukasi</h2>
 <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-8"><div class="card bg-white/5 border border-white/10 rounded-3xl p-6"><i class="fa-solid fa-brain text-3xl"></i><h3 class="font-black mt-4">Computational Challenge</h3><p class="text-xs text-slate-400 mt-2">Tantangan berpikir komputasional.</p></div>
@@ -274,6 +361,15 @@
   </div>
 </div>
 
+
+<style id="stemga-media-style">
+.truth-op{padding:.65rem 1rem;border-radius:.8rem;border:1px solid #dbeafe;background:#f8fafc;font-size:.8rem;font-weight:900;color:#334155}
+.truth-op.active{background:#059669;color:white;border-color:#059669}
+.media-table{width:100%;border-collapse:separate;border-spacing:0;overflow:hidden;border:1px solid #e2e8f0;border-radius:1rem;font-size:.82rem}
+.media-table th,.media-table td{padding:.75rem 1rem;border-bottom:1px solid #e2e8f0;text-align:center}
+.media-table th{background:#f1f5f9;font-weight:900}.media-table tr:last-child td{border-bottom:0}
+.media-result{padding:1rem;border:1px solid #e2e8f0;border-radius:1rem;background:#f8fafc}
+</style>
 <style id="stemga-module-style">
 .module-tab{
   padding:.65rem .9rem;border-radius:.8rem;border:1px solid #e2e8f0;
@@ -388,6 +484,36 @@ function closeMateri(){
   document.body.classList.remove('overflow-hidden');
 }
 document.addEventListener('keydown',e=>{if(e.key==='Escape')closeMateri();});
+
+function openMediaInfo(type){
+  const title=document.getElementById('mediaInfoTitle'), body=document.getElementById('mediaInfoBody');
+  const data={
+    video:{t:'Video Pembelajaran',b:'<div class="rounded-2xl bg-rose-50 border border-rose-100 p-5"><p class="font-black">Koleksi video akan ditempatkan di sini.</p><p class="text-sm text-slate-600 mt-2">Video YouTube atau video pembelajaran buatan guru dapat ditambahkan satu per satu sesuai materi: Berpikir Komputasional, Sistem Komputer, Sistem Bilangan, Jaringan, Logika, Algoritma, Literasi Digital, dan AI.</p></div>'},
+    algoritma:{t:'Visualisasi Algoritma',b:'<div class="grid sm:grid-cols-3 gap-3 text-center"><div class="p-5 rounded-2xl bg-indigo-50 font-black">INPUT</div><div class="p-5 rounded-2xl bg-amber-50 font-black">PROSES</div><div class="p-5 rounded-2xl bg-emerald-50 font-black">OUTPUT</div></div><p class="text-sm text-slate-600 mt-4">Data masuk → diproses berdasarkan algoritma → menghasilkan keluaran. Konsep ini menjadi dasar sebelum siswa mempelajari percabangan dan perulangan.</p>'},
+    lkpd:{t:'LKPD Digital',b:'<div class="rounded-2xl bg-cyan-50 border border-cyan-100 p-5"><p class="font-black">Ruang LKPD STEMGA</p><p class="text-sm text-slate-600 mt-2">LKPD dapat ditambahkan dalam bentuk PDF atau tautan dokumen. Struktur portal sudah disiapkan agar koleksi LKPD dapat dikembangkan per materi.</p></div>'}
+  }[type];
+  if(!data)return;
+  title.textContent=data.t;body.innerHTML=data.b;
+  const m=document.getElementById('mediaModal');m.classList.remove('hidden');m.classList.add('flex');
+}
+function closeMediaModal(){const m=document.getElementById('mediaModal');m.classList.add('hidden');m.classList.remove('flex');}
+function openBinaryLab(){const m=document.getElementById('binaryLab');m.classList.remove('hidden');m.classList.add('flex');convertNumberLab();}
+function closeBinaryLab(){const m=document.getElementById('binaryLab');m.classList.add('hidden');m.classList.remove('flex');}
+function convertNumberLab(){
+  const n=Number(document.getElementById('decimalInput').value);
+  const box=document.getElementById('numberResults');
+  if(!Number.isInteger(n)||n<0){box.innerHTML='<div class="col-span-full p-4 rounded-xl bg-red-50 text-red-700 text-sm font-bold">Masukkan bilangan bulat desimal yang valid.</div>';return;}
+  box.innerHTML=[['Biner',n.toString(2),2],['Oktal',n.toString(8),8],['Heksadesimal',n.toString(16).toUpperCase(),16]].map(x=>'<div class="media-result"><p class="text-xs text-slate-500 font-black uppercase">'+x[0]+'</p><p class="text-xl font-black text-indigo-700 mt-2 break-all">'+x[1]+'<sub>'+x[2]+'</sub></p></div>').join('');
+}
+function openTruthLab(){const m=document.getElementById('truthLab');m.classList.remove('hidden');m.classList.add('flex');renderTruth('and',document.querySelector('.truth-op'));}
+function closeTruthLab(){const m=document.getElementById('truthLab');m.classList.add('hidden');m.classList.remove('flex');}
+function renderTruth(op,btn){
+  document.querySelectorAll('.truth-op').forEach(x=>x.classList.remove('active')); if(btn)btn.classList.add('active');
+  const rows=[[true,true],[true,false],[false,true],[false,false]];
+  const f={and:(p,q)=>p&&q,or:(p,q)=>p||q,imp:(p,q)=>(!p)||q,iff:(p,q)=>p===q}[op];
+  const sym={and:'p ∧ q',or:'p ∨ q',imp:'p → q',iff:'p ↔ q'}[op];
+  document.getElementById('truthTable').innerHTML='<table class="media-table"><thead><tr><th>p</th><th>q</th><th>'+sym+'</th></tr></thead><tbody>'+rows.map(r=>'<tr><td>'+ (r[0]?'T':'F') +'</td><td>'+ (r[1]?'T':'F') +'</td><td class="font-black">'+(f(r[0],r[1])?'T':'F')+'</td></tr>').join('')+'</tbody></table><p class="text-xs text-slate-500 mt-3">T = True/Benar, F = False/Salah.</p>';
+}
 
 function showPage(page){
     document.querySelectorAll('.page-section').forEach(el=>{
