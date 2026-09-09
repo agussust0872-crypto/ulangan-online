@@ -204,12 +204,97 @@
 
 
 
-<!-- MODAL MATERI -->
-<div id="materiModal" class="hidden fixed inset-0 z-[120] bg-slate-950/70 backdrop-blur-sm p-4 items-center justify-center" onclick="if(event.target===this) closeMateri()">
-<div class="w-full max-w-2xl max-h-[85vh] overflow-y-auto bg-white rounded-3xl shadow-2xl">
-<div class="p-6 border-b flex items-center justify-between gap-4"><div><p id="materiModalTag" class="text-indigo-600 text-xs font-black uppercase">Materi Informatika</p><h3 id="materiModalTitle" class="text-2xl font-black mt-1"></h3></div><button onclick="closeMateri()" class="w-10 h-10 rounded-xl bg-slate-100 text-slate-600 font-bold">✕</button></div>
-<div class="p-6"><p id="materiModalDesc" class="text-sm text-slate-600 leading-relaxed"></p><h4 class="font-black mt-6">Pokok Bahasan</h4><ul id="materiModalList" class="mt-3 space-y-2 text-sm text-slate-600"></ul><div class="mt-7 p-4 rounded-2xl bg-indigo-50 border border-indigo-100"><p class="text-xs font-black text-indigo-700">🚀 Pengembangan berikutnya</p><p class="text-xs text-slate-600 mt-1">Materi lengkap, video pembelajaran, LKPD, dan latihan soal akan ditambahkan bertahap.</p></div></div>
-</div></div>
+
+<!-- MODUL MATERI INFORMATIKA KELAS X -->
+<div id="materiModal" class="hidden fixed inset-0 z-[120] bg-slate-950/80 backdrop-blur-sm p-3 sm:p-5 items-center justify-center"
+     onclick="if(event.target===this) closeMateri()">
+  <div class="w-full max-w-5xl max-h-[94vh] overflow-hidden bg-white rounded-[28px] shadow-2xl flex flex-col">
+    <div class="p-5 sm:p-6 border-b bg-gradient-to-r from-indigo-700 to-indigo-600 text-white flex items-start justify-between gap-4">
+      <div>
+        <p id="materiModalTag" class="text-indigo-200 text-xs font-black uppercase tracking-widest">MODUL INFORMATIKA KELAS X</p>
+        <h3 id="materiModalTitle" class="text-2xl sm:text-3xl font-black mt-1">Materi</h3>
+        <p id="materiModalDesc" class="text-indigo-100 text-sm mt-2 max-w-3xl"></p>
+      </div>
+      <button onclick="closeMateri()" class="w-10 h-10 rounded-xl bg-white/15 hover:bg-white/25 text-white font-bold shrink-0">✕</button>
+    </div>
+
+    <div class="overflow-y-auto">
+      <div class="p-4 sm:p-6">
+        <div class="flex flex-wrap gap-2 mb-5">
+          <button class="module-tab active" data-tab="tujuan" onclick="showModuleTab('tujuan')">🎯 Tujuan</button>
+          <button class="module-tab" data-tab="materi" onclick="showModuleTab('materi')">📖 Materi</button>
+          <button class="module-tab" data-tab="contoh" onclick="showModuleTab('contoh')">💡 Contoh</button>
+          <button class="module-tab" data-tab="cek" onclick="showModuleTab('cek')">📝 Cek Pemahaman</button>
+        </div>
+
+        <section id="module-tab-tujuan" class="module-pane">
+          <div class="grid md:grid-cols-2 gap-5">
+            <div class="rounded-3xl bg-indigo-50 border border-indigo-100 p-5">
+              <h4 class="font-black text-lg">Tujuan Pembelajaran</h4>
+              <ul id="materiModalObjectives" class="mt-3 space-y-2 text-sm text-slate-700"></ul>
+            </div>
+            <div class="rounded-3xl bg-slate-50 border border-slate-200 p-5">
+              <h4 class="font-black text-lg">Peta Materi</h4>
+              <ul id="materiModalMap" class="mt-3 space-y-2 text-sm text-slate-700"></ul>
+            </div>
+          </div>
+        </section>
+
+        <section id="module-tab-materi" class="module-pane hidden">
+          <div id="materiModalContent" class="prose prose-slate max-w-none"></div>
+        </section>
+
+        <section id="module-tab-contoh" class="module-pane hidden">
+          <div class="rounded-3xl bg-amber-50 border border-amber-100 p-5">
+            <h4 class="font-black text-lg">Contoh Penerapan</h4>
+            <div id="materiModalExample" class="mt-3 text-sm text-slate-700 leading-relaxed"></div>
+          </div>
+        </section>
+
+        <section id="module-tab-cek" class="module-pane hidden">
+          <div class="rounded-3xl bg-emerald-50 border border-emerald-100 p-5">
+            <div class="flex items-center justify-between gap-3">
+              <div>
+                <h4 class="font-black text-lg">Cek Pemahaman</h4>
+                <p class="text-xs text-slate-600 mt-1">Pilih jawaban. Hasil langsung ditampilkan.</p>
+              </div>
+              <span id="quizScore" class="text-sm font-black text-emerald-700"></span>
+            </div>
+            <div id="materiQuiz" class="mt-5 space-y-5"></div>
+            <button onclick="resetQuiz()" class="mt-5 px-4 py-2 rounded-xl bg-emerald-600 text-white text-xs font-black">Ulangi Latihan</button>
+          </div>
+        </section>
+
+        <div class="mt-6 rounded-3xl bg-indigo-50 border border-indigo-100 p-5">
+          <p class="text-xs font-black text-indigo-700">🚀 Ruang Belajar STEMGA</p>
+          <p class="text-xs text-slate-600 mt-1">Modul ini dapat dikembangkan lagi dengan video pembelajaran, PDF, LKPD, simulasi, dan latihan CBT.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style id="stemga-module-style">
+.module-tab{
+  padding:.65rem .9rem;border-radius:.8rem;border:1px solid #e2e8f0;
+  background:#f8fafc;color:#334155;font-size:.75rem;font-weight:800;
+  transition:.2s
+}
+.module-tab:hover{transform:translateY(-1px);border-color:#a5b4fc}
+.module-tab.active{background:#4f46e5;color:#fff;border-color:#4f46e5}
+.module-pane h4{color:#0f172a}
+.module-prose h4{font-size:1.05rem;font-weight:900;margin:1.2rem 0 .45rem}
+.module-prose p{font-size:.9rem;line-height:1.75;color:#475569;margin:.45rem 0}
+.module-prose ul{padding-left:1.2rem;list-style:disc}
+.module-prose li{font-size:.88rem;line-height:1.7;color:#475569;margin:.2rem 0}
+.quiz-option{
+  display:block;width:100%;text-align:left;padding:.75rem 1rem;border:1px solid #dbeafe;
+  border-radius:.85rem;background:#fff;font-size:.82rem;color:#334155;transition:.2s
+}
+.quiz-option:hover{background:#eef2ff;border-color:#818cf8}
+.quiz-option.correct{background:#dcfce7;border-color:#22c55e;color:#166534;font-weight:800}
+.quiz-option.wrong{background:#fee2e2;border-color:#ef4444;color:#991b1b}
+</style>
 
 <!-- ================= CHATBOT ================= -->
 <div id="chatbot" class="fixed bottom-5 right-5 z-[100]">
@@ -235,18 +320,73 @@
 <script>
 function m(){document.getElementById('mob').classList.toggle('hidden')}
 
-const materiData = [
- {title:'Berpikir Komputasional',desc:'Mempelajari cara menyelesaikan masalah secara sistematis dengan pendekatan yang dapat diterapkan dalam Informatika.',list:['Dekomposisi masalah','Pengenalan pola','Abstraksi','Algoritma','Penyelesaian masalah komputasional']},
- {title:'Sistem Komputer',desc:'Mengenal komponen utama sistem komputer serta hubungan antarkomponen dalam menjalankan proses komputasi.',list:['CPU dan fungsi pemrosesan','Memori dan penyimpanan','Periferal input dan output','Hubungan antarkomponen','Fungsi perangkat keras']},
- {title:'Sistem Bilangan',desc:'Memahami representasi bilangan yang digunakan dalam sistem komputer dan melakukan konversi antarbasis.',list:['Desimal','Biner','Oktal','Heksadesimal','Konversi antar sistem bilangan']},
- {title:'Jaringan & Internet',desc:'Memahami dasar jaringan komputer, perangkat jaringan, internet, dan komunikasi data.',list:['Konsep jaringan komputer','Perangkat jaringan','Internet','Komunikasi data','Pemanfaatan jaringan secara aman']},
- {title:'Proposisi & Logika',desc:'Mengenal proposisi, operator logika, dan cara menentukan nilai kebenaran suatu pernyataan.',list:['Proposisi','Negasi','Konjungsi dan disjungsi','Implikasi dan biimplikasi','Tabel kebenaran']},
- {title:'Algoritma & Koding',desc:'Membangun pola pikir algoritmik dan mengenal penerapannya melalui koding.',list:['Konsep algoritma','Urutan langkah','Pseudocode','Logika pemrograman','Praktik koding dasar']},
- {title:'Literasi Digital',desc:'Menggunakan teknologi digital secara aman, etis, bertanggung jawab, dan kritis.',list:['Etika digital','Keamanan digital','Hoaks dan disinformasi','Jejak digital','Perilaku bermedia sosial']},
- {title:'AI & Teknologi',desc:'Mengenal konsep dasar kecerdasan buatan serta pemanfaatan teknologi secara bijak.',list:['Pengertian AI','Contoh penerapan AI','Manfaat dan keterbatasan AI','Etika penggunaan AI','Pemanfaatan AI untuk belajar']}
-];
-function openMateri(i){const d=materiData[i];if(!d)return;document.getElementById('materiModalTitle').textContent=d.title;document.getElementById('materiModalDesc').textContent=d.desc;document.getElementById('materiModalList').innerHTML=d.list.map(x=>'<li class="flex gap-2"><span class="text-indigo-600">✓</span><span>'+x+'</span></li>').join('');const m=document.getElementById('materiModal');m.classList.remove('hidden');m.classList.add('flex');document.body.classList.add('overflow-hidden');}
-function closeMateri(){const m=document.getElementById('materiModal');m.classList.add('hidden');m.classList.remove('flex');document.body.classList.remove('overflow-hidden');}
+const materiData = [{"title":"Berpikir Komputasional","desc":"Cara berpikir sistematis untuk memahami masalah, menyusun langkah penyelesaian, dan menghasilkan solusi yang dapat dijalankan secara efektif.","objectives":["Menjelaskan konsep berpikir komputasional dan manfaatnya.","Menguraikan masalah menggunakan dekomposisi.","Menemukan pola dan melakukan abstraksi.","Menyusun algoritma untuk menyelesaikan masalah."],"map":["Dekomposisi masalah","Pengenalan pola","Abstraksi","Algoritma","Penyelesaian masalah komputasional"],"content":"\n<div class=\"module-prose\">\n<h4>1. Dekomposisi</h4>\n<p>Dekomposisi adalah memecah masalah besar menjadi bagian-bagian yang lebih kecil sehingga lebih mudah dipahami dan dikerjakan.</p>\n<ul><li>Identifikasi tujuan akhir.</li><li>Pecah menjadi tugas-tugas kecil.</li><li>Tentukan urutan dan hubungan antartugas.</li></ul>\n<h4>2. Pengenalan Pola</h4>\n<p>Pola adalah kesamaan atau kecenderungan yang dapat ditemukan pada beberapa masalah. Dengan mengenali pola, solusi yang sudah berhasil dapat diterapkan pada situasi yang serupa.</p>\n<h4>3. Abstraksi</h4>\n<p>Abstraksi berarti memilih informasi yang penting dan mengabaikan detail yang tidak diperlukan untuk menyelesaikan masalah.</p>\n<h4>4. Algoritma</h4>\n<p>Algoritma adalah urutan langkah yang logis, terstruktur, dan terbatas untuk mencapai tujuan tertentu. Algoritma yang baik harus jelas dan dapat diikuti.</p>\n<h4>5. Penyelesaian Masalah Komputasional</h4>\n<p>Gabungkan dekomposisi, pola, abstraksi, dan algoritma untuk menghasilkan solusi yang efektif, kemudian uji dan perbaiki solusi tersebut.</p>\n</div>","example":"Contoh: masalah “menyiapkan komputer untuk ujian”. Dekomposisi menjadi menyalakan komputer, memeriksa jaringan, membuka browser, masuk akun, dan membuka ujian. Pola prosedur ini dapat digunakan kembali untuk ujian berikutnya. Detail yang tidak berpengaruh terhadap prosedur, misalnya warna wallpaper, dapat diabaikan melalui abstraksi.","quiz":[["Memecah masalah besar menjadi beberapa bagian kecil disebut ...",["Abstraksi","Dekomposisi","Enkripsi","Kompilasi"],1],["Memilih informasi penting dan mengabaikan detail yang tidak diperlukan merupakan ...",["Pola","Abstraksi","Debugging","Input"],1],["Urutan langkah logis untuk mencapai tujuan disebut ...",["Algoritma","Periferal","Jaringan","Database"],0]]},{"title":"Sistem Komputer","desc":"Mengenal komponen sistem komputer, fungsi CPU, memori, penyimpanan, periferal, serta hubungan antarkomponen.","objectives":["Mengidentifikasi komponen utama sistem komputer.","Menjelaskan fungsi CPU, memori, penyimpanan, dan periferal.","Menjelaskan hubungan input–process–output–storage.","Memilih perangkat sesuai kebutuhan komputasi."],"map":["CPU dan pemrosesan","Memori","Penyimpanan","Periferal input/output","Hubungan antarkomponen"],"content":"\n<div class=\"module-prose\">\n<h4>1. CPU</h4>\n<p>CPU merupakan pusat pemrosesan instruksi. Secara sederhana, CPU menjalankan instruksi dan mengolah data dengan bantuan bagian seperti unit kontrol dan unit aritmetika-logika.</p>\n<h4>2. Memori</h4>\n<p>RAM menyimpan data dan program yang sedang digunakan sehingga dapat diakses dengan cepat. RAM bersifat sementara.</p>\n<h4>3. Penyimpanan</h4>\n<p>HDD dan SSD digunakan untuk menyimpan sistem operasi, aplikasi, dan data secara lebih permanen. SSD umumnya memiliki waktu akses lebih cepat daripada HDD.</p>\n<h4>4. Periferal</h4>\n<p>Perangkat input memasukkan data, misalnya keyboard dan mouse. Perangkat output menyajikan hasil, misalnya monitor dan printer.</p>\n<h4>5. Hubungan Antarkomponen</h4>\n<p>Sistem bekerja sebagai satu kesatuan: data masuk melalui input, diproses CPU dengan bantuan memori, hasil ditampilkan melalui output, dan data dapat disimpan pada media penyimpanan.</p>\n</div>","example":"Saat mengetik tugas, keyboard menjadi perangkat input. CPU memproses instruksi dan data, RAM menampung data yang sedang digunakan, monitor menampilkan hasil, dan SSD/HDD dapat menyimpan dokumen.","quiz":[["Komponen yang menjalankan instruksi program adalah ...",["Monitor","CPU","Keyboard","Printer"],1],["RAM terutama digunakan untuk ...",["Menyimpan data sementara saat program berjalan","Mencetak dokumen","Menghubungkan internet","Menampilkan gambar"],0],["Perangkat yang berfungsi sebagai input adalah ...",["Monitor","Speaker","Keyboard","Proyektor"],2]]},{"title":"Sistem Bilangan","desc":"Memahami desimal, biner, oktal, heksadesimal, serta melakukan konversi antar sistem bilangan.","objectives":["Menjelaskan basis desimal, biner, oktal, dan heksadesimal.","Melakukan konversi desimal ke biner, oktal, dan heksadesimal.","Melakukan konversi biner ke desimal.","Menggunakan sistem bilangan dalam konteks komputasi."],"map":["Desimal","Biner","Oktal","Heksadesimal","Konversi bilangan"],"content":"\n<div class=\"module-prose\">\n<h4>1. Desimal</h4>\n<p>Desimal menggunakan basis 10 dengan digit 0–9. Nilai setiap posisi merupakan pangkat 10.</p>\n<h4>2. Biner</h4>\n<p>Biner menggunakan basis 2 dengan digit 0 dan 1. Sistem ini sangat penting karena perangkat digital bekerja dengan keadaan diskrit yang dapat direpresentasikan sebagai 0 dan 1.</p>\n<h4>3. Oktal</h4>\n<p>Oktal menggunakan basis 8 dengan digit 0–7.</p>\n<h4>4. Heksadesimal</h4>\n<p>Heksadesimal menggunakan basis 16: 0–9 dan A–F. Sistem ini sering digunakan agar representasi biner menjadi lebih ringkas.</p>\n<h4>5. Contoh Konversi</h4>\n<p>Desimal 13 ke biner: 13 ÷ 2 menghasilkan sisa 1, kemudian 6 sisa 0, 3 sisa 1, 1 sisa 1. Baca sisa dari bawah ke atas → <b>1101₂</b>.</p>\n<p>Biner 1010₂ ke desimal: (1×2³)+(0×2²)+(1×2¹)+(0×2⁰)=8+2=<b>10₁₀</b>.</p>\n</div>","example":"Dalam jaringan dan sistem komputer, alamat atau nilai tertentu dapat ditampilkan dalam heksadesimal agar lebih mudah dibaca manusia. Misalnya bilangan biner yang panjang dapat dikelompokkan menjadi empat bit lalu direpresentasikan dengan satu digit heksadesimal.","quiz":[["Basis sistem bilangan biner adalah ...",["2","8","10","16"],0],["Bilangan desimal 10 jika dikonversi ke biner menjadi ...",["1000","1001","1010","1100"],2],["Digit yang tidak digunakan dalam bilangan oktal adalah ...",["6","7","8","0"],2]]},{"title":"Jaringan & Internet","desc":"Memahami konsep jaringan komputer, perangkat jaringan, internet, dan komunikasi data.","objectives":["Menjelaskan pengertian jaringan komputer.","Mengenali fungsi switch, router, access point, dan modem.","Menjelaskan perbedaan jaringan lokal dan internet.","Menerapkan perilaku aman saat menggunakan jaringan."],"map":["Konsep jaringan","Perangkat jaringan","LAN dan internet","Komunikasi data","Keamanan jaringan"],"content":"\n<div class=\"module-prose\">\n<h4>1. Jaringan Komputer</h4>\n<p>Jaringan komputer adalah hubungan antarperangkat untuk bertukar data dan berbagi sumber daya.</p>\n<h4>2. Perangkat Jaringan</h4>\n<ul><li><b>Switch:</b> menghubungkan perangkat dalam jaringan lokal.</li><li><b>Router:</b> menghubungkan jaringan yang berbeda dan menentukan jalur paket.</li><li><b>Access Point:</b> menyediakan akses jaringan nirkabel.</li><li><b>Modem:</b> membantu menghubungkan jaringan lokal dengan layanan akses dari penyedia.</li></ul>\n<h4>3. LAN dan Internet</h4>\n<p>LAN mencakup area terbatas seperti laboratorium sekolah. Internet merupakan jaringan global yang menghubungkan banyak jaringan.</p>\n<h4>4. Komunikasi Data</h4>\n<p>Data dikirim melalui media dan protokol tertentu. Kecepatan, keterlambatan, dan keandalan menjadi faktor penting dalam komunikasi.</p>\n<h4>5. Keamanan</h4>\n<p>Gunakan kata sandi kuat, hindari membagikan kredensial, periksa jaringan yang digunakan, dan waspadai tautan atau file mencurigakan.</p>\n</div>","example":"Di laboratorium, komputer siswa dapat terhubung ke switch. Access point menyediakan Wi-Fi, sedangkan router menghubungkan jaringan sekolah dengan jaringan lain atau internet.","quiz":[["Perangkat yang umum digunakan untuk menghubungkan banyak komputer dalam LAN adalah ...",["Switch","Monitor","Printer","Scanner"],0],["Access Point terutama menyediakan ...",["Penyimpanan","Akses jaringan nirkabel","Pencetakan","Pemrosesan CPU"],1],["Internet dapat dipahami sebagai ...",["Satu komputer pusat","Jaringan global yang menghubungkan banyak jaringan","Sistem operasi","Perangkat input"],1]]},{"title":"Proposisi & Logika","desc":"Mengenal proposisi, operator logika, dan tabel kebenaran untuk menganalisis pernyataan secara formal.","objectives":["Membedakan kalimat proposisi dan bukan proposisi.","Menjelaskan negasi, konjungsi, disjungsi, implikasi, dan biimplikasi.","Menyusun dan membaca tabel kebenaran.","Menggunakan logika untuk menganalisis kondisi."],"map":["Proposisi","Negasi","Konjungsi & disjungsi","Implikasi & biimplikasi","Tabel kebenaran"],"content":"\n<div class=\"module-prose\">\n<h4>1. Proposisi</h4>\n<p>Proposisi adalah kalimat deklaratif yang dapat ditentukan bernilai benar atau salah, tetapi tidak keduanya sekaligus. Contoh: “2 adalah bilangan genap.”</p>\n<h4>2. Operator Logika</h4>\n<ul><li><b>Negasi (¬p):</b> membalik nilai kebenaran.</li><li><b>Konjungsi (p ∧ q):</b> benar jika p dan q keduanya benar.</li><li><b>Disjungsi (p ∨ q):</b> benar jika minimal salah satu benar.</li><li><b>Implikasi (p → q):</b> salah hanya ketika p benar dan q salah.</li><li><b>Biimplikasi (p ↔ q):</b> benar ketika nilai p dan q sama.</li></ul>\n<h4>3. Tabel Kebenaran</h4>\n<p>Untuk dua proposisi, terdapat empat kombinasi nilai: TT, TF, FT, dan FF. Tabel kebenaran membantu menentukan nilai gabungan secara sistematis.</p>\n</div>","example":"Misalkan p = “Siswa belajar” dan q = “Siswa lulus latihan”. Pernyataan p ∧ q hanya benar jika siswa belajar dan lulus latihan sama-sama benar. Untuk p → q, kondisi yang salah adalah ketika siswa belajar tetapi ternyata tidak lulus latihan.","quiz":[["Pernyataan yang dapat ditentukan benar atau salah disebut ...",["Algoritma","Proposisi","Variabel jaringan","Periferal"],1],["p ∧ q bernilai benar jika ...",["p atau q benar","p dan q keduanya benar","p dan q keduanya salah","p selalu salah"],1],["Implikasi p → q bernilai salah ketika ...",["p benar dan q salah","p salah dan q benar","p salah dan q salah","p benar dan q benar"],0]]},{"title":"Algoritma & Koding","desc":"Membangun pola pikir algoritmik melalui langkah terurut, pseudocode, dan pengenalan praktik koding.","objectives":["Menjelaskan karakteristik algoritma.","Menyusun langkah penyelesaian masalah secara terurut.","Menggunakan pseudocode sederhana.","Mengenali konsep input, proses, output, percabangan, dan perulangan."],"map":["Konsep algoritma","Urutan langkah","Pseudocode","Percabangan","Perulangan"],"content":"\n<div class=\"module-prose\">\n<h4>1. Algoritma</h4>\n<p>Algoritma merupakan langkah-langkah terstruktur untuk menyelesaikan masalah. Langkah harus jelas dan memiliki kondisi berhenti.</p>\n<h4>2. Input – Proses – Output</h4>\n<p>Program menerima input, melakukan proses, lalu menghasilkan output. Pola ini membantu merancang solusi sebelum menulis kode.</p>\n<h4>3. Pseudocode</h4>\n<p>Pseudocode menuliskan logika algoritma dengan bahasa sederhana agar mudah dipahami sebelum diterjemahkan ke bahasa pemrograman.</p>\n<h4>4. Percabangan</h4>\n<p>Percabangan memilih tindakan berdasarkan kondisi, misalnya jika nilai ≥ 75 maka status “Lulus”, jika tidak maka “Belum Lulus”.</p>\n<h4>5. Perulangan</h4>\n<p>Perulangan menjalankan langkah yang sama beberapa kali berdasarkan jumlah atau kondisi tertentu.</p>\n</div>","example":"Pseudocode menentukan kelulusan: INPUT nilai → IF nilai >= 75 THEN OUTPUT “Lulus” ELSE OUTPUT “Belum Lulus”. Struktur ini dapat diterjemahkan ke berbagai bahasa pemrograman.","quiz":[["Langkah terstruktur untuk menyelesaikan masalah disebut ...",["Algoritma","Wallpaper","Browser","Periferal"],0],["Struktur IF ... ELSE digunakan untuk ...",["Penyimpanan","Percabangan berdasarkan kondisi","Menggambar","Menghubungkan jaringan"],1],["Pseudocode digunakan terutama untuk ...",["Menuliskan logika sebelum implementasi kode","Mengganti RAM","Menghapus sistem operasi","Menghubungkan Wi-Fi"],0]]},{"title":"Literasi Digital","desc":"Menggunakan teknologi digital secara aman, etis, kritis, dan bertanggung jawab.","objectives":["Menjelaskan etika berkomunikasi di ruang digital.","Mengenali hoaks, disinformasi, dan informasi menyesatkan.","Menjaga keamanan akun dan data pribadi.","Memahami dampak jejak digital."],"map":["Etika digital","Keamanan akun","Hoaks & disinformasi","Jejak digital","Media sosial"],"content":"\n<div class=\"module-prose\">\n<h4>1. Etika Digital</h4>\n<p>Gunakan bahasa yang sopan, hormati orang lain, jangan menyebarkan konten yang merugikan, dan pertimbangkan dampak sebelum mengunggah sesuatu.</p>\n<h4>2. Keamanan Digital</h4>\n<p>Gunakan kata sandi unik dan kuat, aktifkan autentikasi tambahan bila tersedia, jangan membagikan kode verifikasi, serta waspadai phishing.</p>\n<h4>3. Hoaks dan Disinformasi</h4>\n<p>Periksa sumber, tanggal, konteks, bukti, dan bandingkan dengan sumber lain sebelum mempercayai atau membagikan informasi.</p>\n<h4>4. Jejak Digital</h4>\n<p>Aktivitas di internet dapat meninggalkan rekam digital. Unggahan, komentar, dan interaksi perlu dipikirkan karena dapat memengaruhi reputasi.</p>\n</div>","example":"Jika menerima pesan yang mengaku dari sekolah dan meminta password akun, jangan langsung mengikuti instruksi. Periksa sumber resmi sekolah dan jangan memberikan kredensial.","quiz":[["Tindakan yang tepat sebelum membagikan berita adalah ...",["Langsung membagikannya","Memeriksa sumber dan konteks","Menghapus nama pengirim","Mengubah judul"],1],["Kode OTP sebaiknya ...",["Dibagikan kepada teman","Diposting di media sosial","Dirahasiakan","Dikirim ke semua grup"],2],["Rekam aktivitas seseorang di ruang digital disebut ...",["Jejak digital","RAM","Algoritma","Bandwidth"],0]]},{"title":"AI & Teknologi","desc":"Mengenal kecerdasan buatan, contoh penerapan, manfaat, keterbatasan, dan penggunaan AI secara bijak.","objectives":["Menjelaskan pengertian dasar kecerdasan buatan.","Mengenali contoh penerapan AI dalam kehidupan.","Menilai manfaat dan keterbatasan keluaran AI.","Menggunakan AI secara etis untuk mendukung pembelajaran."],"map":["Pengertian AI","Contoh penerapan","Manfaat & keterbatasan","Etika AI","AI untuk belajar"],"content":"\n<div class=\"module-prose\">\n<h4>1. Pengertian AI</h4>\n<p>Kecerdasan buatan (AI) adalah bidang teknologi yang membuat sistem komputer mampu melakukan tugas yang biasanya membutuhkan kemampuan manusia, seperti mengenali pola, memahami bahasa, atau menghasilkan prediksi.</p>\n<h4>2. Contoh Penerapan</h4>\n<p>Contohnya adalah rekomendasi konten, pengenalan gambar, asisten virtual, penerjemahan, deteksi spam, dan sistem generatif.</p>\n<h4>3. Manfaat dan Keterbatasan</h4>\n<p>AI dapat membantu mencari ide, merangkum, menganalisis pola, dan mempercepat pekerjaan. Namun, hasil AI dapat keliru, tidak lengkap, atau tidak sesuai konteks sehingga perlu diverifikasi.</p>\n<h4>4. Etika Penggunaan</h4>\n<p>Gunakan AI sebagai alat bantu, bukan pengganti tanggung jawab belajar. Hindari memasukkan data pribadi atau rahasia dan periksa kembali hasil sebelum digunakan.</p>\n<h4>5. AI untuk Belajar</h4>\n<p>AI dapat digunakan untuk meminta penjelasan konsep, membuat contoh latihan, memberikan umpan balik, atau membantu menyusun ide belajar. Siswa tetap perlu memahami dan memeriksa hasilnya.</p>\n</div>","example":"Saat belajar proposisi, siswa dapat meminta AI memberikan beberapa contoh pernyataan untuk dianalisis. Setelah itu siswa sendiri menentukan apakah kalimat tersebut proposisi dan memeriksa alasan yang diberikan AI.","quiz":[["Hasil AI sebaiknya ...",["Selalu dianggap benar","Diverifikasi sebelum digunakan","Tidak boleh diperiksa","Langsung disalin"],1],["Salah satu pemanfaatan AI untuk belajar adalah ...",["Membantu menjelaskan konsep","Membagikan password","Menghapus data sekolah","Menghindari belajar"],0],["Data pribadi atau rahasia ketika menggunakan AI sebaiknya ...",["Dimasukkan sebanyak mungkin","Dibagikan ke publik","Dijaga dan tidak sembarangan dimasukkan","Diposting"],2]]}];
+function moduleList(items){
+  return items.map(x=>'<li class="flex gap-2"><span class="text-indigo-600 font-black">✓</span><span>'+x+'</span></li>').join('');
+}
+function openMateri(i){
+  const d=materiData[i];
+  if(!d)return;
+  document.getElementById('materiModalTitle').textContent=d.title;
+  document.getElementById('materiModalDesc').textContent=d.desc;
+  document.getElementById('materiModalObjectives').innerHTML=moduleList(d.objectives);
+  document.getElementById('materiModalMap').innerHTML=moduleList(d.map);
+  document.getElementById('materiModalContent').innerHTML=d.content;
+  document.getElementById('materiModalExample').innerHTML=d.example;
+  const m=document.getElementById('materiModal');
+  m.classList.remove('hidden');m.classList.add('flex');
+  document.body.classList.add('overflow-hidden');
+  window.currentMateriIndex=i;
+  renderQuiz();
+  showModuleTab('tujuan');
+}
+let currentMateriIndex=0;
+let quizAnswers=[];
+function showModuleTab(tab){
+  document.querySelectorAll('.module-pane').forEach(x=>x.classList.add('hidden'));
+  document.getElementById('module-tab-'+tab)?.classList.remove('hidden');
+  document.querySelectorAll('.module-tab').forEach(x=>x.classList.toggle('active',x.dataset.tab===tab));
+}
+function renderQuiz(){
+  const d=materiData[currentMateriIndex];
+  quizAnswers=new Array(d.quiz.length).fill(null);
+  const box=document.getElementById('materiQuiz');
+  box.innerHTML=d.quiz.map((q,qi)=>`
+    <div class="bg-white rounded-2xl border border-slate-200 p-4">
+      <p class="font-black text-sm">${qi+1}. ${q[0]}</p>
+      <div class="grid sm:grid-cols-2 gap-2 mt-3">
+        ${q[1].map((opt,oi)=>`<button class="quiz-option" onclick="answerQuiz(${qi},${oi},this)">${String.fromCharCode(65+oi)}. ${opt}</button>`).join('')}
+      </div>
+      <p id="quizFeedback${qi}" class="text-xs font-bold mt-3"></p>
+    </div>`).join('');
+  document.getElementById('quizScore').textContent='';
+}
+function answerQuiz(qi,oi,btn){
+  const d=materiData[currentMateriIndex];
+  if(quizAnswers[qi]!==null)return;
+  quizAnswers[qi]=oi;
+  const correct=d.quiz[qi][2];
+  const parent=btn.parentElement;
+  [...parent.children].forEach(b=>b.disabled=true);
+  if(oi===correct){
+    btn.classList.add('correct');
+    document.getElementById('quizFeedback'+qi).textContent='✅ Benar!';
+  }else{
+    btn.classList.add('wrong');
+    parent.children[correct].classList.add('correct');
+    document.getElementById('quizFeedback'+qi).textContent='❌ Belum tepat. Jawaban benar: '+String.fromCharCode(65+correct)+'.';
+  }
+  if(quizAnswers.every(x=>x!==null)){
+    const score=quizAnswers.reduce((n,a,i)=>n+(a===d.quiz[i][2]?1:0),0);
+    document.getElementById('quizScore').textContent='Skor: '+score+'/'+d.quiz.length+' ('+Math.round(score/d.quiz.length*100)+')';
+  }
+}
+function resetQuiz(){renderQuiz();}
+function closeMateri(){
+  const m=document.getElementById('materiModal');
+  m.classList.add('hidden');m.classList.remove('flex');
+  document.body.classList.remove('overflow-hidden');
+}
 document.addEventListener('keydown',e=>{if(e.key==='Escape')closeMateri();});
 
 function showPage(page){
