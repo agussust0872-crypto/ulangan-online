@@ -1,0 +1,300 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="description" content="Portal Informatika STEMGA Kelas X - SMK Muhammadiyah 3 Klaten Utara. Materi, media belajar, game edukasi, CBT, bank soal, download, dan informasi.">
+<meta name="keywords" content="Informatika STEMGA, CBT STEMGA, SMK Muhammadiyah 3 Klaten Utara, Informatika Kelas X">
+<link rel="canonical" href="https://stemga.xyz/">
+<title>Informatika STEMGA | Kelas X</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+<style>
+*{scroll-behavior:smooth}body{font-family:Inter,Arial,sans-serif}
+.hero{background:linear-gradient(90deg,rgba(15,23,42,.95),rgba(30,27,75,.72),rgba(30,27,75,.25))}
+.ticker{overflow:hidden;white-space:nowrap}.ticker span{display:inline-block;padding-left:100%;animation:t 28s linear infinite}
+@keyframes t{to{transform:translateX(-100%)}}.card{transition:.25s}.card:hover{transform:translateY(-5px);box-shadow:0 18px 40px #0f172a18}
+</style>
+
+<style id="stemga-page-fix">
+.page-section{display:none!important}
+.page-section.page-show{display:block!important}
+#beranda-info.page-show{display:block!important}
+.home-bg{
+  position:relative;
+  background-image:linear-gradient(rgba(8,30,48,.52),rgba(8,30,48,.66)),url('gedung-smk.jpg');
+  background-size:cover;
+  background-position:center 58%;
+  background-attachment:fixed;
+  min-height:calc(100vh - 125px);
+  padding-bottom:45px;
+}
+.home-content{
+  position:relative;
+  z-index:1;
+}
+.home-panel{
+  background:rgba(255,255,255,.94);
+  backdrop-filter:blur(5px);
+}
+</style>
+
+
+<style id="stemga-flyer-slider">
+.stemga-flyer-slider{position:relative;overflow:hidden;border-radius:24px;min-height:330px;background:#102a43;box-shadow:0 14px 35px rgba(16,42,67,.18)}
+.stemga-flyer-slide{position:absolute;inset:0;opacity:0;visibility:hidden;transition:opacity .5s ease}
+.stemga-flyer-slide.active{opacity:1;visibility:visible}
+.stemga-flyer-content{position:absolute;inset:0;display:flex;align-items:flex-end;padding:28px;color:#fff;background:linear-gradient(0deg,rgba(8,30,48,.92),rgba(8,30,48,.08) 70%)}
+.stemga-flyer-content h3{font-size:28px;font-weight:900;margin:4px 0}
+.stemga-flyer-content p{font-size:12px;color:#dbeafe;margin:0}
+.stemga-flyer-tag{font-size:10px;font-weight:900;letter-spacing:1.2px;text-transform:uppercase;color:#d9f99d}
+.stemga-flyer-arrow{position:absolute;z-index:5;top:50%;transform:translateY(-50%);width:40px;height:40px;border:1px solid rgba(255,255,255,.55);border-radius:50%;background:rgba(16,42,67,.62);color:#fff;cursor:pointer;font-size:24px;line-height:1}
+.stemga-flyer-arrow:hover{background:#16805c}
+.stemga-flyer-prev{left:14px}.stemga-flyer-next{right:14px}
+.stemga-flyer-dots{position:absolute;z-index:6;right:20px;bottom:18px;display:flex;gap:6px}
+.stemga-flyer-dot{width:8px;height:8px;border:0;border-radius:50%;background:rgba(255,255,255,.55);cursor:pointer;padding:0}
+.stemga-flyer-dot.active{width:24px;border-radius:8px;background:#d9f99d}
+@media(max-width:560px){.stemga-flyer-slider{min-height:290px}.stemga-flyer-content{padding:20px}.stemga-flyer-content h3{font-size:23px}}
+</style>
+
+</head>
+<body class="bg-slate-50 text-slate-800">
+
+<header class="sticky top-0 z-50 bg-slate-950/95 text-white border-b border-white/10">
+<div class="max-w-7xl mx-auto px-4">
+<div class="h-16 flex items-center justify-between">
+<a href="#beranda" onclick="showPage('home')" class="flex items-center gap-3">
+<div class="w-11 h-11 rounded-xl bg-white overflow-hidden flex items-center justify-center">
+<img src="logo-stemga.png" alt="Logo SMK Muhammadiyah 3 Klaten Utara" class="w-full h-full object-contain" onerror="this.style.display='none'">
+</div>
+<div><b>INFORMATIKA STEMGA</b><small class="block text-[10px] text-indigo-300">KELAS X • SMK MUHAMMADIYAH 3 KLATEN UTARA</small></div>
+</a>
+<nav class="hidden lg:flex items-center gap-2 text-sm font-bold">
+<a href="#beranda" onclick="showPage('home')" class="px-3 py-2 rounded-xl border border-white/25 text-white hover:bg-white hover:text-indigo-900 transition">Beranda</a>
+<a href="#materi" onclick="showPage('materi')" class="px-3 py-2 rounded-xl border border-white/25 text-white hover:bg-white hover:text-indigo-900 transition">Materi</a>
+<a href="#media" onclick="showPage('media')" class="px-3 py-2 rounded-xl border border-white/25 text-white hover:bg-white hover:text-indigo-900 transition">Media Belajar</a>
+<a href="#game" onclick="showPage('game')" class="px-3 py-2 rounded-xl border border-white/25 text-white hover:bg-white hover:text-indigo-900 transition">Game Edukasi</a>
+<a href="#cbt" onclick="showPage('cbt')" class="px-3 py-2 rounded-xl border border-white/25 text-white hover:bg-white hover:text-indigo-900 transition">CBT</a>
+<a href="#bank-soal" onclick="showPage('bank-soal')" class="px-3 py-2 rounded-xl border border-white/25 text-white hover:bg-white hover:text-indigo-900 transition">Bank Soal</a>
+<a href="#download" onclick="showPage('download')" class="px-3 py-2 rounded-xl border border-white/25 text-white hover:bg-white hover:text-indigo-900 transition">Download</a>
+<a href="#tentang" onclick="showPage('tentang')" class="px-3 py-2 rounded-xl border border-white/25 text-white hover:bg-white hover:text-indigo-900 transition">Tentang</a>
+</nav>
+<button onclick="m()" class="lg:hidden text-xl"><i class="fa-solid fa-bars"></i></button>
+</div>
+<nav id="mob" class="hidden lg:hidden grid grid-cols-2 gap-2 pb-4 text-sm font-bold">
+<a href="#beranda" onclick="showPage('home')" class="p-3 bg-white/10 border border-white/20 rounded-xl">Beranda</a><a href="#materi" onclick="showPage('materi')" class="p-3 bg-white/10 border border-white/20 rounded-xl">Materi</a>
+<a href="#media" onclick="showPage('media')" class="p-3 bg-white/10 border border-white/20 rounded-xl">Media Belajar</a><a href="#game" onclick="showPage('game')" class="p-3 bg-white/10 border border-white/20 rounded-xl">Game Edukasi</a>
+<a href="#cbt" onclick="showPage('cbt')" class="p-3 bg-white/10 border border-white/20 rounded-xl">CBT</a><a href="#bank-soal" onclick="showPage('bank-soal')" class="p-3 bg-white/10 border border-white/20 rounded-xl">Bank Soal</a>
+<a href="#download" onclick="showPage('download')" class="p-3 bg-white/10 border border-white/20 rounded-xl">Download</a><a href="#tentang" onclick="showPage('tentang')" class="p-3 bg-white/10 border border-white/20 rounded-xl">Tentang</a>
+</nav>
+</div></header>
+
+<div class="ticker bg-indigo-600 text-white text-xs sm:text-sm font-bold py-2.5"><span>🔔 INFO STEMGA • Selamat datang di Portal Informatika STEMGA Kelas X • 📢 Informasi pembelajaran, tugas, ujian dan kegiatan • 💻 Belajar • Berlatih • Berkarya • Berprestasi</span></div>
+
+
+
+<div id="home-page" data-page="home" class="page-section page-show home-bg"><section id="beranda-info" class="home-content max-w-7xl mx-auto px-4 py-12">
+<div class="grid lg:grid-cols-3 gap-8">
+<div class="lg:col-span-2">
+<p class="text-indigo-600 text-xs font-black uppercase tracking-widest">Update News</p>
+<h2 class="text-3xl font-black mt-2">Berita dan Info Terbaru</h2>
+<div class="grid md:grid-cols-2 gap-5 mt-7">
+<article class="card bg-white rounded-3xl border border-slate-200 overflow-hidden">
+<div class="h-40 bg-gradient-to-br from-indigo-700 to-slate-950 flex items-center justify-center text-white">
+<i class="fa-solid fa-bullhorn text-5xl"></i>
+</div>
+<div class="p-5">
+<span class="text-[10px] font-black text-indigo-600 uppercase">Update New</span>
+<h3 class="font-black text-lg mt-2">Update New</h3>
+<p class="text-xs text-slate-500 mt-2">Informasi terbaru pembelajaran Informatika STEMGA akan ditampilkan di sini.</p>
+<button class="mt-4 text-xs font-black text-indigo-600">Baca selengkapnya →</button>
+</div>
+</article>
+<article class="card bg-white rounded-3xl border border-slate-200 overflow-hidden">
+<div class="h-40 bg-gradient-to-br from-emerald-600 to-slate-950 flex items-center justify-center text-white">
+<i class="fa-solid fa-calendar-days text-5xl"></i>
+</div>
+<div class="p-5">
+<span class="text-[10px] font-black text-emerald-600 uppercase">Agenda</span>
+<h3 class="font-black text-lg mt-2">Agenda Informatika</h3>
+<p class="text-xs text-slate-500 mt-2">Jadwal, tugas, kegiatan, dan pengumuman untuk siswa Kelas X.</p>
+<button class="mt-4 text-xs font-black text-indigo-600">Lihat agenda →</button>
+</div>
+</article>
+</div>
+</div>
+<div>
+<p class="text-indigo-600 text-xs font-black uppercase tracking-widest">Informasi Umum</p>
+<h2 class="text-3xl font-black mt-2">Flyer & Pengumuman</h2>
+
+<div class="mt-7 stemga-flyer-slider" id="stemgaFlyerSlider">
+  <div class="stemga-flyer-slide active">
+    <div style="position:absolute;inset:0;background:linear-gradient(135deg,#102a43,#16805c)"></div>
+    <div class="stemga-flyer-content">
+      <div><div class="stemga-flyer-tag">Flyer & Pengumuman</div><h3>Stemga Action</h3><p>Ruang flyer kegiatan dan pengumuman STEMGA.</p></div>
+    </div>
+  </div>
+  <div class="stemga-flyer-slide">
+    <div style="position:absolute;inset:0;background:linear-gradient(135deg,#155e75,#1d4ed8)"></div>
+    <div class="stemga-flyer-content">
+      <div><div class="stemga-flyer-tag">Informasi Kegiatan</div><h3>Flyer Kegiatan STEMGA</h3><p>Flyer kegiatan sekolah dapat ditampilkan di sini.</p></div>
+    </div>
+  </div>
+  <div class="stemga-flyer-slide">
+    <div style="position:absolute;inset:0;background:linear-gradient(135deg,#16805c,#102a43)"></div>
+    <div class="stemga-flyer-content">
+      <div><div class="stemga-flyer-tag">Pengumuman</div><h3>Informasi Terbaru</h3><p>Pengumuman umum sekolah dapat ditampilkan di sini.</p></div>
+    </div>
+  </div>
+
+  <button class="stemga-flyer-arrow stemga-flyer-prev" type="button" onclick="stemgaFlyerMove(-1)" aria-label="Flyer sebelumnya">‹</button>
+  <button class="stemga-flyer-arrow stemga-flyer-next" type="button" onclick="stemgaFlyerMove(1)" aria-label="Flyer berikutnya">›</button>
+
+  <div class="stemga-flyer-dots">
+    <button class="stemga-flyer-dot active" type="button" onclick="stemgaFlyerGo(0)" aria-label="Flyer 1"></button>
+    <button class="stemga-flyer-dot" type="button" onclick="stemgaFlyerGo(1)" aria-label="Flyer 2"></button>
+    <button class="stemga-flyer-dot" type="button" onclick="stemgaFlyerGo(2)" aria-label="Flyer 3"></button>
+  </div>
+</div>
+
+</div>
+</div>
+</section>
+
+</section></div>
+
+<section id="materi" data-page="materi" class="page-section hidden bg-white border-y"><div class="max-w-7xl mx-auto px-4 py-16"><p class="text-indigo-600 text-xs font-black uppercase">Pembelajaran</p><h2 class="text-3xl font-black mt-2">Materi Informatika Kelas X</h2>
+<div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-8">
+<div class="card p-5 rounded-3xl bg-slate-50 border"><i class="fa-solid fa-brain text-indigo-600 text-2xl"></i><h3 class="font-black mt-4">Berpikir Komputasional</h3><p class="text-xs text-slate-500 mt-2">Dekomposisi, pola, abstraksi, algoritma dan pemecahan masalah.</p></div>
+<div class="card p-5 rounded-3xl bg-slate-50 border"><i class="fa-solid fa-microchip text-indigo-600 text-2xl"></i><h3 class="font-black mt-4">Sistem Komputer</h3><p class="text-xs text-slate-500 mt-2">CPU, memori, penyimpanan, periferal dan hubungan antarkomponen.</p></div>
+<div class="card p-5 rounded-3xl bg-slate-50 border"><i class="fa-solid fa-calculator text-indigo-600 text-2xl"></i><h3 class="font-black mt-4">Sistem Bilangan</h3><p class="text-xs text-slate-500 mt-2">Desimal, biner, oktal, heksadesimal dan konversinya.</p></div>
+<div class="card p-5 rounded-3xl bg-slate-50 border"><i class="fa-solid fa-network-wired text-indigo-600 text-2xl"></i><h3 class="font-black mt-4">Jaringan & Internet</h3><p class="text-xs text-slate-500 mt-2">Konsep jaringan, perangkat, internet dan komunikasi data.</p></div>
+<div class="card p-5 rounded-3xl bg-slate-50 border"><i class="fa-solid fa-circle-check text-indigo-600 text-2xl"></i><h3 class="font-black mt-4">Proposisi & Logika</h3><p class="text-xs text-slate-500 mt-2">Proposisi, operator logika dan tabel kebenaran.</p></div>
+<div class="card p-5 rounded-3xl bg-slate-50 border"><i class="fa-solid fa-code text-indigo-600 text-2xl"></i><h3 class="font-black mt-4">Algoritma & Koding</h3><p class="text-xs text-slate-500 mt-2">Algoritma dasar, pola pikir pemrograman dan praktik koding.</p></div>
+<div class="card p-5 rounded-3xl bg-slate-50 border"><i class="fa-solid fa-shield-halved text-indigo-600 text-2xl"></i><h3 class="font-black mt-4">Literasi Digital</h3><p class="text-xs text-slate-500 mt-2">Etika digital, keamanan, hoaks dan jejak digital.</p></div>
+<div class="card p-5 rounded-3xl bg-slate-50 border"><i class="fa-solid fa-robot text-indigo-600 text-2xl"></i><h3 class="font-black mt-4">AI & Teknologi</h3><p class="text-xs text-slate-500 mt-2">Pengenalan kecerdasan buatan dan pemanfaatan teknologi secara bijak.</p></div></div></div></section>
+
+<section id="media" data-page="media" class="page-section hidden max-w-7xl mx-auto px-4 py-16"><p class="text-indigo-600 text-xs font-black uppercase">Visual Learning</p><h2 class="text-3xl font-black mt-2">Media Belajar</h2>
+<div class="grid md:grid-cols-3 gap-5 mt-8"><div class="card bg-white rounded-3xl border p-6"><i class="fa-solid fa-video text-rose-600 text-3xl"></i><h3 class="font-black mt-5">Video Pembelajaran</h3><p class="text-xs text-slate-500 mt-2">Video pembelajaran Informatika Kelas X.</p><span class="block mt-5 text-xs font-black text-indigo-600">Segera Hadir →</span></div>
+<div class="card bg-white rounded-3xl border p-6"><i class="fa-solid fa-diagram-project text-indigo-600 text-3xl"></i><h3 class="font-black mt-5">Simulasi & Visualisasi</h3><p class="text-xs text-slate-500 mt-2">Media interaktif untuk memahami konsep Informatika.</p><span class="block mt-5 text-xs font-black text-indigo-600">Segera Hadir →</span></div>
+<div class="card bg-white rounded-3xl border p-6"><i class="fa-solid fa-file-lines text-emerald-600 text-3xl"></i><h3 class="font-black mt-5">LKPD Digital</h3><p class="text-xs text-slate-500 mt-2">Lembar kerja dan aktivitas pembelajaran digital.</p><span class="block mt-5 text-xs font-black text-indigo-600">Segera Hadir →</span></div></div></section>
+
+<section id="game" data-page="game" class="page-section hidden bg-slate-950 text-white"><div class="max-w-7xl mx-auto px-4 py-16"><p class="text-indigo-400 text-xs font-black uppercase">Fun Learning</p><h2 class="text-3xl font-black mt-2">Game Edukasi</h2>
+<div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-8"><div class="card bg-white/5 border border-white/10 rounded-3xl p-6"><i class="fa-solid fa-brain text-3xl"></i><h3 class="font-black mt-4">Computational Challenge</h3><p class="text-xs text-slate-400 mt-2">Tantangan berpikir komputasional.</p></div>
+<div class="card bg-white/5 border border-white/10 rounded-3xl p-6"><i class="fa-solid fa-calculator text-3xl"></i><h3 class="font-black mt-4">Number Battle</h3><p class="text-xs text-slate-400 mt-2">Game konversi sistem bilangan.</p></div>
+<div class="card bg-white/5 border border-white/10 rounded-3xl p-6"><i class="fa-solid fa-circle-half-stroke text-3xl"></i><h3 class="font-black mt-4">Logic Battle</h3><p class="text-xs text-slate-400 mt-2">Game proposisi dan tabel kebenaran.</p></div>
+<div class="card bg-white/5 border border-white/10 rounded-3xl p-6"><i class="fa-solid fa-microchip text-3xl"></i><h3 class="font-black mt-4">Computer Quest</h3><p class="text-xs text-slate-400 mt-2">Tebak komponen dan fungsi komputer.</p></div></div></div></section>
+
+<section id="cbt" data-page="cbt" class="page-section hidden max-w-7xl mx-auto px-4 py-16"><div class="bg-gradient-to-br from-indigo-700 to-slate-950 rounded-[2rem] p-8 sm:p-12 text-white"><span class="bg-white/10 px-3 py-1 rounded-full text-[10px] font-black">CBT STEMGA</span><h2 class="text-4xl font-black mt-5">Computer Based Test</h2><p class="text-indigo-200 text-sm mt-4 max-w-2xl">Sistem ujian online STEMGA dengan login siswa dan guru, timer, pengacakan opsi, monitoring realtime, grading dan rekap nilai.</p><a href="cbt.html" class="inline-block mt-7 bg-white text-indigo-800 px-5 py-3 rounded-2xl font-black">📝 Buka CBT STEMGA</a></div></section>
+
+<section id="bank-soal" data-page="bank-soal" class="page-section hidden bg-white border-y"><div class="max-w-7xl mx-auto px-4 py-16"><p class="text-indigo-600 text-xs font-black uppercase">Practice</p><h2 class="text-3xl font-black mt-2">Bank Soal</h2><div class="grid md:grid-cols-3 gap-5 mt-8"><div class="card rounded-3xl border p-6"><i class="fa-solid fa-brain text-2xl"></i><h3 class="font-black mt-4">Berpikir Komputasional</h3><p class="text-xs text-slate-500 mt-2">Latihan dekomposisi, pola, abstraksi dan algoritma.</p><span class="block mt-4 text-xs text-indigo-600 font-black">Latihan segera hadir →</span></div>
+<div class="card rounded-3xl border p-6"><i class="fa-solid fa-equals text-2xl"></i><h3 class="font-black mt-4">Proposisi & Tabel Kebenaran</h3><p class="text-xs text-slate-500 mt-2">Latihan logika dan operator proposisi.</p><span class="block mt-4 text-xs text-indigo-600 font-black">Latihan segera hadir →</span></div>
+<div class="card rounded-3xl border p-6"><i class="fa-solid fa-arrow-right-arrow-left text-2xl"></i><h3 class="font-black mt-4">Konversi Bilangan</h3><p class="text-xs text-slate-500 mt-2">Latihan desimal, biner, oktal dan heksadesimal.</p><span class="block mt-4 text-xs text-indigo-600 font-black">Latihan segera hadir →</span></div></div></div></section>
+
+<section id="download" data-page="download" class="page-section hidden max-w-7xl mx-auto px-4 py-16"><p class="text-indigo-600 text-xs font-black uppercase">Resources</p><h2 class="text-3xl font-black mt-2">Download</h2><div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-8"><div class="bg-white border rounded-3xl p-5"><i class="fa-solid fa-file-pdf text-2xl"></i><h3 class="font-black mt-4">Modul Pembelajaran</h3><p class="text-xs text-slate-500 mt-2">PDF materi Informatika.</p><span class="block mt-4 text-xs text-slate-400 font-bold">Segera tersedia</span></div>
+<div class="bg-white border rounded-3xl p-5"><i class="fa-solid fa-clipboard-list text-2xl"></i><h3 class="font-black mt-4">LKPD</h3><p class="text-xs text-slate-500 mt-2">Lembar kerja peserta didik.</p><span class="block mt-4 text-xs text-slate-400 font-bold">Segera tersedia</span></div>
+<div class="bg-white border rounded-3xl p-5"><i class="fa-solid fa-file-powerpoint text-2xl"></i><h3 class="font-black mt-4">Presentasi</h3><p class="text-xs text-slate-500 mt-2">Bahan presentasi pembelajaran.</p><span class="block mt-4 text-xs text-slate-400 font-bold">Segera tersedia</span></div>
+<div class="bg-white border rounded-3xl p-5"><i class="fa-solid fa-folder-open text-2xl"></i><h3 class="font-black mt-4">File Pembelajaran</h3><p class="text-xs text-slate-500 mt-2">Kumpulan file pendukung.</p><span class="block mt-4 text-xs text-slate-400 font-bold">Segera tersedia</span></div></div></section>
+
+<section id="tentang" data-page="tentang" class="page-section hidden bg-slate-900 text-white"><div class="max-w-7xl mx-auto px-4 py-16"><div class="grid md:grid-cols-2 gap-10"><div><p class="text-indigo-400 text-xs font-black uppercase">Tentang</p><h2 class="text-3xl font-black mt-2">Informatika STEMGA</h2><p class="text-slate-300 text-sm leading-relaxed mt-5">Portal pembelajaran Informatika khusus Kelas X SMK Muhammadiyah 3 Klaten Utara untuk materi, media belajar, game edukasi, latihan, CBT dan sumber belajar digital.</p></div><div class="grid grid-cols-2 gap-3"><div class="bg-white/5 border border-white/10 rounded-2xl p-5"><i class="fa-solid fa-book-open"></i><div class="font-black mt-3">Belajar</div></div>
+<div class="bg-white/5 border border-white/10 rounded-2xl p-5"><i class="fa-solid fa-gamepad"></i><div class="font-black mt-3">Berlatih</div></div>
+<div class="bg-white/5 border border-white/10 rounded-2xl p-5"><i class="fa-solid fa-lightbulb"></i><div class="font-black mt-3">Berkarya</div></div>
+<div class="bg-white/5 border border-white/10 rounded-2xl p-5"><i class="fa-solid fa-trophy"></i><div class="font-black mt-3">Berprestasi</div></div></div></div></div></section>
+
+
+<!-- ================= CHATBOT ================= -->
+<div id="chatbot" class="fixed bottom-5 right-5 z-[100]">
+<button onclick="toggleChat()" class="w-14 h-14 rounded-full bg-indigo-700 text-white shadow-2xl border-4 border-white flex items-center justify-center text-xl hover:scale-105 transition" title="Chatbot Informatika STEMGA">
+<i class="fa-solid fa-robot"></i>
+</button>
+
+<div id="chatBox" class="hidden absolute bottom-16 right-0 w-[320px] max-w-[calc(100vw-32px)] bg-white rounded-3xl shadow-2xl border border-slate-200 overflow-hidden">
+<div class="bg-indigo-700 text-white p-4 flex items-center gap-3">
+<div class="w-10 h-10 rounded-full bg-white/15 flex items-center justify-center"><i class="fa-solid fa-robot"></i></div>
+<div><b class="block">Chatbot STEMGA</b><small class="text-indigo-200">Asisten Informatika Kelas X</small></div>
+</div>
+<div id="chatMessages" class="h-64 overflow-y-auto p-4 space-y-3 text-xs">
+<div class="bg-slate-100 rounded-2xl rounded-tl-sm p-3">Halo 👋 Saya Chatbot STEMGA. Ada yang ingin ditanyakan tentang Informatika?</div>
+</div>
+<div class="p-3 border-t flex gap-2">
+<input id="chatInput" onkeydown="if(event.key==='Enter')sendChat()" class="flex-1 min-w-0 border rounded-xl px-3 py-2 text-xs outline-none focus:ring-2 focus:ring-indigo-200" placeholder="Tulis pertanyaan...">
+<button onclick="sendChat()" class="w-10 rounded-xl bg-indigo-700 text-white"><i class="fa-solid fa-paper-plane"></i></button>
+</div>
+</div>
+</div>
+<footer class="bg-slate-950 text-slate-400"><div class="max-w-7xl mx-auto px-4 py-8 flex flex-col md:flex-row justify-between gap-4"><div><b class="text-white">INFORMATIKA STEMGA</b><div class="text-xs mt-1">Portal Pembelajaran Informatika Kelas X</div><div class="text-xs">SMK Muhammadiyah 3 Klaten Utara</div></div><div class="text-xs md:text-right">© <span id="y"></span> Informatika STEMGA<br>Belajar • Berlatih • Berkarya • Berprestasi</div></div></footer>
+<script>
+function m(){document.getElementById('mob').classList.toggle('hidden')}
+
+function showPage(page){
+    document.querySelectorAll('.page-section').forEach(el=>{
+        el.classList.remove('page-show');
+    });
+    const target = document.querySelector('.page-section[data-page="'+page+'"]');
+    if(target){
+        target.classList.add('page-show');
+    }
+    document.querySelectorAll('.nav a').forEach(a=>a.classList.remove('active'));
+    const active = document.querySelector('.nav a[href="#'+(page==='home'?'beranda':page)+'"]');
+    if(active) active.classList.add('active');
+    document.getElementById('mob')?.classList.remove('open');
+}
+
+function toggleChat(){
+    document.getElementById('chatBox').classList.toggle('hidden');
+    setTimeout(()=>document.getElementById('chatInput')?.focus(),100);
+}
+
+function addChat(text, user=false){
+    const box=document.getElementById('chatMessages');
+    const el=document.createElement('div');
+    el.className=user
+        ? 'bg-indigo-600 text-white rounded-2xl rounded-tr-sm p-3 ml-8'
+        : 'bg-slate-100 rounded-2xl rounded-tl-sm p-3 mr-8';
+    el.textContent=text;
+    box.appendChild(el);
+    box.scrollTop=box.scrollHeight;
+}
+
+function chatbotReply(q){
+    q=q.toLowerCase();
+    if(q.includes('materi')) return 'Materi Informatika Kelas X tersedia di menu Materi. Topiknya antara lain berpikir komputasional, sistem komputer, sistem bilangan, jaringan, proposisi, algoritma, literasi digital, dan AI.';
+    if(q.includes('cbt')||q.includes('ujian')) return 'Untuk mengikuti ujian, pilih menu CBT lalu klik Buka CBT STEMGA.';
+    if(q.includes('game')) return 'Game Edukasi berisi tantangan Informatika seperti Logic Battle, Number Battle, Computational Challenge, dan Computer Quest.';
+    if(q.includes('soal')) return 'Bank Soal berisi latihan berpikir komputasional, proposisi & tabel kebenaran, serta konversi bilangan.';
+    if(q.includes('download')) return 'Menu Download disiapkan untuk modul, LKPD, presentasi, dan file pembelajaran.';
+    if(q.includes('halo')||q.includes('hai')) return 'Halo juga bos 😄 Selamat datang di Informatika STEMGA!';
+    return 'Saya bisa membantu tentang Materi, Media Belajar, Game Edukasi, CBT, Bank Soal, dan Download. Coba tanyakan salah satunya ya.';
+}
+
+function sendChat(){
+    const input=document.getElementById('chatInput');
+    const q=input.value.trim();
+    if(!q)return;
+    addChat(q,true); input.value='';
+    setTimeout(()=>addChat(chatbotReply(q)),350);
+}
+
+document.getElementById('y').textContent=new Date().getFullYear();
+showPage('home');
+</script>
+
+<script id="stemga-flyer-slider-js">
+let stemgaFlyerIndex=0;
+let stemgaFlyerTimer=null;
+
+function stemgaFlyerGo(n){
+  const slides=document.querySelectorAll('#stemgaFlyerSlider .stemga-flyer-slide');
+  const dots=document.querySelectorAll('#stemgaFlyerSlider .stemga-flyer-dot');
+  if(!slides.length)return;
+  stemgaFlyerIndex=(n+slides.length)%slides.length;
+  slides.forEach((s,i)=>s.classList.toggle('active',i===stemgaFlyerIndex));
+  dots.forEach((d,i)=>d.classList.toggle('active',i===stemgaFlyerIndex));
+  clearInterval(stemgaFlyerTimer);
+  stemgaFlyerTimer=setInterval(()=>stemgaFlyerGo(stemgaFlyerIndex+1),5000);
+}
+function stemgaFlyerMove(step){stemgaFlyerGo(stemgaFlyerIndex+step);}
+stemgaFlyerTimer=setInterval(()=>stemgaFlyerGo(stemgaFlyerIndex+1),5000);
+</script>
+
+</body></html>
