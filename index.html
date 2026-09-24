@@ -14,6 +14,47 @@
 .hero{background:linear-gradient(90deg,rgba(15,23,42,.95),rgba(30,27,75,.72),rgba(30,27,75,.25))}
 .ticker{display:flex;align-items:center;gap:12px;min-height:42px}.ticker-track{flex:1;min-width:0;overflow:hidden;white-space:nowrap}.ticker-track span{display:inline-block;padding-left:100%;animation:t 28s linear infinite}.stemga-clock{flex:none;display:flex;align-items:center;gap:8px;padding:6px 14px;border-left:1px solid rgba(255,255,255,.25);font-size:12px;font-weight:900;white-space:nowrap}.stemga-clock .time{font-size:15px;letter-spacing:.5px}.stemga-clock .date{opacity:.9;font-weight:700}@media(max-width:640px){.ticker{gap:6px}.stemga-clock{padding:5px 8px}.stemga-clock .date{display:none}.stemga-clock .time{font-size:13px}}
 @keyframes t{to{transform:translateX(-100%)}}.card{transition:.25s}.card:hover{transform:translateY(-5px);box-shadow:0 18px 40px #0f172a18}
+
+/* ===== STEMGA DIGITAL LIBRARY / DOWNLOAD ===== */
+#download .download-library-header{
+  background:linear-gradient(135deg,#111827 0%,#312e81 58%,#4f46e5 100%);
+  border-radius:28px;padding:28px;color:#fff;box-shadow:0 18px 45px rgba(30,27,75,.18);
+}
+#download .download-library-header .eyebrow{color:#c7d2fe;font-size:11px;font-weight:900;letter-spacing:.16em;text-transform:uppercase}
+#download .download-library-header h2{color:#fff}
+#download .download-library-header p{color:#e0e7ff}
+#download .download-library-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:22px;margin-top:24px}
+#download .download-book-card{
+  position:relative;overflow:hidden;background:linear-gradient(180deg,#fff 0%,#f8fafc 100%);
+  border:1px solid #e2e8f0;border-radius:28px;box-shadow:0 12px 35px rgba(15,23,42,.08);
+  transition:transform .25s ease,box-shadow .25s ease,border-color .25s ease;
+}
+#download .download-book-card:hover{transform:translateY(-6px);box-shadow:0 22px 50px rgba(15,23,42,.13);border-color:#a5b4fc}
+#download .download-book-cover{
+  min-height:150px;padding:25px;display:flex;align-items:flex-end;
+  background:radial-gradient(circle at 82% 20%,rgba(255,255,255,.25),transparent 32%),linear-gradient(135deg,#312e81,#4f46e5 62%,#7c3aed);
+  color:#fff;position:relative;
+}
+#download .download-book-cover:before{content:"📘";position:absolute;right:24px;top:18px;font-size:54px;opacity:.18}
+#download .download-book-cover .badge{display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.25);padding:6px 10px;border-radius:999px;font-size:10px;font-weight:900}
+#download .download-book-body{padding:22px}
+#download .download-book-body h3{font-size:20px;line-height:1.25;color:#0f172a;font-weight:950}
+#download .download-book-body .desc{font-size:13px;line-height:1.7;color:#64748b;margin-top:10px}
+#download .download-book-body .content{font-size:12px;line-height:1.65;color:#475569;margin-top:14px;padding:14px;border-radius:18px;background:#f8fafc;border:1px solid #e2e8f0}
+#download .download-book-body .content h3,#download .download-book-body .content h4{font-size:13px;margin:0 0 8px;color:#1e1b4b}
+#download .download-book-body .content ul{padding-left:18px;margin:8px 0}
+#download .download-book-body .content li{margin:3px 0}
+#download .download-meta{display:flex;flex-wrap:wrap;gap:7px;margin-top:14px}
+#download .download-meta span{font-size:10px;font-weight:900;color:#4338ca;background:#eef2ff;border:1px solid #c7d2fe;border-radius:999px;padding:6px 9px}
+#download .download-actions{display:flex;gap:9px;flex-wrap:wrap;margin-top:18px}
+#download .download-actions a{display:inline-flex;align-items:center;justify-content:center;gap:7px;padding:10px 13px;border-radius:12px;font-size:11px;font-weight:900;text-decoration:none;transition:.2s}
+#download .download-actions .open{background:#eef2ff;color:#3730a3;border:1px solid #c7d2fe}
+#download .download-actions .open:hover{background:#e0e7ff}
+#download .download-actions .download{background:#4f46e5;color:#fff;box-shadow:0 8px 18px rgba(79,70,229,.2)}
+#download .download-actions .download:hover{background:#4338ca}
+@media(max-width:900px){#download .download-library-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:640px){#download .download-library-grid{grid-template-columns:1fr}#download .download-library-header{padding:22px;border-radius:22px}}
+
 </style>
 
 <style id="stemga-top-nav-fix">
@@ -1179,7 +1220,41 @@ function escapeHtmlAttr(v){return escapeHtml(v)}
     const empty=box.querySelector('[data-portal-empty]');
     if(!data?.length){ grid.innerHTML=''; if(empty) empty.classList.remove('hidden'); return; }
     if(empty) empty.classList.add('hidden');
-    grid.innerHTML=data.map((r,i)=>`<article class="portal-dynamic-card">${r.image_url?`<img src="${escAttr(r.image_url)}" alt="${escAttr(r.title||'')}" class="portal-card-image" onerror="this.style.display='none'">`:''}<div class="portal-card-body"><h3>${esc(r.title||'')}</h3><p>${esc(r.description||'')}</p>${r.content_html?`<div class="portal-card-content">${r.content_html}</div>`:''}${r.link_url?`<a href="${escAttr(r.link_url)}" target="_blank" rel="noopener" class="portal-card-link">${menuKey==='download'?'⬇️ Download File':'Buka / Lihat →'}</a>`:''}</div></article>`).join('');
+
+    if(menuKey==='download'){
+      grid.className='download-library-grid';
+      if(!box.querySelector('.download-library-header')){
+        const intro=document.createElement('div');
+        intro.className='download-library-header';
+        intro.innerHTML='<div class="eyebrow">STEMGA DIGITAL LIBRARY</div><h2 class="text-2xl sm:text-3xl font-black mt-2">📚 Pusat Download & Sumber Belajar</h2><p class="text-sm mt-2 max-w-3xl">Modul, buku ajar, LKPD, presentasi, dan file pembelajaran yang diterbitkan Guru untuk peserta didik Kelas X.</p>';
+        box.querySelector('[data-portal-grid]').parentNode.insertBefore(intro,box.querySelector('[data-portal-grid]'));
+      }
+      grid.innerHTML=data.map((r,i)=>`<article class="download-book-card">
+        <div class="download-book-cover">
+          <div>
+            <span class="badge">📖 BUKU / FILE PEMBELAJARAN</span>
+            <div class="text-xl font-black mt-3">${esc(r.title||'File Pembelajaran')}</div>
+          </div>
+        </div>
+        <div class="download-book-body">
+          <h3>${esc(r.title||'File Pembelajaran')}</h3>
+          <p class="desc">${esc(r.description||'Sumber belajar yang diterbitkan Guru untuk peserta didik STEMGA.')}</p>
+          ${r.content_html?`<div class="content">${r.content_html}</div>`:''}
+          <div class="download-meta">
+            <span>📚 Informatika Kelas X</span>
+            <span>🏫 STEMGA</span>
+            ${r.link_url?'<span>📄 File tersedia</span>':''}
+          </div>
+          ${r.link_url?`<div class="download-actions">
+            <a href="${escAttr(r.link_url)}" target="_blank" rel="noopener" class="open">📖 Buka Buku</a>
+            <a href="${escAttr(r.link_url)}" target="_blank" rel="noopener" class="download">⬇️ Download File</a>
+          </div>`:''}
+        </div>
+      </article>`).join('');
+      return;
+    }
+
+    grid.innerHTML=data.map((r,i)=>`<article class="portal-dynamic-card">${r.image_url?`<img src="${escAttr(r.image_url)}" alt="${escAttr(r.title||'')}" class="portal-card-image" onerror="this.style.display='none'">`:''}<div class="portal-card-body"><h3>${esc(r.title||'')}</h3><p>${esc(r.description||'')}</p>${r.content_html?`<div class="portal-card-content">${r.content_html}</div>`:''}${r.link_url?`<a href="${escAttr(r.link_url)}" target="_blank" rel="noopener" class="portal-card-link">Buka / Lihat →</a>`:''}</div></article>`).join('');
   }
 
   async function loadPublicMateri(){
