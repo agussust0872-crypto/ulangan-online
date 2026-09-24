@@ -14,47 +14,6 @@
 .hero{background:linear-gradient(90deg,rgba(15,23,42,.95),rgba(30,27,75,.72),rgba(30,27,75,.25))}
 .ticker{display:flex;align-items:center;gap:12px;min-height:42px}.ticker-track{flex:1;min-width:0;overflow:hidden;white-space:nowrap}.ticker-track span{display:inline-block;padding-left:100%;animation:t 28s linear infinite}.stemga-clock{flex:none;display:flex;align-items:center;gap:8px;padding:6px 14px;border-left:1px solid rgba(255,255,255,.25);font-size:12px;font-weight:900;white-space:nowrap}.stemga-clock .time{font-size:15px;letter-spacing:.5px}.stemga-clock .date{opacity:.9;font-weight:700}@media(max-width:640px){.ticker{gap:6px}.stemga-clock{padding:5px 8px}.stemga-clock .date{display:none}.stemga-clock .time{font-size:13px}}
 @keyframes t{to{transform:translateX(-100%)}}.card{transition:.25s}.card:hover{transform:translateY(-5px);box-shadow:0 18px 40px #0f172a18}
-
-/* ===== STEMGA DIGITAL LIBRARY / DOWNLOAD ===== */
-#download .download-library-header{
-  background:linear-gradient(135deg,#111827 0%,#312e81 58%,#4f46e5 100%);
-  border-radius:28px;padding:28px;color:#fff;box-shadow:0 18px 45px rgba(30,27,75,.18);
-}
-#download .download-library-header .eyebrow{color:#c7d2fe;font-size:11px;font-weight:900;letter-spacing:.16em;text-transform:uppercase}
-#download .download-library-header h2{color:#fff}
-#download .download-library-header p{color:#e0e7ff}
-#download .download-library-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:22px;margin-top:24px}
-#download .download-book-card{
-  position:relative;overflow:hidden;background:linear-gradient(180deg,#fff 0%,#f8fafc 100%);
-  border:1px solid #e2e8f0;border-radius:28px;box-shadow:0 12px 35px rgba(15,23,42,.08);
-  transition:transform .25s ease,box-shadow .25s ease,border-color .25s ease;
-}
-#download .download-book-card:hover{transform:translateY(-6px);box-shadow:0 22px 50px rgba(15,23,42,.13);border-color:#a5b4fc}
-#download .download-book-cover{
-  min-height:150px;padding:25px;display:flex;align-items:flex-end;
-  background:radial-gradient(circle at 82% 20%,rgba(255,255,255,.25),transparent 32%),linear-gradient(135deg,#312e81,#4f46e5 62%,#7c3aed);
-  color:#fff;position:relative;
-}
-#download .download-book-cover:before{content:"📘";position:absolute;right:24px;top:18px;font-size:54px;opacity:.18}
-#download .download-book-cover .badge{display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.25);padding:6px 10px;border-radius:999px;font-size:10px;font-weight:900}
-#download .download-book-body{padding:22px}
-#download .download-book-body h3{font-size:20px;line-height:1.25;color:#0f172a;font-weight:950}
-#download .download-book-body .desc{font-size:13px;line-height:1.7;color:#64748b;margin-top:10px}
-#download .download-book-body .content{font-size:12px;line-height:1.65;color:#475569;margin-top:14px;padding:14px;border-radius:18px;background:#f8fafc;border:1px solid #e2e8f0}
-#download .download-book-body .content h3,#download .download-book-body .content h4{font-size:13px;margin:0 0 8px;color:#1e1b4b}
-#download .download-book-body .content ul{padding-left:18px;margin:8px 0}
-#download .download-book-body .content li{margin:3px 0}
-#download .download-meta{display:flex;flex-wrap:wrap;gap:7px;margin-top:14px}
-#download .download-meta span{font-size:10px;font-weight:900;color:#4338ca;background:#eef2ff;border:1px solid #c7d2fe;border-radius:999px;padding:6px 9px}
-#download .download-actions{display:flex;gap:9px;flex-wrap:wrap;margin-top:18px}
-#download .download-actions a{display:inline-flex;align-items:center;justify-content:center;gap:7px;padding:10px 13px;border-radius:12px;font-size:11px;font-weight:900;text-decoration:none;transition:.2s}
-#download .download-actions .open{background:#eef2ff;color:#3730a3;border:1px solid #c7d2fe}
-#download .download-actions .open:hover{background:#e0e7ff}
-#download .download-actions .download{background:#4f46e5;color:#fff;box-shadow:0 8px 18px rgba(79,70,229,.2)}
-#download .download-actions .download:hover{background:#4338ca}
-@media(max-width:900px){#download .download-library-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
-@media(max-width:640px){#download .download-library-grid{grid-template-columns:1fr}#download .download-library-header{padding:22px;border-radius:22px}}
-
 </style>
 
 <style id="stemga-top-nav-fix">
@@ -135,57 +94,8 @@
 .portal-dynamic-card{background:rgba(255,255,255,.96);border:1px solid #e2e8f0;border-radius:1.5rem;overflow:hidden;box-shadow:0 12px 30px rgba(15,23,42,.08);transition:.25s}.portal-dynamic-card:hover{transform:translateY(-4px);box-shadow:0 18px 38px rgba(15,23,42,.14)}.portal-card-image{width:100%;height:170px;object-fit:cover}.portal-card-body{padding:1.25rem}.portal-card-body h3{font-weight:900;font-size:1.1rem;color:#172554}.portal-card-body p{margin-top:.5rem;color:#64748b;font-size:.85rem;line-height:1.55}.portal-card-content{margin-top:.75rem;color:#475569;font-size:.82rem;line-height:1.6}.portal-card-link{display:inline-flex;align-items:center;gap:.5rem;margin-top:1rem;background:#4f46e5;color:#fff;padding:.65rem .9rem;border-radius:.75rem;font-size:.78rem;font-weight:900;text-decoration:none;box-shadow:0 8px 18px rgba(79,70,229,.18)}.portal-card-link:hover{background:#3730a3;transform:translateY(-1px)}
 </style>
 
-<style id="stemga-media-interactive">
-#media .media-library-hero{background:linear-gradient(135deg,#0f172a 0%,#312e81 55%,#4338ca 100%);color:#fff;border-radius:28px;padding:28px;box-shadow:0 18px 45px rgba(15,23,42,.18);margin-bottom:24px}
-#media .media-library-hero .eyebrow{font-size:11px;font-weight:900;letter-spacing:.16em;color:#c7d2fe;text-transform:uppercase}
-#media .media-library-hero h2{font-size:clamp(1.7rem,4vw,2.5rem);font-weight:950;margin-top:7px}
-#media .media-library-hero p{color:#e0e7ff;max-width:780px;margin-top:8px;line-height:1.7}
-#media .interactive-media-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:22px}
-#media .interactive-media-card{overflow:hidden;border:1px solid #e2e8f0;border-radius:28px;background:#fff;box-shadow:0 12px 35px rgba(15,23,42,.08);transition:.25s}
-#media .interactive-media-card:hover{transform:translateY(-6px);box-shadow:0 22px 50px rgba(15,23,42,.13);border-color:#a5b4fc}
-#media .interactive-media-cover{min-height:180px;padding:25px;display:flex;align-items:flex-end;position:relative;background:radial-gradient(circle at 82% 20%,rgba(255,255,255,.25),transparent 30%),linear-gradient(135deg,#1e1b4b,#4338ca 62%,#7c3aed);color:#fff}
-#media .interactive-media-cover .media-icon{position:absolute;right:25px;top:20px;font-size:66px;opacity:.2}
-#media .interactive-media-cover .badge{display:inline-flex;padding:6px 10px;border-radius:999px;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.24);font-size:10px;font-weight:900}
-#media .interactive-media-body{padding:23px}
-#media .interactive-media-body h3{font-size:22px;line-height:1.25;font-weight:950;color:#0f172a}
-#media .interactive-media-body p{font-size:13px;line-height:1.7;color:#64748b;margin-top:9px}
-#media .interactive-media-tags{display:flex;flex-wrap:wrap;gap:7px;margin-top:15px}
-#media .interactive-media-tags span{font-size:10px;font-weight:900;color:#4338ca;background:#eef2ff;border:1px solid #c7d2fe;border-radius:999px;padding:6px 9px}
-#media .interactive-media-start{margin-top:18px;width:100%;border:0;border-radius:14px;padding:12px 15px;background:#4f46e5;color:#fff;font-size:12px;font-weight:950;cursor:pointer;box-shadow:0 8px 18px rgba(79,70,229,.2)}
-#media .interactive-media-start:hover{background:#4338ca}
-.stemga-media-modal{position:fixed;inset:0;z-index:99998;background:rgba(2,6,23,.78);backdrop-filter:blur(7px);display:none;align-items:center;justify-content:center;padding:14px}
-.stemga-media-modal.open{display:flex}
-.stemga-media-dialog{width:min(100%,980px);max-height:94vh;overflow:hidden;background:#f8fafc;border-radius:28px;box-shadow:0 30px 90px rgba(0,0,0,.35);display:flex;flex-direction:column}
-.stemga-media-head{padding:18px 22px;background:linear-gradient(135deg,#111827,#312e81);color:#fff;display:flex;align-items:center;justify-content:space-between;gap:15px}
-.stemga-media-head small{display:block;color:#c7d2fe;font-size:10px;font-weight:900;letter-spacing:.14em;text-transform:uppercase}
-.stemga-media-head h3{font-size:20px;font-weight:950;margin-top:3px}
-.stemga-media-close{width:40px;height:40px;border:0;border-radius:12px;background:rgba(255,255,255,.12);color:#fff;font-weight:900;cursor:pointer}
-.stemga-media-content{padding:22px;overflow:auto}
-.media-lesson{max-width:900px;margin:auto}
-.media-lesson .lesson-progress{display:flex;gap:7px;margin-bottom:18px;flex-wrap:wrap}
-.media-lesson .lesson-step{padding:6px 10px;border-radius:999px;background:#e2e8f0;color:#64748b;font-size:10px;font-weight:900}
-.media-lesson .lesson-step.active{background:#4f46e5;color:#fff}
-.media-lesson .lesson-section{background:#fff;border:1px solid #e2e8f0;border-radius:22px;padding:20px;margin-top:14px;box-shadow:0 8px 24px rgba(15,23,42,.05)}
-.media-lesson .lesson-section h4{font-size:18px;font-weight:950;color:#0f172a;margin-bottom:8px}
-.media-lesson .lesson-section p,.media-lesson .lesson-section li{font-size:13px;line-height:1.8;color:#475569}
-.media-lesson .lesson-section ul{padding-left:20px;margin-top:8px}
-.media-lesson .fact{background:linear-gradient(135deg,#eef2ff,#f5f3ff);border:1px solid #c7d2fe;border-radius:18px;padding:15px;margin-top:14px}
-.media-lesson .fact b{color:#3730a3}
-.media-lesson .activity{background:#ecfdf5;border:1px solid #a7f3d0;border-radius:18px;padding:16px;margin-top:14px}
-.media-lesson .scenario{background:#fff7ed;border:1px solid #fed7aa;border-radius:18px;padding:16px;margin-top:14px}
-.media-lesson .choice-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
-.media-lesson .choice-btn{border:1px solid #cbd5e1;background:#fff;border-radius:14px;padding:12px;text-align:left;font-size:12px;font-weight:800;color:#334155;cursor:pointer;transition:.2s}
-.media-lesson .choice-btn:hover{border-color:#818cf8;background:#eef2ff}
-.media-lesson .choice-btn.correct{border-color:#10b981;background:#ecfdf5;color:#047857}
-.media-lesson .choice-btn.wrong{border-color:#fb7185;background:#fff1f2;color:#be123c}
-.media-lesson .feedback{display:none;margin-top:12px;border-radius:14px;padding:12px;font-size:12px;font-weight:800}
-.media-lesson .feedback.show{display:block}
-.media-lesson .feedback.good{background:#ecfdf5;color:#047857;border:1px solid #a7f3d0}
-.media-lesson .feedback.bad{background:#fff1f2;color:#be123c;border:1px solid #fecdd3}
-.media-lesson .lesson-nav{display:flex;justify-content:space-between;gap:10px;margin-top:16px}
-.media-lesson .lesson-nav button{border:0;border-radius:13px;padding:11px 15px;font-size:11px;font-weight:950;cursor:pointer}
-.media-lesson .lesson-nav .next{background:#4f46e5;color:#fff}.media-lesson .lesson-nav .prev{background:#e2e8f0;color:#334155}
-@media(max-width:700px){#media .interactive-media-grid{grid-template-columns:1fr}.media-lesson .choice-grid{grid-template-columns:1fr}.stemga-media-dialog{max-height:96vh;border-radius:22px}.stemga-media-content{padding:14px}}
+<style id="stemga-game-css">
+.stemga-game-card{background:linear-gradient(145deg,#0f172a,#1e293b);border:1px solid rgba(99,102,241,.35);border-radius:24px;overflow:hidden;box-shadow:0 18px 45px rgba(2,6,23,.28);color:#fff}.stemga-game-card .game-cover{height:170px;display:flex;align-items:center;justify-content:center;font-size:76px;background:radial-gradient(circle at 30% 20%,rgba(99,102,241,.45),transparent 45%),linear-gradient(135deg,#312e81,#0f172a)}.stemga-game-card .game-body{padding:20px}.stemga-game-btn{border:0;border-radius:14px;padding:11px 16px;font-weight:900;background:#6366f1;color:#fff;cursor:pointer}.stemga-game-btn:hover{background:#4f46e5}.stemga-game-modal{position:fixed;inset:0;background:rgba(2,6,23,.82);backdrop-filter:blur(8px);z-index:9999;display:none;align-items:center;justify-content:center;padding:18px}.stemga-game-modal.show{display:flex}.stemga-game-box{width:min(760px,100%);max-height:92vh;overflow:auto;background:#fff;color:#0f172a;border-radius:28px;box-shadow:0 30px 80px rgba(0,0,0,.45)}.stemga-game-head{padding:22px 24px;background:linear-gradient(135deg,#312e81,#4f46e5);color:#fff;display:flex;justify-content:space-between;gap:12px;align-items:center}.stemga-game-close{background:rgba(255,255,255,.15);color:#fff;border:0;border-radius:12px;padding:8px 12px;font-weight:900;cursor:pointer}.stemga-game-content{padding:24px}.stemga-component-img{font-size:88px;text-align:center;padding:18px}.stemga-options{display:grid;grid-template-columns:1fr 1fr;gap:12px}.stemga-option{padding:15px;border:2px solid #e2e8f0;border-radius:16px;background:#f8fafc;font-weight:800;text-align:left;cursor:pointer;transition:.2s}.stemga-option:hover{border-color:#6366f1;background:#eef2ff}.stemga-option.correct{border-color:#16a34a;background:#dcfce7}.stemga-option.wrong{border-color:#dc2626;background:#fee2e2}.stemga-score{display:flex;justify-content:space-between;gap:12px;background:#f1f5f9;border-radius:14px;padding:12px 16px;font-weight:900;margin-bottom:15px}.stemga-feedback{margin-top:15px;padding:14px;border-radius:14px;font-weight:800;display:none}.stemga-feedback.show{display:block}.stemga-feedback.ok{background:#dcfce7;color:#166534}.stemga-feedback.no{background:#fee2e2;color:#991b1b}@media(max-width:640px){.stemga-options{grid-template-columns:1fr}.stemga-game-content{padding:18px}}
 </style>
 
 </head>
@@ -1274,65 +1184,11 @@ function escapeHtmlAttr(v){return escapeHtml(v)}
     const empty=box.querySelector('[data-portal-empty]');
     if(!data?.length){ grid.innerHTML=''; if(empty) empty.classList.remove('hidden'); return; }
     if(empty) empty.classList.add('hidden');
-
-    if(menuKey==='download'){
-      grid.className='download-library-grid';
-      if(!box.querySelector('.download-library-header')){
-        const intro=document.createElement('div');
-        intro.className='download-library-header';
-        intro.innerHTML='<div class="eyebrow">STEMGA DIGITAL LIBRARY</div><h2 class="text-2xl sm:text-3xl font-black mt-2">📚 Pusat Download & Sumber Belajar</h2><p class="text-sm mt-2 max-w-3xl">Modul, buku ajar, LKPD, presentasi, dan file pembelajaran yang diterbitkan Guru untuk peserta didik Kelas X.</p>';
-        box.querySelector('[data-portal-grid]').parentNode.insertBefore(intro,box.querySelector('[data-portal-grid]'));
-      }
-      grid.innerHTML=data.map((r,i)=>`<article class="download-book-card">
-        <div class="download-book-cover">
-          <div>
-            <span class="badge">📖 BUKU / FILE PEMBELAJARAN</span>
-            <div class="text-xl font-black mt-3">${esc(r.title||'File Pembelajaran')}</div>
-          </div>
-        </div>
-        <div class="download-book-body">
-          <h3>${esc(r.title||'File Pembelajaran')}</h3>
-          <p class="desc">${esc(r.description||'Sumber belajar yang diterbitkan Guru untuk peserta didik STEMGA.')}</p>
-          ${r.content_html?`<div class="content">${r.content_html}</div>`:''}
-          <div class="download-meta">
-            <span>📚 Informatika Kelas X</span>
-            <span>🏫 STEMGA</span>
-            ${r.link_url?'<span>📄 File tersedia</span>':''}
-          </div>
-          ${r.link_url?`<div class="download-actions">
-            <a href="${escAttr(r.link_url)}" target="_blank" rel="noopener" class="open">📖 Buka Buku</a>
-            <a href="${escAttr(r.link_url)}" target="_blank" rel="noopener" class="download">⬇️ Download File</a>
-          </div>`:''}
-        </div>
-      </article>`).join('');
-      return;
+    if(menuKey==='game'){
+      grid.innerHTML=data.map((r,i)=>`<article class="stemga-game-card">${r.image_url?`<img src="${escAttr(r.image_url)}" alt="${escAttr(r.title||'Game STEMGA')}" style="width:100%;height:170px;object-fit:cover" onerror="this.style.display='none'">`:`<div class="game-cover">🎮</div>`}<div class="game-body"><div class="text-xs font-black uppercase tracking-widest text-indigo-300">GAME EDUKASI STEMGA</div><h3 class="text-xl font-black mt-2">${esc(r.title||'Game Edukasi')}</h3><p class="text-slate-300 mt-2">${esc(r.description||'')}</p>${r.content_html?`<div class="text-slate-300 text-sm mt-3">${r.content_html}</div>`:''}<button type="button" class="stemga-game-btn mt-5" onclick="startStemgaComponentGame()">🎮 Mulai Game</button></div></article>`).join('');
+    } else {
+      grid.innerHTML=data.map((r,i)=>`<article class="portal-dynamic-card">${r.image_url?`<img src="${escAttr(r.image_url)}" alt="${escAttr(r.title||'')}" class="portal-card-image" onerror="this.style.display='none'">`:''}<div class="portal-card-body"><h3>${esc(r.title||'')}</h3><p>${esc(r.description||'')}</p>${r.content_html?`<div class="portal-card-content">${r.content_html}</div>`:''}${r.link_url?`<a href="${escAttr(r.link_url)}" target="_blank" rel="noopener" class="portal-card-link">${menuKey==='download'?'⬇️ Download File':'Buka / Lihat →'}</a>`:''}</div></article>`).join('');
     }
-
-    if(menuKey==='media'){
-      grid.className='interactive-media-grid';
-      if(!box.querySelector('.media-library-hero')){
-        const intro=document.createElement('div');
-        intro.className='media-library-hero';
-        intro.innerHTML='<div class="eyebrow">STEMGA INTERACTIVE LEARNING</div><h2>🎬 Media Belajar Interaktif</h2><p>Belajar dengan alur singkat: pahami konsep, lihat contoh, lakukan aktivitas, jawab tantangan, lalu refleksi. Media yang diterbitkan Guru akan tampil sebagai pengalaman belajar interaktif.</p>';
-        box.querySelector('[data-portal-grid]').parentNode.insertBefore(intro,box.querySelector('[data-portal-grid]'));
-      }
-      grid.innerHTML=data.map((r,i)=>`<article class="interactive-media-card">
-        <div class="interactive-media-cover">
-          <div class="media-icon">🎬</div>
-          <div><span class="badge">MEDIA INTERAKTIF • ${i+1}</span><div class="text-xl font-black mt-3">${esc(r.title||'Media Belajar')}</div></div>
-        </div>
-        <div class="interactive-media-body">
-          <h3>${esc(r.title||'Media Belajar')}</h3>
-          <p>${esc(r.description||'Media pembelajaran interaktif STEMGA.')}</p>
-          <div class="interactive-media-tags"><span>📖 Materi</span><span>💡 Aktivitas</span><span>🧠 Tantangan</span><span>✅ Feedback</span></div>
-          <button type="button" class="interactive-media-start" onclick="openStemgaMedia(${i})">🚀 Mulai Belajar</button>
-        </div>
-      </article>`).join('');
-      window.stemgaMediaRows=data;
-      return;
-    }
-
-    grid.innerHTML=data.map((r,i)=>`<article class="portal-dynamic-card">${r.image_url?`<img src="${escAttr(r.image_url)}" alt="${escAttr(r.title||'')}" class="portal-card-image" onerror="this.style.display='none'">`:''}<div class="portal-card-body"><h3>${esc(r.title||'')}</h3><p>${esc(r.description||'')}</p>${r.content_html?`<div class="portal-card-content">${r.content_html}</div>`:''}${r.link_url?`<a href="${escAttr(r.link_url)}" target="_blank" rel="noopener" class="portal-card-link">Buka / Lihat →</a>`:''}</div></article>`).join('');
   }
 
   async function loadPublicMateri(){
@@ -1363,42 +1219,42 @@ function escapeHtmlAttr(v){return escapeHtml(v)}
 })();
 </script>
 
-<script id="stemga-media-interactive-js">
-window.stemgaMediaRows=[];
-function openStemgaMedia(i){
-  const r=window.stemgaMediaRows?.[i]; if(!r)return;
-  let modal=document.getElementById('stemgaMediaModal');
-  if(!modal){
-    modal=document.createElement('div');modal.id='stemgaMediaModal';modal.className='stemga-media-modal';
-    modal.innerHTML='<div class="stemga-media-dialog"><div class="stemga-media-head"><div><small>STEMGA • MEDIA BELAJAR</small><h3 id="stemgaMediaModalTitle"></h3></div><button class="stemga-media-close" onclick="closeStemgaMedia()">✕</button></div><div id="stemgaMediaModalContent" class="stemga-media-content"></div></div>';
-    document.body.appendChild(modal);
-    modal.addEventListener('click',e=>{if(e.target===modal)closeStemgaMedia();});
-  }
-  document.getElementById('stemgaMediaModalTitle').textContent=r.title||'Media Belajar';
-  document.getElementById('stemgaMediaModalContent').innerHTML=r.content_html||'<div class="media-lesson"><div class="lesson-section"><h4>Media belum memiliki isi.</h4><p>Silakan Guru melengkapi isi media melalui Panel Guru.</p></div></div>';
-  modal.classList.add('open');document.body.classList.add('overflow-hidden');
-  if(typeof window.initStemgaMediaLesson==='function')window.initStemgaMediaLesson();
-}
-function closeStemgaMedia(){const m=document.getElementById('stemgaMediaModal');if(m)m.classList.remove('open');document.body.classList.remove('overflow-hidden');}
-function stemgaMediaAnswer(btn,correct){
-  const wrap=btn.closest('.stemga-media-quiz');if(!wrap)return;
-  wrap.querySelectorAll('.choice-btn').forEach(b=>b.disabled=true);
-  btn.classList.add(correct?'correct':'wrong');
-  const fb=wrap.querySelector('.feedback');if(fb){fb.classList.add('show',correct?'good':'bad');fb.innerHTML=correct?'✅ <b>Benar!</b> Jawabanmu tepat. Verifikasi informasi sebelum membagikannya.':'❌ <b>Belum tepat.</b> Jangan langsung menyebarkan informasi. Gunakan langkah STOP → CHECK → THINK → SHARE.';}
-}
-window.initStemgaMediaLesson=function(){
-  document.querySelectorAll('#stemgaMediaModalContent .lesson-page').forEach((x,i)=>x.style.display=i===0?'block':'none');
-  document.querySelectorAll('#stemgaMediaModalContent [data-lesson-next]').forEach(b=>b.onclick=()=>stemgaMediaStep(1));
-  document.querySelectorAll('#stemgaMediaModalContent [data-lesson-prev]').forEach(b=>b.onclick=()=>stemgaMediaStep(-1));
-  stemgaMediaStep(0);
-};
-function stemgaMediaStep(delta){
-  const pages=[...document.querySelectorAll('#stemgaMediaModalContent .lesson-page')];if(!pages.length)return;
-  let cur=pages.findIndex(x=>x.style.display!=='none');if(cur<0)cur=0;cur=Math.max(0,Math.min(pages.length-1,cur+delta));
-  pages.forEach((x,i)=>x.style.display=i===cur?'block':'none');
-  document.querySelectorAll('#stemgaMediaModalContent .lesson-step').forEach((x,i)=>x.classList.toggle('active',i===cur));
-}
-window.addEventListener('keydown',e=>{if(e.key==='Escape')closeStemgaMedia();});
+<div id="stemgaComponentGame" class="stemga-game-modal" aria-hidden="true">
+  <div class="stemga-game-box">
+    <div class="stemga-game-head"><div><div class="text-xs font-black uppercase tracking-widest opacity-80">STEMGA FUN LEARNING</div><h2 class="text-2xl font-black">💻 Tebak Komponen Komputer</h2></div><button class="stemga-game-close" onclick="closeStemgaComponentGame()">✕</button></div>
+    <div class="stemga-game-content">
+      <div id="sg-score" class="stemga-score"><span>Soal <b id="sg-qno">1</b>/10</span><span>Skor: <b id="sg-scoreval">0</b></span></div>
+      <div id="sg-icon" class="stemga-component-img">🖥️</div>
+      <h3 id="sg-question" class="text-xl font-black text-center">Komponen apakah ini?</h3>
+      <div id="sg-options" class="stemga-options mt-5"></div>
+      <div id="sg-feedback" class="stemga-feedback"></div>
+      <button id="sg-next" class="stemga-game-btn mt-5 w-full" style="display:none" onclick="stemgaNextQuestion()">Soal Berikutnya →</button>
+    </div>
+  </div>
+</div>
+<script id="stemga-component-game-script">
+(function(){
+ const questions=[
+  {icon:'🧠',q:'Komponen yang berfungsi sebagai pusat pemrosesan data adalah...',o:['CPU / Prosesor','Keyboard','Monitor','Speaker'],a:0,e:'CPU menjalankan instruksi dan memproses data.'},
+  {icon:'🖱️',q:'Perangkat untuk menggerakkan pointer dan memilih objek di layar adalah...',o:['Scanner','Mouse','Printer','RAM'],a:1,e:'Mouse digunakan untuk mengontrol pointer.'},
+  {icon:'⌨️',q:'Perangkat yang digunakan untuk memasukkan teks dan perintah adalah...',o:['Keyboard','Monitor','Webcam','Router'],a:0,e:'Keyboard merupakan perangkat input untuk mengetik.'},
+  {icon:'🖥️',q:'Perangkat yang menampilkan hasil proses komputer secara visual adalah...',o:['RAM','Monitor','SSD','Microphone'],a:1,e:'Monitor menampilkan informasi secara visual.'},
+  {icon:'💾',q:'Media penyimpanan yang umumnya lebih cepat daripada HDD karena menggunakan memori flash adalah...',o:['SSD','Mouse','Keyboard','Monitor'],a:0,e:'SSD menggunakan memori flash sehingga umumnya lebih cepat.'},
+  {icon:'🧮',q:'RAM terutama digunakan untuk...',o:['Menyimpan data sementara saat program berjalan','Mencetak dokumen','Menghasilkan suara','Menghubungkan kabel jaringan'],a:0,e:'RAM menyimpan data/instruksi yang sedang digunakan secara sementara.'},
+  {icon:'🎙️',q:'Perangkat untuk memasukkan suara ke komputer adalah...',o:['Speaker','Microphone','Monitor','Projector'],a:1,e:'Microphone menangkap suara sebagai input.'},
+  {icon:'🔊',q:'Perangkat yang menghasilkan keluaran suara adalah...',o:['Speaker','Scanner','RAM','CPU'],a:0,e:'Speaker mengubah sinyal audio menjadi suara.'},
+  {icon:'📷',q:'Perangkat yang digunakan untuk menangkap gambar/video secara digital adalah...',o:['Webcam','Router','Keyboard','UPS'],a:0,e:'Webcam menangkap gambar atau video untuk komputer.'},
+  {icon:'🌐',q:'Perangkat jaringan yang meneruskan paket data antarjaringan adalah...',o:['Router','Monitor','Printer','Keyboard'],a:0,e:'Router mengarahkan paket data antarjaringan.'}
+ ];
+ let idx=0,score=0,answered=false;
+ window.startStemgaComponentGame=function(){idx=0;score=0;document.getElementById('stemgaComponentGame').classList.add('show');document.getElementById('stemgaComponentGame').setAttribute('aria-hidden','false');render();};
+ window.closeStemgaComponentGame=function(){document.getElementById('stemgaComponentGame').classList.remove('show');document.getElementById('stemgaComponentGame').setAttribute('aria-hidden','true');};
+ window.stemgaNextQuestion=function(){if(idx<questions.length-1){idx++;render();}else{showResult();}};
+ function render(){answered=false;const x=questions[idx];document.getElementById('sg-qno').textContent=idx+1;document.getElementById('sg-scoreval').textContent=score;document.getElementById('sg-icon').textContent=x.icon;document.getElementById('sg-question').textContent=x.q;document.getElementById('sg-feedback').className='stemga-feedback';document.getElementById('sg-feedback').textContent='';document.getElementById('sg-next').style.display='none';document.getElementById('sg-options').innerHTML=x.o.map((v,i)=>`<button class="stemga-option" onclick="stemgaAnswer(${i})">${String.fromCharCode(65+i)}. ${v}</button>`).join('');}
+ window.stemgaAnswer=function(choice){if(answered)return;answered=true;const x=questions[idx],buttons=[...document.querySelectorAll('#sg-options .stemga-option')];buttons.forEach((b,i)=>{b.disabled=true;if(i===x.a)b.classList.add('correct');else if(i===choice)b.classList.add('wrong');});const f=document.getElementById('sg-feedback');if(choice===x.a){score+=10;f.className='stemga-feedback show ok';f.textContent='✅ Benar! '+x.e;}else{f.className='stemga-feedback show no';f.textContent='❌ Belum tepat. '+x.e;}document.getElementById('sg-scoreval').textContent=score;document.getElementById('sg-next').textContent=idx===questions.length-1?'🏆 Lihat Hasil':'Soal Berikutnya →';document.getElementById('sg-next').style.display='block';};
+ function showResult(){document.getElementById('sg-score').innerHTML='<span>🎉 Game Selesai</span><span>Skor: <b>'+score+'</b>/100</span>';document.getElementById('sg-icon').textContent=score>=80?'🏆':score>=60?'👍':'💪';document.getElementById('sg-question').textContent=score>=80?'Mantap! Pemahaman komponen komputer sangat baik.':score>=60?'Bagus! Tinggal sedikit lagi untuk lebih mantap.':'Tetap semangat! Coba ulangi game dan pelajari lagi materinya.';document.getElementById('sg-options').innerHTML='<button class="stemga-game-btn" onclick="startStemgaComponentGame()">🔄 Main Lagi</button>';document.getElementById('sg-feedback').className='stemga-feedback show';document.getElementById('sg-feedback').textContent='Skor akhir kamu: '+score+' dari 100.';document.getElementById('sg-next').style.display='none';}
+ document.addEventListener('click',e=>{if(e.target.id==='stemgaComponentGame')closeStemgaComponentGame();});
+})();
 </script>
 
 </body></html>
