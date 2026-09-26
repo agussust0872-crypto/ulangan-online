@@ -1158,6 +1158,9 @@ async function syncQuestionToSupabase(subjectKey, questionObj, questionNumber) {
         let currentQuestionIndex = 0;
         let userAnswers = {};
         let flaggedQuestions = {};
+        // Jumlah benar resmi dari server; dipakai HANYA untuk menyelaraskan pembahasan.
+        let reviewServerCorrectCount = null;
+        let reviewServerQuestions = [];
         let timerInterval = null;
         let timeRemaining = 0;
         let antiCheatViolations = 0;
@@ -2882,6 +2885,13 @@ console.log("JUMLAH SISWA TERBACA:", students.length);
 
             // Clone questions
             currentQuestions = JSON.parse(JSON.stringify(bank.questions));
+
+            // Simpan pilihan asli sebelum diacak. Pembahasan akan memakai
+            // snapshot ini, sehingga tidak tergantung posisi A/B/C/D setelah shuffle.
+            currentQuestions.forEach(q => {
+                q.originalOptions = Array.isArray(q.options) ? [...q.options] : [];
+            });
+
 // Shuffle opsi jawaban untuk setiap siswa
 // q.optionMap menyimpan posisi asli opsi di database.
 if (shuffleOptionsConfig === "enabled") {
@@ -2916,6 +2926,8 @@ if (shuffleOptionsConfig === "enabled") {
             currentQuestionIndex = 0;
             userAnswers = {};
             flaggedQuestions = {};
+            reviewServerCorrectCount = null;
+            reviewServerQuestions = [];
             antiCheatViolations = 0;
             isExamActive = true;
             timeRemaining = (bank.durationMinutes || 15) * 60;
@@ -3007,6 +3019,9 @@ function selectOption(optIdx) {
         : optIdx;
 
     userAnswers[currentQuestionIndex] = originalIndex;
+
+    // Simpan teks yang benar-benar diklik siswa. Ini murni untuk tampilan pembahasan.
+    q.reviewSelectedText = String(q.options[optIdx] ?? "");
 
     renderCurrentQuestion();
 }
@@ -4720,6 +4735,30 @@ console.log("ROOM CODE UNTUK AMBIL SOAL =", room?.room_code);
 
     const grading = gradingResult[0];
 
+    // Server tetap menjadi sumber nilai resmi.
+    reviewServerCorrectCount = Number(grading.correct_answers || 0);
+
+    // Ambil SALINAN SOAL YANG DIPAKAI SERVER untuk Pembahasan.
+    // Ujian/soal siswa tidak diubah; ini hanya untuk menentukan benar/salah
+    // per nomor dengan sumber yang sama seperti RPC grading.
+    reviewServerQuestions = [];
+    try {
+        const { data: serverQs, error: serverQsError } =
+            await stemgaSupabase
+                .from("questions")
+                .select("question_number,question_text,option_a,option_b,option_c,option_d,correct_answer,explanation")
+                .eq("room_id", (await stemgaSupabase.from("rooms").select("id").eq("room_code", roomCode || "STEMGA1").single()).data?.id)
+                .order("question_number", { ascending: true });
+
+        if (!serverQsError && Array.isArray(serverQs)) {
+            reviewServerQuestions = serverQs;
+        } else {
+            console.warn("Pembahasan: soal server tidak dapat diambil", serverQsError);
+        }
+    } catch (reviewFetchError) {
+        console.warn("Pembahasan: gagal mengambil soal server", reviewFetchError);
+    }
+
     const correctCount = Number(
         grading.correct_answers || 0
     );
@@ -4816,10 +4855,105 @@ console.log("ROOM CODE UNTUK AMBIL SOAL =", room?.room_code);
                 list.innerHTML = "";
                 const optionLabels = ["A", "B", "C", "D"];
 
+                // Tentukan apakah correct_answer server 0-based atau 1-based
+                // dengan mencocokkan JUMLAH BENAR resmi dari RPC.
+                let serverAnswerMode = "zero";
+                if (reviewServerQuestions.length && reviewServerCorrectCount !== null) {
+                    let zeroCorrect = 0;
+                    let oneCorrect = 0;
+
+                    reviewServerQuestions.forEach((sq, n) => {
+                        const idx = n;
+                        const ua = userAnswers[idx];
+                        if (ua === undefined || ua === null || ua === "") return;
+
+                        const raw = Number(sq.correct_answer);
+                        if (Number.isFinite(raw)) {
+                            if (ua === raw) zeroCorrect++;
+                            if (ua === raw - 1) oneCorrect++;
+                        }
+                    });
+
+                    if (oneCorrect === reviewServerCorrectCount && zeroCorrect !== reviewServerCorrectCount) {
+                        serverAnswerMode = "one";
+                    } else if (zeroCorrect === reviewServerCorrectCount) {
+                        serverAnswerMode = "zero";
+                    } else if (oneCorrect === reviewServerCorrectCount) {
+                        serverAnswerMode = "one";
+                    }
+                }
+
                 currentQuestions.forEach((q, idx) => {
-                    const userAns = userAnswers[idx];
-                    const isCorrect = (userAns === q.answer);
-                    const isAnswered = (userAns !== undefined);
+                    const userAnsOriginal = userAnswers[idx];
+                    const isAnswered = userAnsOriginal !== undefined && userAnsOriginal !== null && userAnsOriginal !== "";
+                    const serverQ = reviewServerQuestions[idx];
+
+                    // Jawaban siswa tetap berasal dari pilihan yang benar-benar tampil/diklik.
+                    const selectedText = q.reviewSelectedText !== undefined
+                        ? String(q.reviewSelectedText)
+                        : "";
+
+                    const selectedVisibleIndex = isAnswered
+                        ? q.options.findIndex(v => String(v) === selectedText)
+                        : -1;
+
+                    const userLabel = isAnswered
+                        ? (selectedVisibleIndex >= 0
+                            ? `${optionLabels[selectedVisibleIndex]}. ${selectedText}`
+                            : selectedText)
+                        : "Tidak Dijawab";
+
+                    let isCorrect = false;
+                    let correctText = "";
+                    let correctVisibleIndex = -1;
+
+                    if (serverQ) {
+                        const raw = Number(serverQ.correct_answer);
+                        const serverCorrectIndex = serverAnswerMode === "one" ? raw - 1 : raw;
+                        const serverOptions = [
+                            serverQ.option_a ?? "",
+                            serverQ.option_b ?? "",
+                            serverQ.option_c ?? "",
+                            serverQ.option_d ?? ""
+                        ];
+
+                        correctText = serverOptions[serverCorrectIndex] !== undefined
+                            ? String(serverOptions[serverCorrectIndex])
+                            : "";
+
+                        // INI inti perbaikannya: status BENAR/SALAH mengikuti
+                        // indeks yang dipakai server grading, bukan tebakan dari tampilan.
+                        if (isAnswered && Number.isFinite(raw)) {
+                            isCorrect = serverAnswerMode === "one"
+                                ? Number(userAnsOriginal) === raw - 1
+                                : Number(userAnsOriginal) === raw;
+                        }
+
+                        // Label kunci ditampilkan dari data soal server.
+                        correctVisibleIndex = q.options.findIndex(v => String(v) === correctText);
+                        if (correctVisibleIndex < 0 && correctText) {
+                            // Bila teks soal lokal dan server berbeda, tetap tampilkan kunci server.
+                            correctVisibleIndex = -1;
+                        }
+                    } else {
+                        // Fallback hanya jika soal server tidak tersedia.
+                        const originalOptions = Array.isArray(q.originalOptions) && q.originalOptions.length
+                            ? q.originalOptions
+                            : q.options;
+                        const raw = Number(q.answer);
+                        const correctOriginalIndex = raw;
+                        correctText = originalOptions[correctOriginalIndex] !== undefined
+                            ? String(originalOptions[correctOriginalIndex])
+                            : "";
+                        isCorrect = isAnswered && selectedText === correctText;
+                        correctVisibleIndex = q.options.findIndex(v => String(v) === correctText);
+                    }
+
+                    const correctLabel = correctText
+                        ? (correctVisibleIndex >= 0
+                            ? `${optionLabels[correctVisibleIndex]}. ${correctText}`
+                            : correctText)
+                        : "Kunci tidak tersedia";
 
                     const card = document.createElement("div");
                     card.className = `p-4 rounded-2xl border ${isCorrect ? 'bg-emerald-50/60 border-emerald-200' : (isAnswered ? 'bg-rose-50/60 border-rose-200' : 'bg-slate-50 border-slate-200')} space-y-2`;
@@ -4833,8 +4967,8 @@ console.log("ROOM CODE UNTUK AMBIL SOAL =", room?.room_code);
                         </div>
                         <p class="font-bold text-slate-800 leading-snug">${q.question}</p>
                         <div class="text-[11px] space-y-1 pt-1">
-                            <div>Jawaban Anda: <b class="${isCorrect ? 'text-emerald-700' : 'text-rose-700'}">${isAnswered ? optionLabels[userAns] + '. ' + q.options[userAns] : 'Tidak Dijawab'}</b></div>
-                            <div>Kunci Benar: <b class="text-emerald-700">${optionLabels[q.answer]}. ${q.options[q.answer]}</b></div>
+                            <div>Jawaban Anda: <b class="${isCorrect ? 'text-emerald-700' : 'text-rose-700'}">${userLabel}</b></div>
+                            <div>Kunci Benar: <b class="text-emerald-700">${correctLabel}</b></div>
                         </div>
                         ${q.explanation ? `<div class="text-[11px] text-slate-600 bg-white p-2.5 rounded-xl border border-slate-200 mt-1"><b>Pembahasan:</b> ${q.explanation}</div>` : ''}
                     `;
