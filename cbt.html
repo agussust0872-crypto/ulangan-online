@@ -3300,6 +3300,7 @@ async function logoutTeacher() {
                 loadAdminQuestionsForSubject();
             } else if (tabName === 'rekap') {
                 renderStudentResultsRekap();
+                loadCloudResultsForTeacher();
                 } else if (tabName === 'settings') {
     loadExamControls();
             }
@@ -3684,6 +3685,65 @@ function handleTeacherExamChange() {
             document.body.removeChild(tempInput);
             
             showCustomDialog("Berhasil Disalin", "Tautan URL ujian berhasil disalin ke clipboard!", null, true);
+        }
+
+        async function loadCloudResultsForTeacher() {
+            try {
+                const { data, error } = await stemgaSupabase
+                    .from("results")
+                    .select(`
+                        score,
+                        total_questions,
+                        correct_answers,
+                        finished_at,
+                        students (
+                            name,
+                            nis,
+                            class_name,
+                            rooms (
+                                subject,
+                                title
+                            )
+                        )
+                    `)
+                    .order("finished_at", { ascending: false });
+
+                if (error) throw error;
+
+                const cloudRows = (data || []).map((item) => {
+                    const student = item.students || {};
+                    const room = student.rooms || {};
+                    const total = Number(item.total_questions || 0);
+                    const correct = Number(item.correct_answers || 0);
+                    const wrong = Math.max(total - correct, 0);
+                    const finished = item.finished_at ? new Date(item.finished_at) : null;
+                    return {
+                        studentName: student.name || "-",
+                        studentId: student.nis || "-",
+                        studentClass: student.class_name || "-",
+                        subjectKey: room.subject || room.title || "-",
+                        subjectTitle: room.title || room.subject || "-",
+                        score: Number(item.score || 0),
+                        correctCount: correct,
+                        wrongCount: wrong,
+                        emptyCount: 0,
+                        violations: 0,
+                        timestamp: finished ? finished.toLocaleTimeString("id-ID", {hour:"2-digit",minute:"2-digit"}) : "-",
+                        _cloud: true
+                    };
+                });
+
+                if (cloudRows.length > 0) {
+                    examResultsLog = cloudRows;
+                    saveExamLogsToStorage();
+                }
+
+                renderStudentResultsRekap();
+                console.log("Rekap CBT dari Supabase:", cloudRows.length, "data");
+            } catch (error) {
+                console.error("Gagal memuat rekap CBT dari Supabase:", error);
+                renderStudentResultsRekap();
+            }
         }
 
         function renderStudentResultsRekap() {
@@ -4689,6 +4749,25 @@ console.log("ROOM CODE UNTUK AMBIL SOAL =", room?.room_code);
         "Jawaban siswa dikirim ke Supabase:",
         answersPayload
     );
+
+    // Cegah submit jika ada nomor yang belum tercatat sebagai jawaban.
+    const unanswered = [];
+    currentQuestions.forEach((q, idx) => {
+        const a = userAnswers[idx];
+        if (a === undefined || a === null || a === "") unanswered.push(idx + 1);
+    });
+
+    if (unanswered.length > 0) {
+        const daftar = unanswered.join(", ");
+        showCustomDialog(
+            "Masih Ada Jawaban Belum Tercatat",
+            `Nomor ${daftar} belum tercatat sebagai jawaban. Silakan buka nomor tersebut, pilih jawabannya, lalu kumpulkan kembali.`,
+            null,
+            true
+        );
+        isExamActive = true;
+        return;
+    }
 
     const { data: gradingResult, error: gradingError } =
         await stemgaSupabase.rpc(
