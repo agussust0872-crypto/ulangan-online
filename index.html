@@ -98,6 +98,401 @@
 .stemga-game-card{background:linear-gradient(145deg,#0f172a,#1e293b);border:1px solid rgba(99,102,241,.35);border-radius:24px;overflow:hidden;box-shadow:0 18px 45px rgba(2,6,23,.28);color:#fff}.stemga-game-card .game-cover{height:170px;display:flex;align-items:center;justify-content:center;font-size:76px;background:radial-gradient(circle at 30% 20%,rgba(99,102,241,.45),transparent 45%),linear-gradient(135deg,#312e81,#0f172a)}.stemga-game-card .game-body{padding:20px}.stemga-game-btn{border:0;border-radius:14px;padding:11px 16px;font-weight:900;background:#6366f1;color:#fff;cursor:pointer}.stemga-game-btn:hover{background:#4f46e5}.stemga-game-modal{position:fixed;inset:0;background:rgba(2,6,23,.82);backdrop-filter:blur(8px);z-index:9999;display:none;align-items:center;justify-content:center;padding:18px}.stemga-game-modal.show{display:flex}.stemga-game-box{width:min(760px,100%);max-height:92vh;overflow:auto;background:#fff;color:#0f172a;border-radius:28px;box-shadow:0 30px 80px rgba(0,0,0,.45)}.stemga-game-head{padding:22px 24px;background:linear-gradient(135deg,#312e81,#4f46e5);color:#fff;display:flex;justify-content:space-between;gap:12px;align-items:center}.stemga-game-close{background:rgba(255,255,255,.15);color:#fff;border:0;border-radius:12px;padding:8px 12px;font-weight:900;cursor:pointer}.stemga-game-content{padding:24px}.stemga-component-img{font-size:88px;text-align:center;padding:18px}.stemga-options{display:grid;grid-template-columns:1fr 1fr;gap:12px}.stemga-option{padding:15px;border:2px solid #e2e8f0;border-radius:16px;background:#f8fafc;font-weight:800;text-align:left;cursor:pointer;transition:.2s}.stemga-option:hover{border-color:#6366f1;background:#eef2ff}.stemga-option.correct{border-color:#16a34a;background:#dcfce7}.stemga-option.wrong{border-color:#dc2626;background:#fee2e2}.stemga-score{display:flex;justify-content:space-between;gap:12px;background:#f1f5f9;border-radius:14px;padding:12px 16px;font-weight:900;margin-bottom:15px}.stemga-feedback{margin-top:15px;padding:14px;border-radius:14px;font-weight:800;display:none}.stemga-feedback.show{display:block}.stemga-feedback.ok{background:#dcfce7;color:#166534}.stemga-feedback.no{background:#fee2e2;color:#991b1b}@media(max-width:640px){.stemga-options{grid-template-columns:1fr}.stemga-game-content{padding:18px}}
 </style>
 
+
+<style id="stemga-premium-teduh-v2">
+/* =========================================================
+   STEMGA PREMIUM TEDUH — VISUAL ONLY
+   No CBT selectors / no content / no JavaScript changes.
+   Palette: navy-soft + sky + indigo + mint + warm gold.
+   ========================================================= */
+:root{
+  --sg-navy:#16324f;
+  --sg-blue:#2f80ed;
+  --sg-sky:#56b4e9;
+  --sg-indigo:#5b5bd6;
+  --sg-mint:#37b89c;
+  --sg-gold:#e7b93f;
+  --sg-cream:#fffdf7;
+  --sg-paper:#f7fafc;
+  --sg-line:#dbe7f2;
+  --sg-text:#19324a;
+  --sg-muted:#647b90;
+  --sg-shadow:0 18px 45px rgba(35,72,108,.12);
+}
+html{background:#edf5fa}
+body{
+  background:
+    radial-gradient(circle at 8% 8%,rgba(86,180,233,.13),transparent 28%),
+    radial-gradient(circle at 92% 32%,rgba(91,91,214,.10),transparent 30%),
+    linear-gradient(180deg,#fafdff 0%,#f2f8fc 52%,#f9fcfd 100%) !important;
+  color:var(--sg-text) !important;
+}
+body:before,body:after{
+  content:"";position:fixed;z-index:-1;pointer-events:none;border-radius:999px;
+  filter:blur(60px);opacity:.18;animation:sgFloat 15s ease-in-out infinite alternate;
+}
+body:before{width:330px;height:330px;background:#56b4e9;left:-150px;top:22vh}
+body:after{width:300px;height:300px;background:#7c83e8;right:-130px;top:60vh;animation-delay:-6s}
+@keyframes sgFloat{from{transform:translate3d(0,0,0) scale(1)}to{transform:translate3d(24px,-18px,0) scale(1.08)}}
+
+/* Header: calm premium glass */
+body>header{
+  background:rgba(16,48,77,.94)!important;
+  border-bottom:1px solid rgba(255,255,255,.13)!important;
+  box-shadow:0 10px 30px rgba(18,54,83,.13);
+  backdrop-filter:blur(16px) saturate(135%);
+}
+body>header .w-11{
+  border:2px solid rgba(255,255,255,.72);
+  box-shadow:0 8px 22px rgba(0,0,0,.16);
+}
+body>header #homePortalTitle{letter-spacing:.06em;color:#fff}
+body>header #homePortalSubtitle{color:#b9ddf4!important}
+.top-nav-link{
+  border-color:rgba(255,255,255,.22)!important;
+  background:rgba(255,255,255,.055);
+  color:#f7fbff!important;
+  transition:transform .22s ease,background .22s ease,box-shadow .22s ease,border-color .22s ease;
+}
+.top-nav-link:hover{
+  background:rgba(255,255,255,.14)!important;
+  border-color:rgba(255,255,255,.45)!important;
+  transform:translateY(-2px);
+  box-shadow:0 9px 20px rgba(0,0,0,.10);
+}
+.top-nav-link.active{
+  background:#f3c94b!important;color:#17324c!important;border-color:#f3c94b!important;
+  box-shadow:0 8px 20px rgba(231,185,63,.24);
+}
+.guru-top-link{background:#dff7ee!important;color:#155e52!important;border-color:#bcebdc!important}
+.cbt-top-link:hover{background:#fff!important;color:#17324c!important}
+
+/* Ticker */
+.ticker{
+  background:linear-gradient(90deg,#2b668f,#367fa8 48%,#5277bb)!important;
+  box-shadow:0 6px 18px rgba(42,91,126,.10);
+}
+.ticker-track span{animation-duration:32s}
+.stemga-clock{border-left-color:rgba(255,255,255,.30)!important}
+
+/* Home / building hero */
+.home-bg{
+  background-color:#dcebf3!important;
+  background-image:
+    linear-gradient(90deg,rgba(9,42,66,.74) 0%,rgba(19,69,94,.47) 46%,rgba(19,69,94,.18) 100%),
+    url("gedung-stemga.jpg")!important;
+  background-position:center center!important;
+  background-size:cover!important;
+  background-attachment:fixed!important;
+}
+.home-bg:after{
+  content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;
+  background:
+    radial-gradient(circle at 82% 18%,rgba(255,255,255,.30),transparent 22%),
+    linear-gradient(180deg,rgba(255,255,255,.05),rgba(255,255,255,.10));
+}
+.home-content{position:relative}
+.home-hero{
+  position:relative;overflow:hidden;
+  padding:52px 42px 34px!important;
+  border-radius:0 0 34px 34px;
+  background:linear-gradient(135deg,rgba(10,42,66,.74),rgba(32,91,120,.48) 55%,rgba(63,91,167,.36))!important;
+  border:1px solid rgba(255,255,255,.20);
+  box-shadow:0 24px 65px rgba(17,54,79,.22);
+  backdrop-filter:blur(7px);
+}
+.home-hero:before{
+  content:"";position:absolute;width:260px;height:260px;right:-80px;top:-100px;border-radius:50%;
+  background:rgba(255,255,255,.10);border:1px solid rgba(255,255,255,.13);
+  animation:sgPulse 7s ease-in-out infinite;
+}
+.home-hero:after{
+  content:"";position:absolute;width:155px;height:155px;right:34px;bottom:22px;border-radius:50%;
+  background:url("logo-stemga.png") center/contain no-repeat;
+  opacity:.24;filter:drop-shadow(0 10px 22px rgba(0,0,0,.12));
+  animation:sgLogoFloat 8s ease-in-out infinite;
+}
+@keyframes sgPulse{50%{transform:scale(1.13);opacity:.65}}
+@keyframes sgLogoFloat{50%{transform:translateY(-8px) rotate(3deg)}}
+.home-kicker{display:inline-flex!important;align-items:center;gap:9px!important;padding:8px 13px!important;border-radius:999px!important;background:rgba(255,255,255,.13)!important;border:1px solid rgba(255,255,255,.20)!important;color:#e8f7ff!important;box-shadow:0 8px 22px rgba(0,0,0,.10)}
+.home-kicker i{color:#f3c94b}
+.home-title{letter-spacing:.035em!important;text-shadow:0 8px 30px rgba(0,0,0,.20)}
+.home-title span{color:#f3c94b!important}
+.home-subtitle{color:#d9effb!important}
+.home-motto{border-left-color:#f3c94b!important;color:#fff!important;background:rgba(255,255,255,.08)!important;box-shadow:0 10px 30px rgba(0,0,0,.08)}
+
+/* Home cards: lighter, airy */
+.home-panel,.home-programs{
+  background:rgba(248,253,255,.94)!important;
+  border:1px solid rgba(214,229,239,.95)!important;
+  box-shadow:var(--sg-shadow)!important;
+  backdrop-filter:blur(10px);
+}
+.home-panel-head{color:var(--sg-text)!important}
+.home-panel-head .label{color:#367fa8!important}
+.home-panel-head h2{color:#17324c!important}
+.home-panel-head i{color:#d4a92e!important}
+.home-news-card,.home-program-card,.home-side-card{
+  border-color:#dbe7f2!important;
+  background:linear-gradient(145deg,#ffffff,#f5fafc)!important;
+  box-shadow:0 9px 24px rgba(31,76,109,.08)!important;
+  transition:transform .25s ease,box-shadow .25s ease,border-color .25s ease;
+}
+.home-news-card:hover,.home-program-card:hover,.home-side-card:hover{
+  transform:translateY(-5px);
+  border-color:#a9d2e8!important;
+  box-shadow:0 18px 36px rgba(31,76,109,.14)!important;
+}
+.home-programs-title{color:#17324c!important}
+.home-programs-title i{color:#d4a92e!important}
+
+/* Section shells */
+#materi,#media,#game,#bank-soal,#download,#tentang{
+  position:relative;
+}
+#materi:before,#media:before,#bank-soal:before,#download:before,#tentang:before{
+  content:"";position:absolute;left:6%;right:6%;top:0;height:1px;
+  background:linear-gradient(90deg,transparent,#cfe2ef,transparent);
+}
+
+/* Materi */
+#materi{
+  background:
+    radial-gradient(circle at 92% 8%,rgba(86,180,233,.12),transparent 24%),
+    linear-gradient(180deg,#fafdff,#f1f7fb)!important;
+}
+#materi .max-w-7xl>p:first-child{color:#367fa8!important;letter-spacing:.16em}
+#materi h2{color:#17324c!important}
+#materi #publicMateriGrid>*{
+  background:linear-gradient(145deg,#fff,#f6fbfd)!important;
+  border:1px solid #dbe7f2!important;
+  border-radius:24px!important;
+  box-shadow:0 12px 30px rgba(31,76,109,.09)!important;
+  overflow:hidden;
+  transition:transform .28s ease,box-shadow .28s ease,border-color .28s ease;
+}
+#materi #publicMateriGrid>*:hover{
+  transform:translateY(-7px);
+  border-color:#9dcce4!important;
+  box-shadow:0 20px 42px rgba(31,76,109,.15)!important;
+}
+#materi #publicMateriEmpty{
+  background:rgba(255,255,255,.82)!important;border-color:#cfe2ef!important;
+}
+
+/* Media: keep all interactive behavior, brighten presentation */
+#media{
+  background:
+    radial-gradient(circle at 8% 12%,rgba(86,180,233,.12),transparent 26%),
+    linear-gradient(180deg,#ffffff,#f2f8fb)!important;
+}
+#media .portal-dynamic-card{
+  background:linear-gradient(145deg,#fff,#f5fafc)!important;
+  border-color:#dbe7f2!important;
+  box-shadow:0 12px 30px rgba(31,76,109,.09)!important;
+  transition:transform .25s ease,box-shadow .25s ease,border-color .25s ease;
+}
+#media .portal-dynamic-card:hover{
+  transform:translateY(-6px);
+  border-color:#9dcce4!important;
+  box-shadow:0 20px 40px rgba(31,76,109,.14)!important;
+}
+#media .portal-card-image{filter:saturate(1.04);transition:transform .45s ease}
+#media .portal-dynamic-card:hover .portal-card-image{transform:scale(1.035)}
+#media .portal-card-body h3{color:#17324c!important}
+#media .portal-card-link{background:linear-gradient(135deg,#367fa8,#5b73c9)!important}
+
+/* Game: no longer overly dark */
+#game{
+  background:
+    radial-gradient(circle at 15% 15%,rgba(86,180,233,.22),transparent 26%),
+    radial-gradient(circle at 86% 80%,rgba(104,116,218,.18),transparent 28%),
+    linear-gradient(135deg,#edf8fc,#f5f3ff 55%,#eef8f5)!important;
+}
+#game .stemga-game-card{
+  background:linear-gradient(145deg,#ffffff,#f2f8fb)!important;
+  color:#17324c!important;
+  border-color:#d4e5ef!important;
+  box-shadow:0 15px 36px rgba(31,76,109,.11)!important;
+  transition:transform .28s ease,box-shadow .28s ease,border-color .28s ease;
+}
+#game .stemga-game-card:hover{transform:translateY(-7px);box-shadow:0 24px 50px rgba(31,76,109,.16)!important;border-color:#a9d2e8!important}
+#game .stemga-game-card .game-cover{
+  background:
+    radial-gradient(circle at 25% 20%,rgba(255,255,255,.62),transparent 34%),
+    linear-gradient(135deg,#5aaed4,#6874ce)!important;
+}
+#game .stemga-game-btn{background:linear-gradient(135deg,#367fa8,#5b73c9)!important}
+#game .stemga-game-btn:hover{filter:brightness(1.06)}
+
+/* Bank soal / Download / Tentang */
+#bank-soal,#download{background:linear-gradient(180deg,#fbfdff,#f1f7fb)!important}
+#tentang{
+  background:
+    radial-gradient(circle at 10% 15%,rgba(86,180,233,.16),transparent 25%),
+    linear-gradient(135deg,#eef8fb,#f4f2ff 55%,#f2faf6)!important;
+}
+#bank-soal .portal-dynamic-card,#download .portal-dynamic-card,#tentang .portal-dynamic-card{
+  background:linear-gradient(145deg,#fff,#f7fbfd)!important;
+  border:1px solid #dbe7f2!important;
+  border-radius:24px!important;
+  box-shadow:0 12px 30px rgba(31,76,109,.08)!important;
+  transition:transform .25s ease,box-shadow .25s ease,border-color .25s ease;
+}
+#bank-soal .portal-dynamic-card:hover,#download .portal-dynamic-card:hover,#tentang .portal-dynamic-card:hover{
+  transform:translateY(-6px);
+  border-color:#a9d2e8!important;
+  box-shadow:0 20px 40px rgba(31,76,109,.14)!important;
+}
+#bank-soal .portal-card-body h3,#download .portal-card-body h3,#tentang .portal-card-body h3{color:#17324c!important}
+.portal-card-link{background:linear-gradient(135deg,#367fa8,#5b73c9)!important}
+.portal-card-link:hover{background:linear-gradient(135deg,#2e6e96,#505fb3)!important}
+
+/* Teacher overlay remains functional; just soften its appearance */
+#teacherPanel{background:rgba(18,46,67,.58)!important}
+#teacherPanel>div{
+  box-shadow:0 25px 70px rgba(21,55,80,.22)!important;
+}
+
+/* Mobile */
+@media(max-width:900px){
+  .home-bg{background-attachment:scroll!important}
+  .home-hero{padding:38px 24px 28px!important}
+}
+@media(max-width:640px){
+  .home-hero{border-radius:0 0 26px 26px!important}
+  .home-title{font-size:2.15rem!important}
+  .home-panel,.home-programs{border-radius:20px!important}
+  body:before,body:after{opacity:.12}
+}
+
+/* Accessibility: respect motion preference */
+@media(prefers-reduced-motion:reduce){
+  *,*:before,*:after{
+    animation-duration:.001ms!important;animation-iteration-count:1!important;
+    scroll-behavior:auto!important;transition-duration:.001ms!important;
+  }
+}
+</style>
+
+
+<style id="stemga-jurusan-clarity">
+/* ===== PROGRAM KEAHLIAN: TEGAS, JELAS, TIDAK PUCAT ===== */
+.home-programs{
+  background:linear-gradient(135deg,rgba(255,255,255,.98),rgba(241,248,252,.96))!important;
+  border:1px solid rgba(30,64,175,.14)!important;
+  box-shadow:0 18px 42px rgba(15,40,70,.12)!important;
+  padding:22px!important;
+}
+.home-programs-title{
+  color:#17324c!important;font-size:16px!important;letter-spacing:.01em;
+}
+.home-programs-title i{color:#d4a92e!important}
+.home-programs-grid{grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:14px!important;margin-top:16px!important}
+.home-program{
+  position:relative;overflow:hidden;min-height:150px;padding:18px 12px 15px!important;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  background:linear-gradient(160deg,#ffffff 0%,#edf5fb 100%)!important;
+  border:1px solid rgba(30,64,175,.13)!important;
+  border-radius:20px!important;color:#16324a!important;
+  box-shadow:0 9px 22px rgba(15,40,70,.07)!important;
+}
+.home-program:before{content:"";position:absolute;left:0;right:0;top:0;height:5px;background:linear-gradient(90deg,#2563eb,#22c55e);opacity:.95}
+.home-program:nth-child(2):before{background:linear-gradient(90deg,#f43f5e,#fb7185)}
+.home-program:nth-child(3):before{background:linear-gradient(90deg,#10b981,#22c55e)}
+.home-program:nth-child(4):before{background:linear-gradient(90deg,#f59e0b,#f97316)}
+.home-program:hover{transform:translateY(-7px)!important;border-color:rgba(30,64,175,.30)!important;box-shadow:0 18px 32px rgba(15,40,70,.15)!important;background:#fff!important}
+.home-program .ico{width:58px!important;height:58px!important;margin:0 auto 10px!important;font-size:22px!important;border-width:2.5px!important;background:#fff;box-shadow:0 7px 18px rgba(15,40,70,.09)}
+.home-program b{font-size:18px!important;font-weight:950!important;letter-spacing:.04em;color:#102a43!important}
+.home-program span{font-size:10.5px!important;font-weight:800!important;color:#526b80!important;line-height:1.35!important;margin-top:5px!important;max-width:150px}
+@media(max-width:900px){.home-programs-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}}
+@media(max-width:560px){.home-programs{padding:16px!important}.home-programs-grid{gap:9px!important}.home-program{min-height:135px;padding:15px 7px 13px!important}.home-program .ico{width:50px!important;height:50px!important;font-size:19px!important}.home-program b{font-size:16px!important}.home-program span{font-size:9.5px!important}}
+</style>
+
+<style id="stemga-motivation-space">
+/* ===== STEMGA INSPIRATION SPACE ===== */
+.home-side .home-panel{display:flex;flex-direction:column}
+.stemga-inspiration{
+  margin:0 12px 14px; padding:18px 16px 16px; border-radius:22px;
+  background:linear-gradient(145deg,#f7fcff 0%,#edf7fb 52%,#f8fbf5 100%);
+  border:1px solid #d8e8ef; box-shadow:0 10px 28px rgba(31,76,109,.08);
+  position:relative; overflow:hidden;
+}
+.stemga-inspiration:before{content:"";position:absolute;width:120px;height:120px;right:-42px;top:-50px;border-radius:50%;background:rgba(55,127,168,.10)}
+.stemga-inspiration:after{content:"✦";position:absolute;right:18px;top:13px;color:#d4a92e;font-size:22px;opacity:.65;animation:sgStar 3s ease-in-out infinite}
+.stemga-inspiration-title{display:flex;align-items:center;gap:9px;color:#17324c;font-size:12px;font-weight:950;letter-spacing:1.2px;text-transform:uppercase}
+.stemga-inspiration-title i{width:31px;height:31px;display:grid;place-items:center;border-radius:10px;background:#e4f2f8;color:#367fa8}
+.stemga-quote-list{display:grid;gap:9px;margin-top:12px}
+.stemga-quote{position:relative;padding:11px 13px 11px 38px;border-radius:15px;background:rgba(255,255,255,.78);border:1px solid rgba(210,228,237,.9);color:#496277;font-size:11px;line-height:1.55;box-shadow:0 5px 14px rgba(31,76,109,.045);transition:transform .25s ease,box-shadow .25s ease}
+.stemga-quote:before{content:"“";position:absolute;left:12px;top:5px;font-family:Georgia,serif;font-size:28px;line-height:1;color:#d4a92e;font-weight:900}
+.stemga-quote:hover{transform:translateX(3px);box-shadow:0 9px 20px rgba(31,76,109,.10)}
+.stemga-quote b{display:block;color:#17324c;font-size:10px;margin-top:4px}
+.stemga-inspiration-foot{margin-top:11px;text-align:center;font-size:9px;font-weight:900;letter-spacing:.7px;color:#6c8798}
+@keyframes sgStar{50%{transform:rotate(18deg) scale(1.08);opacity:1}}
+@media(max-width:560px){.stemga-inspiration{margin:0 10px 12px;padding:15px 13px}.stemga-quote{font-size:10.5px}}
+</style>
+
+<style id="stemga-media-sidebar-v4">
+.media-page-hero{display:flex;align-items:center;justify-content:space-between;gap:20px;padding:24px 26px;border:1px solid rgba(79,70,229,.12);border-radius:28px;background:linear-gradient(135deg,#ffffff,#eef8ff 55%,#eefbf6);box-shadow:0 16px 40px rgba(30,64,175,.08)}
+.media-hero-icon{width:70px;height:70px;border-radius:22px;display:grid;place-items:center;font-size:34px;background:linear-gradient(135deg,#dbeafe,#dcfce7);box-shadow:0 10px 24px rgba(14,165,233,.15);animation:sgMediaFloat 4s ease-in-out infinite}
+.media-library-shell{display:grid;grid-template-columns:260px minmax(0,1fr);gap:20px;align-items:start}
+.media-sidebar{position:sticky;top:88px;padding:12px;border-radius:26px;background:rgba(255,255,255,.88);border:1px solid #dbe7ef;box-shadow:0 14px 34px rgba(15,23,42,.07);backdrop-filter:blur(12px)}
+.media-sidebar-title{font-size:10px;font-weight:1000;letter-spacing:.16em;color:#64748b;padding:10px 12px 8px}
+.media-sidebar-item{width:100%;display:grid;grid-template-columns:38px 1fr 16px;align-items:center;gap:9px;text-align:left;padding:12px;border:1px solid transparent;border-radius:17px;background:transparent;transition:.22s;margin-bottom:5px}
+.media-sidebar-item:hover{background:#f1f7ff;border-color:#dbeafe;transform:translateX(3px)}
+.media-sidebar-item.active{background:linear-gradient(135deg,#e8f2ff,#ecfbf5);border-color:#bfdbfe;box-shadow:0 8px 20px rgba(59,130,246,.1)}
+.media-sidebar-icon{width:38px;height:38px;border-radius:13px;display:grid;place-items:center;background:#f8fafc;font-size:19px}.media-sidebar-item.active .media-sidebar-icon{background:#fff}
+.media-sidebar-item b{display:block;font-size:13px;color:#17324d}.media-sidebar-item small{display:block;font-size:10px;color:#94a3b8;margin-top:2px}.media-sidebar-arrow{font-size:23px;color:#94a3b8}.media-sidebar-item.active .media-sidebar-arrow{color:#2563eb}
+.media-sidebar-empty{text-align:center;padding:28px 10px;color:#94a3b8;font-size:12px;font-weight:800}
+.media-resource-panel{min-width:0;border-radius:28px;padding:22px;background:linear-gradient(180deg,#fff,#f8fbfd);border:1px solid #dce8ee;box-shadow:0 14px 34px rgba(15,23,42,.06)}
+.media-panel-head{padding:4px 4px 18px}.media-kicker{font-size:10px;font-weight:1000;letter-spacing:.16em;color:#0f9f88}.media-panel-head h3{font-size:26px;font-weight:1000;color:#17324d;margin-top:5px}.media-panel-head p{font-size:13px;color:#64748b;margin-top:4px}
+.media-resource-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}.media-resource-card{overflow:hidden;border:1px solid #dbe7ef;border-radius:23px;background:#fff;box-shadow:0 10px 26px rgba(15,23,42,.06);transition:.25s}.media-resource-card:hover{transform:translateY(-4px);box-shadow:0 18px 36px rgba(15,23,42,.1)}
+.media-resource-thumb{height:130px;position:relative;overflow:hidden;background:linear-gradient(135deg,#e0f2fe,#dcfce7);display:flex;align-items:center;justify-content:center}.media-resource-thumb img{width:100%;height:100%;object-fit:cover}.media-resource-thumb>span:last-child{position:absolute;left:10px;top:10px;padding:5px 9px;border-radius:999px;background:rgba(255,255,255,.9);font-size:9px;font-weight:1000;color:#155e75}.resource-big-icon{font-size:48px!important;background:transparent!important;position:static!important}.media-resource-placeholder>span:last-child{left:10px;top:10px}
+.media-resource-body{padding:16px}.media-resource-body h4{font-size:17px;font-weight:1000;color:#17324d}.media-resource-body p{font-size:12px;color:#64748b;line-height:1.6;margin-top:5px}.media-resource-content{font-size:12px;color:#475569;margin-top:9px}.media-resource-btn{display:flex;justify-content:space-between;align-items:center;margin-top:14px;padding:10px 12px;border-radius:13px;background:#edf6ff;color:#155e75;font-size:11px;font-weight:1000;transition:.2s}.media-resource-btn:hover{background:#dbeafe;color:#1d4ed8}.media-resource-note{display:block;margin-top:13px;font-size:10px;color:#94a3b8;font-weight:800}
+.media-resource-empty{text-align:center;padding:48px 15px;border:1px dashed #cbd5e1;border-radius:20px;background:#f8fafc}.hidden{ }
+@keyframes sgMediaFloat{50%{transform:translateY(-5px) rotate(1deg)}}
+@media(max-width:850px){.media-library-shell{grid-template-columns:1fr}.media-sidebar{position:static;display:flex;gap:7px;overflow-x:auto;padding:10px}.media-sidebar-title{display:none}.media-sidebar-item{min-width:190px;margin:0}.media-resource-grid{grid-template-columns:1fr}.media-page-hero{padding:20px}.media-hero-icon{width:58px;height:58px;font-size:28px}}
+@media(max-width:520px){.media-sidebar-item{min-width:165px}.media-sidebar-item b{font-size:12px}.media-resource-panel{padding:15px;border-radius:22px}.media-resource-thumb{height:115px}}
+@media(prefers-reduced-motion:reduce){.media-hero-icon{animation:none}.media-sidebar-item,.media-resource-card{transition:none}}
+</style>
+
+
+<style id="stemga-about-v4">
+/* ABOUT V4 — visual only; no CBT selectors */
+#tentang.stemga-about-page{background:linear-gradient(135deg,#eef8ff 0%,#f7f7ff 48%,#effcf7 100%)!important;color:#17324d!important;overflow:hidden}
+.stemga-about-shell{max-width:1180px;margin:0 auto;padding:54px 22px 72px}
+.stemga-about-hero{display:grid;grid-template-columns:1.02fr .98fr;gap:34px;align-items:center;min-height:470px}
+.stemga-about-copy{padding:10px 0}
+.stemga-about-kicker{display:inline-flex;align-items:center;gap:8px;color:#2875a5;font-size:11px;font-weight:900;letter-spacing:.18em;text-transform:uppercase}
+.stemga-about-kicker:before{content:"";width:30px;height:3px;border-radius:99px;background:linear-gradient(90deg,#22b573,#f2bd34)}
+.stemga-about-kicker.dark{color:#2875a5}
+.stemga-about-copy h2{font-size:clamp(38px,5vw,68px);line-height:1.03;letter-spacing:-.045em;margin:17px 0 18px;color:#17324d}
+.stemga-about-copy h2 strong{background:linear-gradient(90deg,#2574a8,#20a875);-webkit-background-clip:text;background-clip:text;color:transparent}
+.stemga-about-copy>p{max-width:640px;font-size:16px;line-height:1.9;color:#5b7186;margin:0}
+.stemga-about-pills{display:flex;flex-wrap:wrap;gap:9px;margin-top:24px}
+.stemga-about-pills span{background:rgba(255,255,255,.82);border:1px solid rgba(55,110,145,.12);padding:10px 14px;border-radius:999px;font-size:12px;font-weight:900;color:#31536d;box-shadow:0 8px 22px rgba(48,92,122,.07)}
+.stemga-about-motion{position:relative;height:410px;border-radius:34px;background:linear-gradient(145deg,#dff4ff,#eef2ff 52%,#e5f9ef);border:1px solid rgba(71,116,150,.13);box-shadow:0 28px 70px rgba(45,87,118,.15);overflow:hidden;display:flex;align-items:center;justify-content:center}
+.stemga-about-motion:before{content:"";position:absolute;width:290px;height:290px;border-radius:50%;background:radial-gradient(circle,rgba(49,167,132,.22),transparent 68%);animation:aboutPulse 5s ease-in-out infinite}
+.stemga-screen{position:relative;width:76%;height:66%;border-radius:22px;background:linear-gradient(145deg,#153d5a,#1e5e71 60%,#227e6b);box-shadow:0 25px 50px rgba(20,64,84,.28);overflow:hidden;color:white;transform:perspective(900px) rotateY(-7deg) rotateX(3deg);animation:aboutFloat 6s ease-in-out infinite}
+.screen-top{height:34px;padding:0 13px;display:flex;align-items:center;gap:5px;background:rgba(255,255,255,.09);font-size:7px;letter-spacing:.08em}.screen-top span{width:7px;height:7px;border-radius:50%;background:rgba(255,255,255,.65)}.screen-top b{margin-left:auto;font-size:7px;color:#d7f8e8}
+.screen-grid{position:absolute;inset:34px 0 0;background-image:linear-gradient(rgba(255,255,255,.06) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.06) 1px,transparent 1px);background-size:28px 28px;mask-image:linear-gradient(to bottom,black,transparent)}
+.screen-title{position:absolute;left:11%;top:25%;font-size:25px;line-height:.9;font-weight:800;letter-spacing:.08em;opacity:.96}.screen-title strong{color:#bdf27d}
+.screen-line{position:absolute;height:2px;border-radius:99px;background:#bdf27d;opacity:.8;animation:aboutScan 3.4s ease-in-out infinite}.line-1{width:31%;right:12%;top:42%}.line-2{width:21%;right:12%;top:49%;animation-delay:-1.3s}
+.screen-chip{position:absolute;left:11%;bottom:14%;font-size:8px;font-weight:800;letter-spacing:.1em;padding:7px 10px;border:1px solid rgba(255,255,255,.25);border-radius:99px;background:rgba(255,255,255,.08)}
+.stemga-orbit{position:absolute;border:1px solid rgba(45,124,151,.16);border-radius:50%;animation:aboutSpin 15s linear infinite}.orbit-a{width:340px;height:180px;transform:rotate(22deg)}.orbit-b{width:260px;height:130px;transform:rotate(-34deg);animation-duration:11s;animation-direction:reverse}
+.stemga-node{position:absolute;width:38px;height:38px;border-radius:50%;display:grid;place-items:center;font-size:10px;font-weight:900;color:#17435c;background:#fff;box-shadow:0 10px 24px rgba(30,85,112,.16);animation:aboutFloat 4s ease-in-out infinite}.node-a{top:16%;left:14%;animation-delay:-1s}.node-b{right:12%;top:22%;background:#bdf27d}.node-c{bottom:16%;left:16%;background:#ffd978;animation-delay:-2s}
+.stemga-play-badge{position:absolute;right:9%;bottom:12%;display:flex;align-items:center;gap:8px;background:#fff;color:#23627f;border-radius:999px;padding:10px 13px;font-size:11px;font-weight:900;box-shadow:0 12px 25px rgba(34,87,111,.16);animation:aboutFloat 4.5s ease-in-out infinite}.stemga-play-badge:first-letter{color:#20a875}.stemga-play-badge span{font-size:8px;letter-spacing:.08em}
+.stemga-about-intro{display:flex;justify-content:space-between;gap:30px;align-items:end;padding:28px 0 18px;border-top:1px solid rgba(49,98,128,.12)}
+.stemga-about-intro h3{font-size:28px;margin-top:8px;color:#17324d}.stemga-about-intro p{max-width:560px;color:#60778b;line-height:1.8;font-size:14px;margin:0}
+.stemga-about-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px;margin-top:18px}.stemga-about-grid .portal-dynamic-card{background:rgba(255,255,255,.82)!important;border:1px solid rgba(54,111,145,.12)!important;border-radius:24px!important;overflow:hidden;box-shadow:0 14px 35px rgba(40,89,118,.08);color:#17324d!important;transition:transform .25s ease,box-shadow .25s ease}.stemga-about-grid .portal-dynamic-card:hover{transform:translateY(-5px);box-shadow:0 20px 45px rgba(40,89,118,.13)}.stemga-about-grid .portal-card-body{padding:22px}.stemga-about-grid h3{font-size:20px;color:#17324d}.stemga-about-grid p{color:#62788b}.stemga-about-grid .portal-card-link{display:inline-flex;margin-top:14px;color:#167b72;font-weight:900}.stemga-about-grid .portal-card-image{width:100%;height:210px;object-fit:cover}
+.stemga-about-empty{margin-top:18px;border:1px dashed rgba(50,110,140,.2);background:rgba(255,255,255,.58);border-radius:26px;padding:42px 22px;text-align:center;color:#6d8294}.stemga-empty-icon{width:54px;height:54px;margin:0 auto 13px;border-radius:18px;display:grid;place-items:center;background:linear-gradient(135deg,#dff5ff,#e4faef);color:#248b78;font-size:25px}.stemga-about-empty h3{font-size:20px;color:#29465d}.stemga-about-empty p{max-width:600px;margin:7px auto 0;line-height:1.7;font-size:13px}
+@keyframes aboutFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+@keyframes aboutSpin{to{transform:rotate(382deg)}}
+@keyframes aboutPulse{0%,100%{transform:scale(.9);opacity:.7}50%{transform:scale(1.12);opacity:1}}
+@keyframes aboutScan{0%,100%{transform:translateX(0);opacity:.4}50%{transform:translateX(-18px);opacity:1}}
+@media(max-width:800px){.stemga-about-shell{padding:35px 16px 55px}.stemga-about-hero{grid-template-columns:1fr;min-height:0}.stemga-about-motion{height:340px}.stemga-about-copy h2{font-size:42px}.stemga-about-intro{display:block}.stemga-about-intro p{margin-top:12px}.stemga-about-grid{grid-template-columns:1fr}}
+@media(prefers-reduced-motion:reduce){.stemga-about-motion *{animation:none!important}}
+</style>
 </head>
 <body class="bg-slate-50 text-slate-800">
 
@@ -178,13 +573,19 @@
             <button class="stemga-flyer-arrow stemga-flyer-next" type="button" onclick="stemgaFlyerMove(1)" aria-label="Flyer berikutnya">›</button>
             <div id="homeSlidesDots" class="stemga-flyer-dots"></div>
           </div>
+
+          <div class="stemga-inspiration">
+            <div class="stemga-inspiration-title"><i class="fa-solid fa-lightbulb"></i><span>Ruang Inspirasi STEMGA</span></div>
+            <div class="stemga-quote-list">
+              <div class="stemga-quote">Belajar hari ini adalah bekal untuk menghadapi tantangan esok hari.<b>— Semangat Belajar</b></div>
+              <div class="stemga-quote">Tidak harus hebat untuk memulai. Tetapi harus mulai untuk menjadi hebat.<b>— Semangat Berkarya</b></div>
+              <div class="stemga-quote">Kesalahan bukan akhir dari perjalanan, tetapi bagian dari proses menjadi lebih baik.<b>— Pantang Menyerah</b></div>
+              <div class="stemga-quote">Gunakan teknologi untuk belajar, berkarya, dan memberi manfaat bagi sesama.<b>— Generasi Digital STEMGA</b></div>
+            </div>
+            <div class="stemga-inspiration-foot">BELAJAR • BERLATIH • BERKARYA • BERPRESTASI</div>
+          </div>
         </div>
-        <div class="home-quick">
-          <a href="#materi" onclick="showPage('materi');return false"><i class="fa-solid fa-book-open"></i><span>Materi Informatika</span><em>›</em></a>
-          <a href="#media" onclick="showPage('media');return false"><i class="fa-solid fa-display"></i><span>Media Belajar</span><em>›</em></a>
-          <a href="#game" onclick="showPage('game');return false"><i class="fa-solid fa-gamepad"></i><span>Game Edukasi</span><em>›</em></a>
-          <a href="cbt.html"><i class="fa-solid fa-pen-to-square"></i><span>CBT STEMGA</span><em>›</em></a>
-        </div>
+        
       </div>
     </aside>
   </div>
@@ -195,7 +596,21 @@
 
 <section id="materi" data-page="materi" class="page-section hidden bg-white border-y"><div class="max-w-7xl mx-auto px-4 py-16"><p class="text-indigo-600 text-xs font-black uppercase">Pembelajaran</p><h2 class="text-3xl font-black mt-2">Materi Informatika Kelas X</h2><p class="text-sm text-slate-500 mt-2">Materi yang diterbitkan Guru akan tampil di sini.</p><div id="publicMateriGrid" class="grid sm:grid-cols-2 lg:grid-cols-4 gap-5 mt-8"></div><div id="publicMateriEmpty" class="mt-8 rounded-3xl border border-dashed border-slate-300 bg-slate-50 p-8 text-center text-slate-500"><div class="text-4xl mb-3">📚</div><h3 class="font-black text-lg text-slate-700">Belum ada materi</h3><p class="text-sm mt-1">Materi akan tampil setelah Guru menambah dan menerbitkannya melalui Panel Guru.</p></div></div></section>
 
-<section id="media" data-page="media" class="page-section hidden max-w-7xl mx-auto px-4 py-16"><p class="text-indigo-600 text-xs font-black uppercase">Visual Learning</p><h2 class="text-3xl font-black mt-2">Media Belajar</h2><p class="text-sm text-slate-500 mt-2">Video, simulasi, visualisasi, dan LKPD yang diterbitkan Guru akan tampil di sini.</p><div data-portal-grid class="grid md:grid-cols-3 gap-5 mt-8"></div><div data-portal-empty class="mt-8 rounded-3xl border border-dashed border-slate-300 bg-slate-50 p-8 text-center text-slate-500"><div class="text-4xl mb-3">🎬</div><h3 class="font-black text-lg text-slate-700">Belum ada media belajar</h3><p class="text-sm mt-1">Silakan Guru menambahkan media melalui Panel Guru.</p></div></section>
+<section id="media" data-page="media" class="page-section hidden max-w-7xl mx-auto px-4 py-14 sm:py-16">
+  <div class="media-page-hero">
+    <div><p class="text-indigo-600 text-xs font-black uppercase tracking-[.18em]">Visual Learning</p><h2 class="text-3xl sm:text-4xl font-black mt-2 text-slate-800">Media Belajar STEMGA</h2><p class="text-sm text-slate-500 mt-2 max-w-2xl">Pilih materi di sidebar. Setiap materi dapat memiliki PowerPoint, video animasi, LKPD, simulasi, atau sumber belajar lain yang diisi Guru.</p></div>
+    <div class="media-hero-icon">🎬</div>
+  </div>
+  <div class="media-library-shell mt-8">
+    <aside id="stemgaMediaSidebar" class="media-sidebar" aria-label="Daftar materi media belajar"></aside>
+    <main class="media-resource-panel">
+      <div id="stemgaMediaPanelHead" class="media-panel-head"><span class="media-kicker">PILIH MATERI</span><h3 id="stemgaMediaPanelTitle">Media Belajar</h3><p id="stemgaMediaPanelDesc">Pilih salah satu materi di sebelah kiri untuk melihat media pembelajarannya.</p></div>
+      <div id="stemgaMediaResources" class="media-resource-grid"></div>
+      <div id="stemgaMediaEmpty" class="hidden media-resource-empty"><div class="text-4xl">📚</div><h3 class="font-black text-lg mt-3">Belum ada media</h3><p class="text-sm text-slate-500 mt-1">Guru dapat menambahkan PowerPoint, video animasi, LKPD, atau media lain melalui Panel Guru.</p></div>
+    </main>
+  </div>
+  <div id="stemgaMediaLegacyEmpty" class="hidden mt-8 rounded-3xl border border-dashed border-slate-300 bg-slate-50 p-8 text-center text-slate-500"><div class="text-4xl mb-3">🎬</div><h3 class="font-black text-lg text-slate-700">Belum ada media belajar</h3><p class="text-sm mt-1">Silakan Guru menambahkan media melalui Panel Guru.</p></div>
+</section>
 
 <section id="game" data-page="game" class="page-section hidden bg-slate-950 text-white"><div class="max-w-7xl mx-auto px-4 py-16"><p class="text-indigo-400 text-xs font-black uppercase">Fun Learning</p><h2 class="text-3xl font-black mt-2">Game Edukasi</h2><p class="text-sm text-slate-400 mt-2">Game dan aktivitas belajar yang diterbitkan Guru akan tampil di sini.</p><div data-portal-grid class="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-8"></div><div data-portal-empty class="mt-8 rounded-3xl border border-dashed border-white/20 bg-white/5 p-8 text-center text-slate-400"><div class="text-4xl mb-3">🎮</div><h3 class="font-black text-lg text-white">Belum ada game edukasi</h3><p class="text-sm mt-1">Silakan Guru menambahkan game melalui Panel Guru.</p></div></div></section>
 
@@ -203,7 +618,46 @@
 
 <section id="download" data-page="download" class="page-section hidden max-w-7xl mx-auto px-4 py-16"><p class="text-indigo-600 text-xs font-black uppercase">Resources</p><h2 class="text-3xl font-black mt-2">Download</h2><p class="text-sm text-slate-500 mt-2">Modul, LKPD, presentasi, dan file yang diterbitkan Guru akan tampil di sini.</p><div data-portal-grid class="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-8"></div><div data-portal-empty class="mt-8 rounded-3xl border border-dashed border-slate-300 bg-slate-50 p-8 text-center text-slate-500"><div class="text-4xl mb-3">📥</div><h3 class="font-black text-lg text-slate-700">Belum ada file</h3><p class="text-sm mt-1">Silakan Guru menambahkan file melalui Panel Guru.</p></div></section>
 
-<section id="tentang" data-page="tentang" class="page-section hidden bg-slate-900 text-white"><div class="max-w-7xl mx-auto px-4 py-16"><p class="text-indigo-400 text-xs font-black uppercase">Tentang</p><h2 class="text-3xl font-black mt-2">Tentang Informatika STEMGA</h2><p class="text-slate-300 text-sm mt-2">Informasi profil portal yang diterbitkan Guru akan tampil di sini.</p><div data-portal-grid class="grid md:grid-cols-2 gap-5 mt-8"></div><div data-portal-empty class="mt-8 rounded-3xl border border-dashed border-white/20 bg-white/5 p-8 text-center text-slate-400"><div class="text-4xl mb-3">ℹ️</div><h3 class="font-black text-lg text-white">Belum ada informasi</h3><p class="text-sm mt-1">Silakan Guru menambahkan informasi melalui Panel Guru.</p></div></div></section>
+<section id="tentang" data-page="tentang" class="page-section hidden stemga-about-page">
+  <div class="stemga-about-shell">
+    <div class="stemga-about-hero">
+      <div class="stemga-about-copy">
+        <span class="stemga-about-kicker">TENTANG STEMGA • INFORMATIKA KELAS X</span>
+        <h2>Belajar Teknologi,<br><strong>Berkarya dengan Makna.</strong></h2>
+        <p>Portal pembelajaran Informatika STEMGA dirancang untuk menghadirkan pengalaman belajar yang modern, interaktif, dan dekat dengan dunia digital peserta didik.</p>
+        <div class="stemga-about-pills">
+          <span>💡 Belajar</span><span>🧠 Berpikir</span><span>💻 Berkarya</span><span>🚀 Berinovasi</span>
+        </div>
+      </div>
+      <div class="stemga-about-motion" aria-label="Animasi pembelajaran digital">
+        <div class="stemga-orbit orbit-a"></div><div class="stemga-orbit orbit-b"></div>
+        <div class="stemga-node node-a">01</div><div class="stemga-node node-b">AI</div><div class="stemga-node node-c">X</div>
+        <div class="stemga-screen">
+          <div class="screen-top"><span></span><span></span><span></span><b>STEMGA DIGITAL LAB</b></div>
+          <div class="screen-grid"></div>
+          <div class="screen-title">LEARN<br><strong>CREATE</strong><br>INNOVATE</div>
+          <div class="screen-line line-1"></div><div class="screen-line line-2"></div>
+          <div class="screen-chip">INFORMATIKA • KELAS X</div>
+        </div>
+        <div class="stemga-play-badge">▶ <span>MEDIA PEMBELAJARAN</span></div>
+      </div>
+    </div>
+
+    <div class="stemga-about-intro">
+      <div><span class="stemga-about-kicker dark">KENALI PORTALNYA</span><h3>Ruang belajar digital STEMGA</h3></div>
+      <p style="font-size:clamp(22px,3vw,34px);font-weight:950;letter-spacing:.04em;line-height:1.25;border:1px solid #dc2626;border-radius:14px;padding:14px 18px;box-sizing:border-box;">
+  <span style="color:#173b5f;">M3, Mantap Pasti OK</span><br>
+  <span style="color:#159a72;">STEMGA, Siap Hebat, Berjaya Selamanya...</span>
+</p>
+    </div>
+
+    <div data-portal-grid class="stemga-about-grid"></div>
+    <div data-portal-empty class="stemga-about-empty">
+      <div class="stemga-empty-icon">✦</div><h3>Profil STEMGA segera hadir</h3>
+      <p>Informasi profil, program, visi pembelajaran, atau video pengenalan yang diterbitkan Guru akan tampil di area ini.</p>
+    </div>
+  </div>
+</section>
 
 <section id="cbt" data-page="cbt" class="page-section hidden max-w-7xl mx-auto px-4 py-16"><div class="bg-gradient-to-br from-indigo-700 to-slate-950 rounded-[2rem] p-8 sm:p-12 text-white"><span class="bg-white/10 px-3 py-1 rounded-full text-[10px] font-black">CBT STEMGA</span><h2 class="text-4xl font-black mt-5">Computer Based Test</h2><p class="text-indigo-200 text-sm mt-4 max-w-2xl">Sistem ujian online STEMGA dengan login siswa dan guru, timer, pengacakan opsi, monitoring realtime, grading dan rekap nilai.</p><a href="cbt.html" class="inline-block mt-7 bg-white text-indigo-800 px-5 py-3 rounded-2xl font-black">📝 Buka CBT STEMGA</a></div></section>
 
@@ -452,7 +906,7 @@
           </section>
 
           <section id="teacher-tab-media" class="hidden">
-            <div class="flex flex-wrap items-center justify-between gap-3 mb-5"><div><p class="text-xs font-black uppercase tracking-widest text-indigo-600">PANEL GURU • MEDIA BELAJAR</p><h3 class="text-2xl font-black">Kelola Media Belajar</h3><p class="text-sm text-slate-500">Kelola video, simulasi, visualisasi, dan LKPD yang tampil pada menu Media Belajar.</p></div><button onclick="newPortalContent('media')" class="px-4 py-3 rounded-xl bg-indigo-600 text-white font-black">＋ Tambah Media</button></div>
+            <div class="flex flex-wrap items-center justify-between gap-3 mb-5"><div><p class="text-xs font-black uppercase tracking-widest text-indigo-600">PANEL GURU • MEDIA BELAJAR</p><h3 class="text-2xl font-black">Kelola Media Belajar</h3><p class="text-sm text-slate-500">Kelola media per materi. Satu materi dapat memiliki PowerPoint, video animasi, LKPD, simulasi, atau sumber lainnya.</p></div><button onclick="newPortalContent('media')" class="px-4 py-3 rounded-xl bg-indigo-600 text-white font-black">＋ Tambah Media</button></div>
             <div id="portalAdmin-media" class="grid md:grid-cols-2 gap-3"></div>
           </section>
 
@@ -861,23 +1315,41 @@ const portalContentLabels={
 async function loadPortalContent(menuKey){
   const box=document.getElementById('portalAdmin-'+menuKey); if(!box)return;
   box.innerHTML='<div class="col-span-full text-sm text-slate-500">Memuat konten...</div>';
-  const {data,error}=await stemgaSupabase.from('portal_content').select('*').eq('menu_key',menuKey).order('sort_order',{ascending:true}).order('created_at',{ascending:true});
+  let query=stemgaSupabase.from('portal_content').select('*').eq('menu_key',menuKey).order('sort_order',{ascending:true}).order('created_at',{ascending:true});
+  const {data,error}=await query;
   if(error){box.innerHTML='<div class="col-span-full p-4 rounded-2xl bg-amber-50 text-amber-800 text-sm font-bold">Tabel portal_content belum tersedia. Jalankan SQL yang disertakan pada versi ini di Supabase.</div>';return;}
   portalContentRows[menuKey]=data||[];
   if(!data?.length){box.innerHTML='<div class="col-span-full p-4 rounded-2xl border border-dashed text-sm text-slate-500">Belum ada konten. Klik tombol Tambah.</div>';return;}
-  box.innerHTML=data.map(x=>`<div class="cms-item">
+  box.innerHTML=data.map(x=>{
+    const mediaExtra=menuKey==='media'?`<div class="grid md:grid-cols-2 gap-3 mt-3">
+      <div><span class="cms-label">Kelompok / Materi</span><input id="pc-category-${x.id}" class="cms-input" value="${escapeHtmlAttr(x.media_category||'Umum')}" placeholder="Contoh: Literasi Digital"></div>
+      <div><span class="cms-label">Jenis Media</span><select id="pc-type-${x.id}" class="cms-input"><option value="PowerPoint" ${x.media_type==='PowerPoint'?'selected':''}>📊 PowerPoint / Presentasi</option><option value="Video Animasi" ${x.media_type==='Video Animasi'?'selected':''}>🎬 Video Animasi</option><option value="Video" ${x.media_type==='Video'?'selected':''}>▶️ Video</option><option value="LKPD" ${x.media_type==='LKPD'?'selected':''}>📝 LKPD</option><option value="Simulasi" ${x.media_type==='Simulasi'?'selected':''}>🧪 Simulasi</option><option value="Infografis" ${x.media_type==='Infografis'?'selected':''}>🖼️ Infografis</option><option value="Lainnya" ${x.media_type==='Lainnya'?'selected':''}>📚 Lainnya</option></select></div>
+    </div>`:'';
+    return `<div class="cms-item">
     <div class="flex items-start justify-between gap-3"><div><span class="cms-label">${escapeHtml(portalContentLabels[menuKey]?.title||menuKey)}</span><input id="pc-title-${x.id}" class="cms-input" value="${escapeHtmlAttr(x.title||'')}" placeholder="${escapeHtmlAttr(portalContentLabels[menuKey]?.placeholder||'Judul')}"></div><span class="text-[10px] font-black px-2 py-1 rounded-full ${x.is_published?'bg-emerald-100 text-emerald-700':'bg-slate-100 text-slate-500'}">${x.is_published?'TERBIT':'DRAFT'}</span></div>
+    ${mediaExtra}
     <div class="grid md:grid-cols-2 gap-3 mt-3"><div><span class="cms-label">Deskripsi</span><textarea id="pc-desc-${x.id}" class="cms-input" rows="3">${escapeHtml(x.description||'')}</textarea></div><div><span class="cms-label">URL / Link</span><input id="pc-link-${x.id}" class="cms-input" value="${escapeHtmlAttr(x.link_url||'')}" placeholder="https://..."><span class="cms-label mt-2">URL Gambar (opsional)</span><input id="pc-image-${x.id}" class="cms-input" value="${escapeHtmlAttr(x.image_url||'')}" placeholder="https://..."></div></div>
     <div class="mt-3"><span class="cms-label">Isi tambahan / HTML sederhana</span><textarea id="pc-content-${x.id}" class="cms-input" rows="5">${escapeHtml(x.content_html||'')}</textarea></div>
     <div class="grid grid-cols-2 gap-3 mt-3"><div><span class="cms-label">Urutan</span><input id="pc-order-${x.id}" type="number" class="cms-input" value="${x.sort_order??0}"></div><label class="flex items-center gap-2 text-sm font-bold mt-6"><input id="pc-pub-${x.id}" type="checkbox" ${x.is_published?'checked':''} class="w-4 h-4"> Tampilkan di website siswa</label></div>
     <div class="flex gap-2 flex-wrap mt-4"><button onclick="savePortalContent('${menuKey}','${x.id}')" class="px-3 py-2 rounded-lg bg-indigo-600 text-white text-xs font-black">💾 Simpan</button><button onclick="deletePortalContent('${x.id}','${menuKey}')" class="px-3 py-2 rounded-lg bg-red-50 text-red-700 text-xs font-black">Hapus</button></div>
-  </div>`).join('');
+  </div>`; }).join('');
 }
 async function newPortalContent(menuKey){
-  try{const db=await cmsClient();const {error}=await db.from('portal_content').insert({menu_key:menuKey,title:portalContentLabels[menuKey]?.add||'Konten Baru',description:'Tulis deskripsi di sini.',sort_order:99,is_published:true});if(error)throw error;loadPortalContent(menuKey);}catch(e){alert(e.message)}
+  try{
+    const db=await cmsClient();
+    const payload={menu_key:menuKey,title:portalContentLabels[menuKey]?.add||'Konten Baru',description:menuKey==='media'?'Tulis deskripsi media di sini.':'Tulis deskripsi di sini.',sort_order:99,is_published:true};
+    if(menuKey==='media'){payload.media_category='Umum';payload.media_type='PowerPoint';}
+    const {error}=await db.from('portal_content').insert(payload);if(error)throw error;loadPortalContent(menuKey);
+  }catch(e){alert(e.message)}
 }
 async function savePortalContent(menuKey,id){
-  try{const db=await cmsClient();const p={title:document.getElementById('pc-title-'+id).value.trim(),description:document.getElementById('pc-desc-'+id).value,link_url:document.getElementById('pc-link-'+id).value.trim()||null,image_url:document.getElementById('pc-image-'+id).value.trim()||null,content_html:document.getElementById('pc-content-'+id).value,sort_order:Number(document.getElementById('pc-order-'+id).value)||0,is_published:document.getElementById('pc-pub-'+id).checked,updated_at:new Date().toISOString()};if(!p.title)throw new Error('Judul wajib diisi.');const {error}=await db.from('portal_content').update(p).eq('id',id);if(error)throw error;alert('✅ Konten disimpan.');loadPortalContent(menuKey);}catch(e){alert(e.message)}
+  try{
+    const db=await cmsClient();
+    const p={title:document.getElementById('pc-title-'+id).value.trim(),description:document.getElementById('pc-desc-'+id).value,link_url:document.getElementById('pc-link-'+id).value.trim()||null,image_url:document.getElementById('pc-image-'+id).value.trim()||null,content_html:document.getElementById('pc-content-'+id).value,sort_order:Number(document.getElementById('pc-order-'+id).value)||0,is_published:document.getElementById('pc-pub-'+id).checked,updated_at:new Date().toISOString()};
+    if(menuKey==='media'){p.media_category=document.getElementById('pc-category-'+id).value.trim()||'Umum';p.media_type=document.getElementById('pc-type-'+id).value||'Lainnya';}
+    if(!p.title)throw new Error('Judul wajib diisi.');
+    const {error}=await db.from('portal_content').update(p).eq('id',id);if(error)throw error;alert('✅ Konten disimpan.');loadPortalContent(menuKey);
+  }catch(e){alert(e.message)}
 }
 async function deletePortalContent(id,menuKey){if(!confirm('Hapus konten ini?'))return;try{const db=await cmsClient();const {error}=await db.from('portal_content').delete().eq('id',id);if(error)throw error;loadPortalContent(menuKey);}catch(e){alert(e.message)}}
 async function loadTeacherStats(){
@@ -951,6 +1423,11 @@ async function loadTeacherStats(){
 .cms-item{border:1px solid #e2e8f0;border-radius:1rem;padding:1rem;background:#fff}
 .cms-input{width:100%;border:1px solid #cbd5e1;border-radius:.7rem;padding:.65rem .75rem;font-size:.85rem}
 .cms-label{display:block;font-size:.75rem;font-weight:900;color:#334155;margin-bottom:.3rem}
+
+/* Logo STEMGA Beranda: tampil utuh, tidak terpotong */
+@media(max-width:700px){
+  .home-hero:after{width:108px;height:108px;right:18px;bottom:18px;opacity:.20}
+}
 </style>
 
 <script id="cms-beranda-js">
@@ -1178,10 +1655,23 @@ function escapeHtmlAttr(v){return escapeHtml(v)}
 
   async function loadPortalPage(menuKey, sectionId){
     const box=document.getElementById(sectionId); if(!box)return;
-    const {data,error}=await homeDb.from('portal_content').select('id,title,description,content_html,link_url,image_url,sort_order,created_at').eq('menu_key',menuKey).eq('is_published',true).order('sort_order').order('created_at');
+    let query=homeDb.from('portal_content').select('id,title,description,content_html,link_url,image_url,sort_order,created_at,media_category,media_type').eq('menu_key',menuKey).eq('is_published',true).order('sort_order').order('created_at');
+    let {data,error}=await query;
+    if(error){
+      // kompatibilitas: bila kolom media_category/media_type belum dibuat, pakai kolom lama.
+      const fallback=await homeDb.from('portal_content').select('id,title,description,content_html,link_url,image_url,sort_order,created_at').eq('menu_key',menuKey).eq('is_published',true).order('sort_order').order('created_at');
+      data=fallback.data; error=fallback.error;
+    }
     if(error){console.warn('portal_content '+menuKey+':',error.message);return;}
-    const grid=box.querySelector('[data-portal-grid]'); if(!grid)return;
+    const grid=box.querySelector('[data-portal-grid]');
     const empty=box.querySelector('[data-portal-empty]');
+    if(menuKey==='media'){
+      renderStemgaMediaLibrary(data||[]);
+      if(grid)grid.classList.add('hidden');
+      if(empty)empty.classList.add('hidden');
+      return;
+    }
+    if(!grid)return;
     if(!data?.length){ grid.innerHTML=''; if(empty) empty.classList.remove('hidden'); return; }
     if(empty) empty.classList.add('hidden');
     if(menuKey==='game'){
@@ -1191,6 +1681,27 @@ function escapeHtmlAttr(v){return escapeHtml(v)}
     }
   }
 
+  let stemgaMediaRows=[];
+  let stemgaMediaCategory='';
+  function renderStemgaMediaLibrary(rows){
+    const sidebar=document.getElementById('stemgaMediaSidebar'), resources=document.getElementById('stemgaMediaResources'), title=document.getElementById('stemgaMediaPanelTitle'), desc=document.getElementById('stemgaMediaPanelDesc'), empty=document.getElementById('stemgaMediaEmpty');
+    if(!sidebar||!resources)return;
+    stemgaMediaRows=rows||[];
+    const categories=[...new Set(stemgaMediaRows.map(r=>(r.media_category||'Umum').trim()||'Umum'))];
+    if(!categories.length){sidebar.innerHTML='<div class="media-sidebar-empty">📚<br>Belum ada materi media.</div>';resources.innerHTML='';empty?.classList.remove('hidden');return;}
+    if(!categories.includes(stemgaMediaCategory))stemgaMediaCategory=categories[0];
+    sidebar.innerHTML=`<div class="media-sidebar-title">MATERI MEDIA</div>`+categories.map((cat,i)=>{const count=stemgaMediaRows.filter(r=>(r.media_category||'Umum').trim()===cat).length;return `<button type="button" class="media-sidebar-item ${cat===stemgaMediaCategory?'active':''}" onclick="selectStemgaMediaCategory(${JSON.stringify(cat)})"><span class="media-sidebar-icon">${['🌐','💻','🛡️','🤖','🧠','📡','🎨'][i%7]}</span><span><b>${esc(cat)}</b><small>${count} media</small></span><span class="media-sidebar-arrow">›</span></button>`}).join('');
+    const chosen=stemgaMediaRows.filter(r=>(r.media_category||'Umum').trim()===stemgaMediaCategory);
+    const sample=chosen[0]||{};
+    if(title)title.textContent=stemgaMediaCategory;
+    if(desc)desc.textContent=sample.description||'Pilih media pembelajaran di bawah untuk mulai belajar.';
+    if(empty)empty.classList.toggle('hidden',chosen.length>0);
+    resources.innerHTML=chosen.map((r,i)=>`<article class="media-resource-card">
+      ${r.image_url?`<div class="media-resource-thumb"><img src="${escAttr(r.image_url)}" alt="${escAttr(r.title||'Media')}"><span>${esc(r.media_type||'Media')}</span></div>`:`<div class="media-resource-thumb media-resource-placeholder"><span class="resource-big-icon">${r.media_type==='PowerPoint'?'📊':r.media_type==='Video Animasi'?'🎬':r.media_type==='LKPD'?'📝':r.media_type==='Simulasi'?'🧪':'📚'}</span><span>${esc(r.media_type||'Media')}</span></div>`}
+      <div class="media-resource-body"><h4>${esc(r.title||'Media Belajar')}</h4><p>${esc(r.description||'Sumber belajar STEMGA.')}</p>${r.content_html?`<div class="media-resource-content">${r.content_html}</div>`:''}${r.link_url?`<a class="media-resource-btn" href="${escAttr(r.link_url)}" target="_blank" rel="noopener">${r.media_type==='PowerPoint'?'📊 Buka PowerPoint':r.media_type==='Video Animasi'?'🎬 Tonton Video':r.media_type==='LKPD'?'📝 Buka LKPD':'🚀 Buka Media'} <span>→</span></a>`:`<span class="media-resource-note">Media tersedia di portal STEMGA</span>`}</div>
+    </article>`).join('');
+  }
+  function selectStemgaMediaCategory(cat){stemgaMediaCategory=cat;renderStemgaMediaLibrary(stemgaMediaRows);}
   async function loadPublicMateri(){
     const grid=document.getElementById('publicMateriGrid');
     const empty=document.getElementById('publicMateriEmpty');
