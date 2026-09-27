@@ -1098,15 +1098,79 @@ function addChat(text, user=false){
     box.scrollTop=box.scrollHeight;
 }
 
-function chatbotReply(q){
-    q=q.toLowerCase();
-    if(q.includes('materi')) return 'Materi Informatika Kelas X tersedia di menu Materi. Topiknya antara lain berpikir komputasional, sistem komputer, sistem bilangan, jaringan, proposisi, algoritma, literasi digital, dan AI.';
-    if(q.includes('cbt')||q.includes('ujian')) return 'Untuk mengikuti ujian, pilih menu CBT lalu klik Buka CBT STEMGA.';
-    if(q.includes('game')) return 'Game Edukasi berisi tantangan Informatika seperti Logic Battle, Number Battle, Computational Challenge, dan Computer Quest.';
-    if(q.includes('soal')) return 'Bank Soal berisi latihan berpikir komputasional, proposisi & tabel kebenaran, serta konversi bilangan.';
-    if(q.includes('download')) return 'Menu Download disiapkan untuk modul, LKPD, presentasi, dan file pembelajaran.';
-    if(q.includes('halo')||q.includes('hai')) return 'Halo juga bos 😄 Selamat datang di Informatika STEMGA!';
-    return 'Saya bisa membantu tentang Materi, Media Belajar, Game Edukasi, CBT, Bank Soal, dan Download. Coba tanyakan salah satunya ya.';
+async function chatbotReply(q){
+    const raw=String(q||'').trim();
+    const text=raw.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+    const has=(...words)=>words.some(w=>text.includes(w));
+
+    if(has('halo','hai','hi','assalamualaikum','selamat pagi','selamat siang','selamat sore','selamat malam'))
+        return 'Halo bos 😄 Saya Chatbot Informatika STEMGA. Silakan tanya materi seperti berpikir komputasional, sistem komputer, sistem bilangan, proposisi, jaringan, algoritma, literasi digital, atau AI.';
+    if(has('siapa kamu','kamu siapa','apa itu chatbot'))
+        return 'Saya Chatbot Informatika STEMGA, asisten belajar untuk membantu memahami materi Informatika Kelas X yang tersedia di portal.';
+
+    // Jawaban berbasis materi inti yang sudah dibagikan di portal STEMGA.
+    const answers=[
+      [['dekomposisi','memecah masalah','memecah masalah'], 'Dekomposisi adalah memecah masalah besar menjadi bagian-bagian kecil yang lebih mudah dipahami dan diselesaikan. Contoh: membuat aplikasi dibagi menjadi bagian login, data siswa, soal, penilaian, dan laporan.'],
+      [['pengenalan pola','pattern recognition','mengenali pola'], 'Pengenalan pola adalah mencari kesamaan atau kecenderungan dari suatu masalah agar solusi dapat digunakan kembali pada masalah yang serupa.'],
+      [['abstraksi'], 'Abstraksi adalah mengambil informasi yang penting dan mengabaikan detail yang tidak diperlukan agar masalah menjadi lebih sederhana.'],
+      [['algoritma'], 'Algoritma adalah urutan langkah yang logis, sistematis, dan terbatas untuk menyelesaikan masalah. Algoritma yang baik memiliki input, proses, dan output yang jelas.'],
+      [['berpikir komputasional','computational thinking'], 'Berpikir komputasional meliputi dekomposisi, pengenalan pola, abstraksi, dan algoritma untuk menyelesaikan masalah secara sistematis.'],
+      [['cpu','prosesor'], 'CPU atau prosesor adalah komponen komputer yang menjalankan instruksi dan memproses data. CPU sering disebut sebagai pusat pemrosesan komputer.'],
+      [['ram'], 'RAM adalah memori sementara yang digunakan untuk menyimpan data dan instruksi yang sedang digunakan komputer. Data RAM bersifat sementara dan akan hilang ketika daya dimatikan.'],
+      [['rom'], 'ROM adalah memori yang menyimpan data/instruksi yang relatif tetap dan tidak hilang ketika komputer dimatikan.'],
+      [['ssd','hdd','hard disk','harddisk'], 'SSD dan HDD merupakan media penyimpanan. SSD menggunakan memori flash dan umumnya lebih cepat, sedangkan HDD menggunakan piringan magnetik dan komponen mekanis.'],
+      [['hardware','perangkat keras'], 'Hardware adalah bagian fisik komputer yang dapat dilihat dan disentuh, misalnya CPU, RAM, keyboard, monitor, mouse, SSD, dan printer.'],
+      [['software','perangkat lunak'], 'Software adalah program atau kumpulan instruksi yang menjalankan fungsi tertentu pada komputer, misalnya sistem operasi, browser, dan aplikasi.'],
+      [['sistem komputer'], 'Sistem komputer terdiri dari perangkat keras (hardware), perangkat lunak (software), dan pengguna/brainware yang saling bekerja untuk menjalankan fungsi komputasi.'],
+      [['biner','binary'], 'Sistem bilangan biner menggunakan dua simbol, yaitu 0 dan 1. Sistem ini digunakan komputer untuk merepresentasikan data dan instruksi.'],
+      [['desimal'], 'Sistem bilangan desimal menggunakan sepuluh simbol, yaitu 0 sampai 9.'],
+      [['oktal'], 'Sistem bilangan oktal menggunakan delapan simbol, yaitu 0 sampai 7.'],
+      [['heksadesimal','hexadecimal'], 'Sistem bilangan heksadesimal menggunakan 16 simbol: 0–9 dan A–F. Heksadesimal sering digunakan untuk merepresentasikan nilai biner secara lebih ringkas.'],
+      [['konversi bilangan','konversi biner','ubah biner'], 'Konversi bilangan adalah mengubah representasi suatu nilai dari satu basis ke basis lain, misalnya biner ke desimal, desimal ke biner, oktal, atau heksadesimal. Jika bos beri angkanya, saya bisa bantu menghitung langkah konversinya.'],
+      [['proposisi'], 'Proposisi adalah kalimat deklaratif yang dapat ditentukan nilai kebenarannya, yaitu benar atau salah, tetapi tidak keduanya sekaligus.'],
+      [['konjungsi','and','dan dalam logika'], 'Konjungsi (AND) bernilai benar hanya jika semua proposisi yang digabungkan bernilai benar.'],
+      [['disjungsi','or','atau dalam logika'], 'Disjungsi (OR) bernilai salah hanya jika semua proposisi yang digabungkan bernilai salah.'],
+      [['implikasi'], 'Implikasi berbentuk “jika P maka Q”. Pernyataan ini bernilai salah hanya ketika P benar tetapi Q salah.'],
+      [['biimplikasi','bikondisional'], 'Biimplikasi berbentuk “P jika dan hanya jika Q”. Nilainya benar ketika P dan Q memiliki nilai kebenaran yang sama.'],
+      [['jaringan komputer','jaringan'], 'Jaringan komputer adalah hubungan antara dua atau lebih perangkat untuk bertukar data dan berbagi sumber daya. Contohnya LAN, MAN, dan WAN.'],
+      [['literasi digital'], 'Literasi digital adalah kemampuan menggunakan teknologi dan informasi digital secara efektif, kritis, aman, etis, dan bertanggung jawab.'],
+      [['hoaks','hoax','disinformasi','misinformasi'], 'Saat menemukan informasi digital, periksa sumber, tanggal, konteks, bukti, dan sumber pembanding sebelum membagikannya. Jangan langsung percaya hanya karena informasi terlihat meyakinkan.'],
+      [['cyberbullying','perundungan digital'], 'Cyberbullying adalah perundungan yang dilakukan melalui media atau teknologi digital. Hindari membalas dengan kekerasan digital, simpan bukti, blokir/laporkan akun bila perlu, dan cari bantuan orang yang dipercaya.'],
+      [['jejak digital'], 'Jejak digital adalah rekaman aktivitas seseorang di lingkungan digital. Unggahan, komentar, foto, dan aktivitas online dapat meninggalkan jejak, sehingga perlu dipikirkan sebelum dibagikan.'],
+      [['privasi','data pribadi'], 'Lindungi data pribadi seperti password, OTP, alamat, nomor identitas, dan informasi akun. Bagikan hanya kepada pihak yang benar-benar membutuhkan melalui saluran yang tepercaya.'],
+      [['password','kata sandi'], 'Gunakan password yang panjang dan unik untuk setiap akun. Jangan membagikan password atau kode OTP kepada orang lain. Jika tersedia, aktifkan autentikasi multifaktor.'],
+      [['ai','kecerdasan buatan','artificial intelligence'], 'AI atau kecerdasan buatan adalah teknologi yang memungkinkan sistem komputer melakukan tugas yang biasanya membutuhkan kemampuan kognitif manusia, seperti mengenali pola, memahami bahasa, dan menghasilkan konten. Gunakan AI secara kritis dan verifikasi hasilnya.']
+    ];
+    for(const item of answers){ if(item[0].some(k=>text.includes(k))) return item[1]; }
+
+    if(has('materi','pelajaran','topik')) return 'Materi Informatika Kelas X di portal STEMGA mencakup antara lain Berpikir Komputasional, Sistem Komputer, Sistem Bilangan, Proposisi/Logika, Jaringan, Algoritma, Literasi Digital, dan AI. Coba tanyakan nama topiknya secara spesifik.';
+    if(has('media','video','lkpd','powerpoint','presentasi')) return 'Media Belajar digunakan untuk sumber belajar seperti PowerPoint, video, LKPD, simulasi, dan media pendukung lainnya. Silakan buka menu Media Belajar di portal STEMGA.';
+    if(has('cbt','ujian','tes')) return 'Untuk mengikuti ujian, buka menu CBT STEMGA. Pastikan NIS dan data ujian yang diberikan guru sudah benar.';
+    if(has('game','permainan')) return 'Menu Game Edukasi berisi aktivitas belajar Informatika. Salah satu game yang tersedia adalah Tebak Komponen Komputer.';
+    if(has('bank soal','latihan soal','kumpulan soal','soal')) return 'Bank Soal digunakan untuk latihan. Untuk mendapatkan jawaban yang tepat, sebutkan topik atau kirimkan soal yang ingin dibahas.';
+    if(has('download','modul','buku','lkpd')) return 'File pembelajaran dapat diakses melalui menu Download. Materi Literasi Digital STEMGA Kelas X juga disediakan sebagai bahan belajar.';
+
+    // Coba mengambil judul/deskripsi materi yang sedang diterbitkan. Jika jaringan gagal, tetap beri jawaban aman.
+    try{
+      const ctrl=new AbortController();
+      const timer=setTimeout(()=>ctrl.abort(),2500);
+      const url='https://tcvfdnbknbmtuygczxib.supabase.co/rest/v1/materi?select=title,short_description,objectives,map_topics&is_published=eq.true&order=sort_order.asc';
+      const res=await fetch(url,{headers:{'apikey':'sb_publishable_rg2wipFIDqeQO2zOr5JY-w_4wxa8UhW','Authorization':'Bearer sb_publishable_rg2wipFIDqeQO2zOr5JY-w_4wxa8UhW'},signal:ctrl.signal});
+      clearTimeout(timer);
+      if(res.ok){
+        const rows=await res.json();
+        const words=text.split(/\s+/).filter(x=>x.length>2);
+        let best=null,score=0;
+        for(const r of rows){
+          const hay=[r.title,r.short_description,...(r.objectives||[]),...(r.map_topics||[])].join(' ').toLowerCase();
+          const s=words.reduce((n,w)=>n+(hay.includes(w)?1:0),0);
+          if(s>score){score=s;best=r;}
+        }
+        if(best&&score>0) return '📚 Materi **'+best.title+'**: '+(best.short_description||'Materi ini tersedia di portal STEMGA. Buka menu Materi untuk mempelajarinya lebih lengkap.');
+      }
+    }catch(e){ console.debug('Chatbot materi lookup:',e); }
+
+    return 'Saya belum menemukan jawaban yang cukup spesifik dari materi STEMGA. Coba tanyakan, misalnya: “apa itu dekomposisi?”, “jelaskan RAM”, “apa itu proposisi?”, “apa itu literasi digital?”, atau “jelaskan sistem bilangan biner”.';
 }
 
 function sendChat(){
@@ -1114,7 +1178,10 @@ function sendChat(){
     const q=input.value.trim();
     if(!q)return;
     addChat(q,true); input.value='';
-    setTimeout(()=>addChat(chatbotReply(q)),350);
+    setTimeout(async ()=>{
+        try{ addChat(await chatbotReply(q)); }
+        catch(e){ console.error('Chatbot:',e); addChat('Maaf bos, saya belum bisa memproses pertanyaan itu. Coba gunakan nama topik materi yang lebih spesifik.'); }
+    },250);
 }
 
 document.getElementById('y').textContent=new Date().getFullYear();
