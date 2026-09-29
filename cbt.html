@@ -1158,9 +1158,6 @@ async function syncQuestionToSupabase(subjectKey, questionObj, questionNumber) {
         let currentQuestionIndex = 0;
         let userAnswers = {};
         let flaggedQuestions = {};
-        // Jumlah benar resmi dari server; dipakai HANYA untuk menyelaraskan pembahasan.
-        let reviewServerCorrectCount = null;
-        let reviewServerQuestions = [];
         let timerInterval = null;
         let timeRemaining = 0;
         let antiCheatViolations = 0;
@@ -2885,13 +2882,6 @@ console.log("JUMLAH SISWA TERBACA:", students.length);
 
             // Clone questions
             currentQuestions = JSON.parse(JSON.stringify(bank.questions));
-
-            // Simpan pilihan asli sebelum diacak. Pembahasan akan memakai
-            // snapshot ini, sehingga tidak tergantung posisi A/B/C/D setelah shuffle.
-            currentQuestions.forEach(q => {
-                q.originalOptions = Array.isArray(q.options) ? [...q.options] : [];
-            });
-
 // Shuffle opsi jawaban untuk setiap siswa
 // q.optionMap menyimpan posisi asli opsi di database.
 if (shuffleOptionsConfig === "enabled") {
@@ -2926,8 +2916,6 @@ if (shuffleOptionsConfig === "enabled") {
             currentQuestionIndex = 0;
             userAnswers = {};
             flaggedQuestions = {};
-            reviewServerCorrectCount = null;
-            reviewServerQuestions = [];
             antiCheatViolations = 0;
             isExamActive = true;
             timeRemaining = (bank.durationMinutes || 15) * 60;
@@ -3019,9 +3007,6 @@ function selectOption(optIdx) {
         : optIdx;
 
     userAnswers[currentQuestionIndex] = originalIndex;
-
-    // Simpan teks yang benar-benar diklik siswa. Ini murni untuk tampilan pembahasan.
-    q.reviewSelectedText = String(q.options[optIdx] ?? "");
 
     renderCurrentQuestion();
 }
@@ -3689,35 +3674,31 @@ function handleTeacherExamChange() {
 
         async function loadCloudResultsForTeacher() {
             try {
-                const { data, error } = await stemgaSupabase
+                let { data, error } = await stemgaSupabase
                     .from("results")
-                    .select(`
-                        score,
-                        total_questions,
-                        correct_answers,
-                        finished_at,
-                        students (
-                            name,
-                            nis,
-                            class_name,
-                            rooms (
-                                subject,
-                                title
-                            )
-                        )
-                    `)
+                    .select(`id, score, total_questions, correct_answers, finished_at, violations,
+                        students (name, nis, class_name, rooms (subject, title))`)
                     .order("finished_at", { ascending: false });
 
-                if (error) throw error;
+                if (error) {
+                    console.warn("Query rekap cloud dengan violations gagal:", error);
+                    const fallback = await stemgaSupabase
+                        .from("results")
+                        .select(`id, score, total_questions, correct_answers, finished_at,
+                            students (name, nis, class_name, rooms (subject, title))`)
+                        .order("finished_at", { ascending: false });
+                    if (fallback.error) throw fallback.error;
+                    data = (fallback.data || []).map(row => ({...row, violations: 0}));
+                }
 
-                const cloudRows = (data || []).map((item) => {
+                examResultsLog = (data || []).map(item => {
                     const student = item.students || {};
                     const room = student.rooms || {};
                     const total = Number(item.total_questions || 0);
                     const correct = Number(item.correct_answers || 0);
-                    const wrong = Math.max(total - correct, 0);
                     const finished = item.finished_at ? new Date(item.finished_at) : null;
                     return {
+                        cloudId: item.id || null,
                         studentName: student.name || "-",
                         studentId: student.nis || "-",
                         studentClass: student.class_name || "-",
@@ -3725,24 +3706,47 @@ function handleTeacherExamChange() {
                         subjectTitle: room.title || room.subject || "-",
                         score: Number(item.score || 0),
                         correctCount: correct,
-                        wrongCount: wrong,
+                        wrongCount: Math.max(total - correct, 0),
                         emptyCount: 0,
-                        violations: 0,
+                        violations: Number(item.violations || 0),
                         timestamp: finished ? finished.toLocaleTimeString("id-ID", {hour:"2-digit",minute:"2-digit"}) : "-",
                         _cloud: true
                     };
                 });
 
-                if (cloudRows.length > 0) {
-                    examResultsLog = cloudRows;
-                    saveExamLogsToStorage();
-                }
-
+                saveExamLogsToStorage();
                 renderStudentResultsRekap();
-                console.log("Rekap CBT dari Supabase:", cloudRows.length, "data");
             } catch (error) {
                 console.error("Gagal memuat rekap CBT dari Supabase:", error);
                 renderStudentResultsRekap();
+            }
+        }
+
+        async function persistViolationCountToCloud(nis, violations) {
+            try {
+                if (!nis) return;
+                const { data, error } = await stemgaSupabase
+                    .from("results")
+                    .select(`id, finished_at, students (nis)`)
+                    .order("finished_at", { ascending: false })
+                    .limit(50);
+                if (error) throw error;
+
+                const row = (data || []).find(r => String(r.students?.nis || "") === String(nis));
+                if (!row?.id) return;
+
+                const { error: updateError } = await stemgaSupabase
+                    .from("results")
+                    .update({ violations: Number(violations || 0) })
+                    .eq("id", row.id);
+
+                if (updateError) {
+                    console.warn("Gagal menyimpan results.violations:", updateError);
+                    return;
+                }
+                console.log("Pelanggaran tersimpan ke cloud:", violations);
+            } catch (error) {
+                console.warn("Gagal menyimpan jumlah pelanggaran ke cloud:", error);
             }
         }
 
@@ -4204,7 +4208,7 @@ function handleTeacherExamChange() {
                     </td>
                     <td class="py-3.5 px-3 text-right text-slate-400 font-mono text-[11px] no-print">${log.timestamp || '-'}</td>
                     <td class="py-3.5 px-3 text-center no-print">
-                        <button onclick="deleteSingleRekap(${idx})" class="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition" title="Hapus Rekap Ini">
+                        <button onclick="deleteSingleRekap(examResultsLog.indexOf(log))" class="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition" title="Hapus Rekap Ini">
                             <i class="fa-solid fa-trash-can"></i>
                         </button>
                     </td>
@@ -4214,11 +4218,31 @@ function handleTeacherExamChange() {
             });
         }
 
-        function deleteSingleRekap(index) {
-            showCustomDialog("Hapus Item Rekap", "Apakah Anda yakin ingin menghapus data hasil ujian siswa ini dari tabel rekap?", () => {
-                examResultsLog.splice(index, 1);
-                saveExamLogsToStorage();
-                renderStudentResultsRekap();
+        async function deleteSingleRekap(index) {
+            const log = examResultsLog[index];
+            if (!log) return;
+
+            showCustomDialog("Hapus Item Rekap", "Apakah Anda yakin ingin menghapus data hasil ujian siswa ini dari tabel rekap dan Supabase?", async () => {
+                try {
+                    if (log.cloudId) {
+                        const { error } = await stemgaSupabase
+                            .from("results")
+                            .delete()
+                            .eq("id", log.cloudId);
+                        if (error) {
+                            console.error("Gagal menghapus rekap dari Supabase:", error);
+                            showCustomDialog("Hapus Gagal", "Data rekap belum dihapus dari Supabase.", null, true);
+                            return;
+                        }
+                    }
+                    examResultsLog.splice(index, 1);
+                    saveExamLogsToStorage();
+                    renderStudentResultsRekap();
+                    showCustomDialog("Hapus Berhasil", "Data rekap siswa berhasil dihapus dan tidak akan muncul lagi setelah refresh.", null, true);
+                } catch (error) {
+                    console.error("Delete rekap error:", error);
+                    showCustomDialog("Hapus Gagal", "Terjadi kesalahan saat menghapus data rekap.", null, true);
+                }
             });
         }
 
@@ -4750,25 +4774,6 @@ console.log("ROOM CODE UNTUK AMBIL SOAL =", room?.room_code);
         answersPayload
     );
 
-    // Cegah submit jika ada nomor yang belum tercatat sebagai jawaban.
-    const unanswered = [];
-    currentQuestions.forEach((q, idx) => {
-        const a = userAnswers[idx];
-        if (a === undefined || a === null || a === "") unanswered.push(idx + 1);
-    });
-
-    if (unanswered.length > 0) {
-        const daftar = unanswered.join(", ");
-        showCustomDialog(
-            "Masih Ada Jawaban Belum Tercatat",
-            `Nomor ${daftar} belum tercatat sebagai jawaban. Silakan buka nomor tersebut, pilih jawabannya, lalu kumpulkan kembali.`,
-            null,
-            true
-        );
-        isExamActive = true;
-        return;
-    }
-
     const { data: gradingResult, error: gradingError } =
         await stemgaSupabase.rpc(
             "grade_stemga_exam",
@@ -4814,30 +4819,6 @@ console.log("ROOM CODE UNTUK AMBIL SOAL =", room?.room_code);
 
     const grading = gradingResult[0];
 
-    // Server tetap menjadi sumber nilai resmi.
-    reviewServerCorrectCount = Number(grading.correct_answers || 0);
-
-    // Ambil SALINAN SOAL YANG DIPAKAI SERVER untuk Pembahasan.
-    // Ujian/soal siswa tidak diubah; ini hanya untuk menentukan benar/salah
-    // per nomor dengan sumber yang sama seperti RPC grading.
-    reviewServerQuestions = [];
-    try {
-        const { data: serverQs, error: serverQsError } =
-            await stemgaSupabase
-                .from("questions")
-                .select("question_number,question_text,option_a,option_b,option_c,option_d,correct_answer,explanation")
-                .eq("room_id", (await stemgaSupabase.from("rooms").select("id").eq("room_code", roomCode || "STEMGA1").single()).data?.id)
-                .order("question_number", { ascending: true });
-
-        if (!serverQsError && Array.isArray(serverQs)) {
-            reviewServerQuestions = serverQs;
-        } else {
-            console.warn("Pembahasan: soal server tidak dapat diambil", serverQsError);
-        }
-    } catch (reviewFetchError) {
-        console.warn("Pembahasan: gagal mengambil soal server", reviewFetchError);
-    }
-
     const correctCount = Number(
         grading.correct_answers || 0
     );
@@ -4878,6 +4859,8 @@ console.log("ROOM CODE UNTUK AMBIL SOAL =", room?.room_code);
 
             examResultsLog.push(resultRecord);
             saveExamLogsToStorage();
+
+            await persistViolationCountToCloud(studentData.id, antiCheatViolations);
 
 // Kirim hasil ujian ke monitoring live/proktor
 
@@ -4934,105 +4917,10 @@ console.log("ROOM CODE UNTUK AMBIL SOAL =", room?.room_code);
                 list.innerHTML = "";
                 const optionLabels = ["A", "B", "C", "D"];
 
-                // Tentukan apakah correct_answer server 0-based atau 1-based
-                // dengan mencocokkan JUMLAH BENAR resmi dari RPC.
-                let serverAnswerMode = "zero";
-                if (reviewServerQuestions.length && reviewServerCorrectCount !== null) {
-                    let zeroCorrect = 0;
-                    let oneCorrect = 0;
-
-                    reviewServerQuestions.forEach((sq, n) => {
-                        const idx = n;
-                        const ua = userAnswers[idx];
-                        if (ua === undefined || ua === null || ua === "") return;
-
-                        const raw = Number(sq.correct_answer);
-                        if (Number.isFinite(raw)) {
-                            if (ua === raw) zeroCorrect++;
-                            if (ua === raw - 1) oneCorrect++;
-                        }
-                    });
-
-                    if (oneCorrect === reviewServerCorrectCount && zeroCorrect !== reviewServerCorrectCount) {
-                        serverAnswerMode = "one";
-                    } else if (zeroCorrect === reviewServerCorrectCount) {
-                        serverAnswerMode = "zero";
-                    } else if (oneCorrect === reviewServerCorrectCount) {
-                        serverAnswerMode = "one";
-                    }
-                }
-
                 currentQuestions.forEach((q, idx) => {
-                    const userAnsOriginal = userAnswers[idx];
-                    const isAnswered = userAnsOriginal !== undefined && userAnsOriginal !== null && userAnsOriginal !== "";
-                    const serverQ = reviewServerQuestions[idx];
-
-                    // Jawaban siswa tetap berasal dari pilihan yang benar-benar tampil/diklik.
-                    const selectedText = q.reviewSelectedText !== undefined
-                        ? String(q.reviewSelectedText)
-                        : "";
-
-                    const selectedVisibleIndex = isAnswered
-                        ? q.options.findIndex(v => String(v) === selectedText)
-                        : -1;
-
-                    const userLabel = isAnswered
-                        ? (selectedVisibleIndex >= 0
-                            ? `${optionLabels[selectedVisibleIndex]}. ${selectedText}`
-                            : selectedText)
-                        : "Tidak Dijawab";
-
-                    let isCorrect = false;
-                    let correctText = "";
-                    let correctVisibleIndex = -1;
-
-                    if (serverQ) {
-                        const raw = Number(serverQ.correct_answer);
-                        const serverCorrectIndex = serverAnswerMode === "one" ? raw - 1 : raw;
-                        const serverOptions = [
-                            serverQ.option_a ?? "",
-                            serverQ.option_b ?? "",
-                            serverQ.option_c ?? "",
-                            serverQ.option_d ?? ""
-                        ];
-
-                        correctText = serverOptions[serverCorrectIndex] !== undefined
-                            ? String(serverOptions[serverCorrectIndex])
-                            : "";
-
-                        // INI inti perbaikannya: status BENAR/SALAH mengikuti
-                        // indeks yang dipakai server grading, bukan tebakan dari tampilan.
-                        if (isAnswered && Number.isFinite(raw)) {
-                            isCorrect = serverAnswerMode === "one"
-                                ? Number(userAnsOriginal) === raw - 1
-                                : Number(userAnsOriginal) === raw;
-                        }
-
-                        // Label kunci ditampilkan dari data soal server.
-                        correctVisibleIndex = q.options.findIndex(v => String(v) === correctText);
-                        if (correctVisibleIndex < 0 && correctText) {
-                            // Bila teks soal lokal dan server berbeda, tetap tampilkan kunci server.
-                            correctVisibleIndex = -1;
-                        }
-                    } else {
-                        // Fallback hanya jika soal server tidak tersedia.
-                        const originalOptions = Array.isArray(q.originalOptions) && q.originalOptions.length
-                            ? q.originalOptions
-                            : q.options;
-                        const raw = Number(q.answer);
-                        const correctOriginalIndex = raw;
-                        correctText = originalOptions[correctOriginalIndex] !== undefined
-                            ? String(originalOptions[correctOriginalIndex])
-                            : "";
-                        isCorrect = isAnswered && selectedText === correctText;
-                        correctVisibleIndex = q.options.findIndex(v => String(v) === correctText);
-                    }
-
-                    const correctLabel = correctText
-                        ? (correctVisibleIndex >= 0
-                            ? `${optionLabels[correctVisibleIndex]}. ${correctText}`
-                            : correctText)
-                        : "Kunci tidak tersedia";
+                    const userAns = userAnswers[idx];
+                    const isCorrect = (userAns === q.answer);
+                    const isAnswered = (userAns !== undefined);
 
                     const card = document.createElement("div");
                     card.className = `p-4 rounded-2xl border ${isCorrect ? 'bg-emerald-50/60 border-emerald-200' : (isAnswered ? 'bg-rose-50/60 border-rose-200' : 'bg-slate-50 border-slate-200')} space-y-2`;
@@ -5046,8 +4934,8 @@ console.log("ROOM CODE UNTUK AMBIL SOAL =", room?.room_code);
                         </div>
                         <p class="font-bold text-slate-800 leading-snug">${q.question}</p>
                         <div class="text-[11px] space-y-1 pt-1">
-                            <div>Jawaban Anda: <b class="${isCorrect ? 'text-emerald-700' : 'text-rose-700'}">${userLabel}</b></div>
-                            <div>Kunci Benar: <b class="text-emerald-700">${correctLabel}</b></div>
+                            <div>Jawaban Anda: <b class="${isCorrect ? 'text-emerald-700' : 'text-rose-700'}">${isAnswered ? optionLabels[userAns] + '. ' + q.options[userAns] : 'Tidak Dijawab'}</b></div>
+                            <div>Kunci Benar: <b class="text-emerald-700">${optionLabels[q.answer]}. ${q.options[q.answer]}</b></div>
                         </div>
                         ${q.explanation ? `<div class="text-[11px] text-slate-600 bg-white p-2.5 rounded-xl border border-slate-200 mt-1"><b>Pembahasan:</b> ${q.explanation}</div>` : ''}
                     `;
