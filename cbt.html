@@ -877,6 +877,10 @@ async function syncQuestionToSupabase(subjectKey, questionObj, questionNumber) {
                             <i class="fa-solid fa-house"></i>
                             <span>Kembali ke Halaman Awal</span>
                         </button>
+                        <button id="btn-student-exit-system" onclick="exitStudentSystem()" class="hidden w-full bg-rose-600 hover:bg-rose-700 text-white font-bold py-3 rounded-2xl text-xs transition flex items-center justify-center gap-2 shadow-md shadow-rose-100">
+                            <i class="fa-solid fa-right-from-bracket"></i>
+                            <span>Keluar Sistem</span>
+                        </button>
                     </div>
                 </div>
             </section>
@@ -1002,8 +1006,12 @@ async function syncQuestionToSupabase(subjectKey, questionObj, questionNumber) {
 
             <div id="review-content-list" class="space-y-4 overflow-y-auto custom-scroll flex-grow pr-1 text-xs"></div>
 
-            <div class="pt-2 border-t border-slate-100">
+            <div class="pt-2 border-t border-slate-100 space-y-2">
                 <button onclick="toggleReviewModal()" class="w-full bg-indigo-600 text-white font-bold py-2.5 rounded-xl text-xs hover:bg-indigo-700 transition">Tutup Pembahasan</button>
+                <button id="btn-student-exit-review" onclick="exitStudentSystem()" class="w-full bg-rose-600 hover:bg-rose-700 text-white font-bold py-2.5 rounded-xl text-xs transition flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-right-from-bracket"></i>
+                    <span>Keluar Sistem</span>
+                </button>
             </div>
         </div>
     </div>
@@ -4964,6 +4972,8 @@ console.log("ROOM CODE UNTUK AMBIL SOAL =", room?.room_code);
 
             if (modal.classList.contains("hidden")) {
                 list.innerHTML = "";
+                const resultExitBtn = document.getElementById("btn-student-exit-system");
+                if (resultExitBtn) resultExitBtn.classList.add("hidden");
                 const optionLabels = ["A", "B", "C", "D"];
 
                 // Tentukan apakah correct_answer server 0-based atau 1-based
@@ -5090,12 +5100,71 @@ console.log("ROOM CODE UNTUK AMBIL SOAL =", room?.room_code);
                 modal.classList.remove("hidden");
             } else {
                 modal.classList.add("hidden");
+                const resultExitBtn = document.getElementById("btn-student-exit-system");
+                if (resultExitBtn) resultExitBtn.classList.remove("hidden");
             }
         }
 
         function restartExamSession() {
             document.getElementById("view-student-result")?.classList.add("hidden");
             document.getElementById("view-student-login")?.classList.remove("hidden");
+        }
+
+        async function exitStudentSystem() {
+            try {
+                // Hentikan seluruh aktivitas sesi siswa.
+                isExamActive = false;
+                if (timerInterval) clearInterval(timerInterval);
+                timerInterval = null;
+                stopStudentHeartbeat();
+
+                // Tutup pembahasan jika masih terbuka.
+                document.getElementById("modal-review")?.classList.add("hidden");
+
+                // Keluar dari akun siswa di Supabase.
+                const { error } = await stemgaSupabase.auth.signOut();
+                if (error) throw error;
+
+                // Bersihkan state sesi siswa, tanpa menyentuh bank soal maupun rekap Guru.
+                currentSessionId = null;
+                studentData = { name: "", id: "", class: "" };
+                currentQuestions = [];
+                currentQuestionIndex = 0;
+                userAnswers = {};
+                flaggedQuestions = {};
+                reviewServerCorrectCount = null;
+                reviewServerQuestions = [];
+                antiCheatViolations = 0;
+                currentSubjectKey = "";
+
+                // Reset tampilan ke halaman login siswa.
+                document.getElementById("view-student-result")?.classList.add("hidden");
+                document.getElementById("view-student-exam")?.classList.add("hidden");
+                document.getElementById("view-student-login")?.classList.remove("hidden");
+                document.getElementById("student-auth-box")?.classList.remove("hidden");
+                document.getElementById("student-exam-panel")?.classList.add("hidden");
+                document.querySelector('#view-student-login form[onsubmit="handleStartExam(event)"]')?.classList.add("hidden");
+
+                ["student-login-email", "student-login-password", "input-student-name", "input-student-id", "input-student-class"].forEach(id => {
+                    const el = document.getElementById(id);
+                    if (el) el.value = "";
+                });
+
+                const msg = document.getElementById("student-login-message");
+                if (msg) {
+                    msg.textContent = "Sistem telah keluar. Silakan login kembali jika ingin mengikuti ujian lain.";
+                    msg.className = "text-sm text-center font-semibold text-indigo-700 bg-indigo-50 border border-indigo-200 rounded-xl p-3";
+                    msg.classList.remove("hidden");
+                }
+
+                const exitBtn = document.getElementById("btn-student-exit-system");
+                if (exitBtn) exitBtn.classList.add("hidden");
+
+                showCustomDialog("Keluar Sistem", "Anda telah keluar dari sistem CBT. Terima kasih.", null, true);
+            } catch (error) {
+                console.error("Logout siswa error:", error);
+                showCustomDialog("Keluar Gagal", "Sistem belum berhasil keluar. Silakan coba lagi.", null, true);
+            }
         }
 
         function initAntiCheatListener() {
