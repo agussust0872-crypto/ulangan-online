@@ -1802,25 +1802,70 @@ function escapeHtmlAttr(v){return escapeHtml(v)}
 
   let stemgaMediaRows=[];
   let stemgaMediaCategory='';
+  function normalizeStemgaMediaCategory(value){
+    return String(value||'')
+      .normalize('NFKC')
+      .replace(/[\u2010-\u2015\u2212]/g,'-')
+      .replace(/\s+/g,' ')
+      .trim()
+      .toLowerCase();
+  }
+
   function renderStemgaMediaLibrary(rows){
-    const sidebar=document.getElementById('stemgaMediaSidebar'), resources=document.getElementById('stemgaMediaResources'), title=document.getElementById('stemgaMediaPanelTitle'), desc=document.getElementById('stemgaMediaPanelDesc'), empty=document.getElementById('stemgaMediaEmpty');
+    const sidebar=document.getElementById('stemgaMediaSidebar'),
+          resources=document.getElementById('stemgaMediaResources'),
+          title=document.getElementById('stemgaMediaPanelTitle'),
+          desc=document.getElementById('stemgaMediaPanelDesc'),
+          empty=document.getElementById('stemgaMediaEmpty');
     if(!sidebar||!resources)return;
+
     stemgaMediaRows=rows||[];
-    const categories=[...new Set(stemgaMediaRows.map(r=>(r.media_category||'Umum').trim()||'Umum'))];
-    if(!categories.length){sidebar.innerHTML='<div class="media-sidebar-empty">📚<br>Belum ada materi media.</div>';resources.innerHTML='';empty?.classList.remove('hidden');return;}
-    if(!categories.includes(stemgaMediaCategory))stemgaMediaCategory=categories[0];
-    sidebar.innerHTML=`<div class="media-sidebar-title">MATERI MEDIA</div>`+categories.map((cat,i)=>{const count=stemgaMediaRows.filter(r=>(r.media_category||'Umum').trim()===cat).length;return `<button type="button" class="media-sidebar-item ${cat===stemgaMediaCategory?'active':''}" onclick="selectStemgaMediaCategory(${JSON.stringify(cat)})"><span class="media-sidebar-icon">${['🌐','💻','🛡️','🤖','🧠','📡','🎨'][i%7]}</span><span><b>${esc(cat)}</b><small>${count} media</small></span><span class="media-sidebar-arrow">›</span></button>`}).join('');
-    const chosen=stemgaMediaRows.filter(r=>(r.media_category||'Umum').trim()===stemgaMediaCategory);
+
+    const categories=[...new Map(
+      stemgaMediaRows
+        .map(r=>String(r.media_category||'Umum').trim()||'Umum')
+        .map(cat=>[normalizeStemgaMediaCategory(cat),cat])
+    ).values()];
+
+    if(!categories.length){
+      sidebar.innerHTML='<div class="media-sidebar-empty">📚<br>Belum ada materi media.</div>';
+      resources.innerHTML='';
+      empty?.classList.remove('hidden');
+      return;
+    }
+
+    const wanted=normalizeStemgaMediaCategory(stemgaMediaCategory);
+    const matched=categories.find(cat=>normalizeStemgaMediaCategory(cat)===wanted);
+    if(!matched)stemgaMediaCategory=categories[0];
+    else stemgaMediaCategory=matched;
+
+    sidebar.innerHTML=`<div class="media-sidebar-title">MATERI MEDIA</div>`+
+      categories.map((cat,i)=>{
+        const key=normalizeStemgaMediaCategory(cat);
+        const count=stemgaMediaRows.filter(r=>normalizeStemgaMediaCategory(r.media_category||'Umum')===key).length;
+        return `<button type="button" class="media-sidebar-item ${key===normalizeStemgaMediaCategory(stemgaMediaCategory)?'active':''}" onclick="selectStemgaMediaCategory(${JSON.stringify(cat)})"><span class="media-sidebar-icon">${['🌐','💻','🛡️','🤖','🧠','📡','🎨'][i%7]}</span><span><b>${esc(cat)}</b><small>${count} media</small></span><span class="media-sidebar-arrow">›</span></button>`;
+      }).join('');
+
+    const selectedKey=normalizeStemgaMediaCategory(stemgaMediaCategory);
+    const chosen=stemgaMediaRows.filter(r=>normalizeStemgaMediaCategory(r.media_category||'Umum')===selectedKey);
     const sample=chosen[0]||{};
+
     if(title)title.textContent=stemgaMediaCategory;
     if(desc)desc.textContent=sample.description||'Pilih media pembelajaran di bawah untuk mulai belajar.';
     if(empty)empty.classList.toggle('hidden',chosen.length>0);
+
     resources.innerHTML=chosen.map((r,i)=>`<article class="media-resource-card">
       ${r.image_url?`<div class="media-resource-thumb"><img src="${escAttr(r.image_url)}" alt="${escAttr(r.title||'Media')}"><span>${esc(r.media_type||'Media')}</span></div>`:`<div class="media-resource-thumb media-resource-placeholder"><span class="resource-big-icon">${r.media_type==='PowerPoint'?'📊':r.media_type==='Video Animasi'?'🎬':r.media_type==='LKPD'?'📝':r.media_type==='Simulasi'?'🧪':'📚'}</span><span>${esc(r.media_type||'Media')}</span></div>`}
       <div class="media-resource-body"><h4>${esc(r.title||'Media Belajar')}</h4><p>${esc(r.description||'Sumber belajar STEMGA.')}</p>${r.content_html?`<div class="media-resource-content">${r.content_html}</div>`:''}${r.link_url?`<a class="media-resource-btn" href="${escAttr(r.link_url)}" target="_blank" rel="noopener">${r.media_type==='PowerPoint'?'📊 Buka PowerPoint':r.media_type==='Video Animasi'?'🎬 Tonton Video':r.media_type==='LKPD'?'📝 Buka LKPD':'🚀 Buka Media'} <span>→</span></a>`:`<span class="media-resource-note">Media tersedia di portal STEMGA</span>`}</div>
     </article>`).join('');
   }
-  function selectStemgaMediaCategory(cat){stemgaMediaCategory=cat;renderStemgaMediaLibrary(stemgaMediaRows);}
+
+  function selectStemgaMediaCategory(cat){
+    const requested=String(cat||'').trim();
+    const match=stemgaMediaRows.find(r=>normalizeStemgaMediaCategory(r.media_category||'Umum')===normalizeStemgaMediaCategory(requested));
+    stemgaMediaCategory=match ? String(match.media_category||'Umum').trim() : requested;
+    renderStemgaMediaLibrary(stemgaMediaRows);
+  }
   async function loadPublicMateri(){
     const grid=document.getElementById('publicMateriGrid');
     const empty=document.getElementById('publicMateriEmpty');
