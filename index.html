@@ -1860,10 +1860,37 @@ function escapeHtmlAttr(v){return escapeHtml(v)}
     </article>`).join('');
   }
 
-  function selectStemgaMediaCategory(cat){
+  async function selectStemgaMediaCategory(cat){
     const requested=String(cat||'').trim();
-    const match=stemgaMediaRows.find(r=>normalizeStemgaMediaCategory(r.media_category||'Umum')===normalizeStemgaMediaCategory(requested));
-    stemgaMediaCategory=match ? String(match.media_category||'Umum').trim() : requested;
+    const requestedKey=normalizeStemgaMediaCategory(requested);
+
+    /* Ambil ulang data Media saat kategori diklik.
+       Ini mencegah kategori tampil '2 media' tetapi panel kosong
+       karena data lama/stale pada stemgaMediaRows. */
+    try{
+      const {data,error}=await homeDb
+        .from('portal_content')
+        .select('id,title,description,content_html,link_url,image_url,sort_order,created_at,media_category,media_type')
+        .eq('menu_key','media')
+        .eq('is_published',true)
+        .order('sort_order')
+        .order('created_at');
+
+      if(!error && Array.isArray(data)){
+        stemgaMediaRows=data;
+      }
+    }catch(err){
+      console.warn('refresh media category:',err);
+    }
+
+    const match=stemgaMediaRows.find(r=>
+      normalizeStemgaMediaCategory(r.media_category||'Umum')===requestedKey
+    );
+
+    stemgaMediaCategory=match
+      ? String(match.media_category||'Umum').trim()
+      : requested;
+
     renderStemgaMediaLibrary(stemgaMediaRows);
   }
   async function loadPublicMateri(){
