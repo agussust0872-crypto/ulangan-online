@@ -1701,12 +1701,7 @@ function escapeHtmlAttr(v){return escapeHtml(v)}
       <div class="media-resource-body"><h4>${esc(r.title||'Media Belajar')}</h4><p>${esc(r.description||'Sumber belajar STEMGA.')}</p>${r.content_html?`<div class="media-resource-content">${r.content_html}</div>`:''}${r.link_url?`<a class="media-resource-btn" href="${escAttr(r.link_url)}" target="_blank" rel="noopener">${r.media_type==='PowerPoint'?'📊 Buka PowerPoint':r.media_type==='Video Animasi'?'🎬 Tonton Video':r.media_type==='LKPD'?'📝 Buka LKPD':'🚀 Buka Media'} <span>→</span></a>`:`<span class="media-resource-note">Media tersedia di portal STEMGA</span>`}</div>
     </article>`).join('');
   }
-  function selectStemgaMediaCategory(cat){
-    stemgaMediaCategory=cat;
-    renderStemgaMediaLibrary(stemgaMediaRows);
-  }
-  // FIX: tombol sidebar dibuat dengan inline onclick, jadi fungsi wajib diekspos ke window.
-  window.selectStemgaMediaCategory=selectStemgaMediaCategory;
+  window.selectStemgaMediaCategory=function(cat){stemgaMediaCategory=cat;renderStemgaMediaLibrary(stemgaMediaRows);};
   async function loadPublicMateri(){
     const grid=document.getElementById('publicMateriGrid');
     const empty=document.getElementById('publicMateriEmpty');
