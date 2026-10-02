@@ -1690,7 +1690,7 @@ function escapeHtmlAttr(v){return escapeHtml(v)}
     const categories=[...new Set(stemgaMediaRows.map(r=>(r.media_category||'Umum').trim()||'Umum'))];
     if(!categories.length){sidebar.innerHTML='<div class="media-sidebar-empty">📚<br>Belum ada materi media.</div>';resources.innerHTML='';empty?.classList.remove('hidden');return;}
     if(!categories.includes(stemgaMediaCategory))stemgaMediaCategory=categories[0];
-    sidebar.innerHTML=`<div class="media-sidebar-title">MATERI MEDIA</div>`+categories.map((cat,i)=>{const count=stemgaMediaRows.filter(r=>(r.media_category||'Umum').trim()===cat).length;return `<button type="button" class="media-sidebar-item ${cat===stemgaMediaCategory?'active':''}" onclick="selectStemgaMediaCategory(${JSON.stringify(cat)})"><span class="media-sidebar-icon">${['🌐','💻','🛡️','🤖','🧠','📡','🎨'][i%7]}</span><span><b>${esc(cat)}</b><small>${count} media</small></span><span class="media-sidebar-arrow">›</span></button>`}).join('');
+    sidebar.innerHTML=`<div class="media-sidebar-title">MATERI MEDIA</div>`+categories.map((cat,i)=>{const count=stemgaMediaRows.filter(r=>(r.media_category||'Umum').trim()===cat).length;return `<button type="button" class="media-sidebar-item ${cat===stemgaMediaCategory?'active':''}" data-media-category="${escAttr(cat)}"><span class="media-sidebar-icon">${['🌐','💻','🛡️','🤖','🧠','📡','🎨'][i%7]}</span><span><b>${esc(cat)}</b><small>${count} media</small></span><span class="media-sidebar-arrow">›</span></button>`}).join('');
     const chosen=stemgaMediaRows.filter(r=>(r.media_category||'Umum').trim()===stemgaMediaCategory);
     const sample=chosen[0]||{};
     if(title)title.textContent=stemgaMediaCategory;
@@ -1701,7 +1701,18 @@ function escapeHtmlAttr(v){return escapeHtml(v)}
       <div class="media-resource-body"><h4>${esc(r.title||'Media Belajar')}</h4><p>${esc(r.description||'Sumber belajar STEMGA.')}</p>${r.content_html?`<div class="media-resource-content">${r.content_html}</div>`:''}${r.link_url?`<a class="media-resource-btn" href="${escAttr(r.link_url)}" target="_blank" rel="noopener">${r.media_type==='PowerPoint'?'📊 Buka PowerPoint':r.media_type==='Video Animasi'?'🎬 Tonton Video':r.media_type==='LKPD'?'📝 Buka LKPD':'🚀 Buka Media'} <span>→</span></a>`:`<span class="media-resource-note">Media tersedia di portal STEMGA</span>`}</div>
     </article>`).join('');
   }
-  window.selectStemgaMediaCategory=function(cat){stemgaMediaCategory=cat;renderStemgaMediaLibrary(stemgaMediaRows);};
+  function selectStemgaMediaCategory(cat){
+    stemgaMediaCategory=String(cat||'').trim();
+    renderStemgaMediaLibrary(stemgaMediaRows);
+  }
+  // Event delegation: tombol BAB Media tetap bekerja meskipun fungsi berada di scope CMS.
+  document.addEventListener('click',function(e){
+    const btn=e.target.closest('#stemgaMediaSidebar .media-sidebar-item');
+    if(!btn)return;
+    e.preventDefault();
+    const cat=btn.getAttribute('data-media-category')||'';
+    selectStemgaMediaCategory(cat);
+  });
   async function loadPublicMateri(){
     const grid=document.getElementById('publicMateriGrid');
     const empty=document.getElementById('publicMateriEmpty');
