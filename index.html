@@ -1690,7 +1690,7 @@ function escapeHtmlAttr(v){return escapeHtml(v)}
     const categories=[...new Set(stemgaMediaRows.map(r=>(r.media_category||'Umum').trim()||'Umum'))];
     if(!categories.length){sidebar.innerHTML='<div class="media-sidebar-empty">📚<br>Belum ada materi media.</div>';resources.innerHTML='';empty?.classList.remove('hidden');return;}
     if(!categories.includes(stemgaMediaCategory))stemgaMediaCategory=categories[0];
-    sidebar.innerHTML=`<div class="media-sidebar-title">MATERI MEDIA</div>`+categories.map((cat,i)=>{const count=stemgaMediaRows.filter(r=>(r.media_category||'Umum').trim()===cat).length;return `<button type="button" class="media-sidebar-item ${cat===stemgaMediaCategory?'active':''}" data-media-category="${escAttr(cat)}"><span class="media-sidebar-icon">${['🌐','💻','🛡️','🤖','🧠','📡','🎨'][i%7]}</span><span><b>${esc(cat)}</b><small>${count} media</small></span><span class="media-sidebar-arrow">›</span></button>`}).join('');
+    sidebar.innerHTML=`<div class="media-sidebar-title">MATERI MEDIA</div>`+categories.map((cat,i)=>{const count=stemgaMediaRows.filter(r=>(r.media_category||'Umum').trim()===cat).length;return `<button type="button" class="media-sidebar-item ${cat===stemgaMediaCategory?'active':''}" data-media-category="${escAttr(cat)}" onclick="window.__stemgaMediaCategoryClick(this)"><span class="media-sidebar-icon">${['🌐','💻','🛡️','🤖','🧠','📡','🎨'][i%7]}</span><span><b>${esc(cat)}</b><small>${count} media</small></span><span class="media-sidebar-arrow">›</span></button>`}).join('');
     const chosen=stemgaMediaRows.filter(r=>(r.media_category||'Umum').trim()===stemgaMediaCategory);
     const sample=chosen[0]||{};
     if(title)title.textContent=stemgaMediaCategory;
@@ -1705,19 +1705,18 @@ function escapeHtmlAttr(v){return escapeHtml(v)}
     stemgaMediaCategory=String(cat||'').trim();
     renderStemgaMediaLibrary(stemgaMediaRows);
   }
-  // FIX FINAL MEDIA: tangani klik langsung pada sidebar Media.
-  // Hanya bagian navigasi kategori Media yang diubah.
-  const mediaSidebar=document.getElementById('stemgaMediaSidebar');
-  if(mediaSidebar){
-    mediaSidebar.onclick=function(e){
-      const btn=e.target.closest('.media-sidebar-item');
-      if(!btn || !mediaSidebar.contains(btn))return;
-      e.preventDefault();
+  // FIX GITHUB FINAL MEDIA: handler global untuk tombol kategori Media.
+  // Hanya navigasi kategori Media yang diubah.
+  window.__stemgaMediaCategoryClick=function(btn){
+    try{
+      if(!btn)return;
       const cat=btn.getAttribute('data-media-category')||'';
       stemgaMediaCategory=String(cat||'').trim();
       renderStemgaMediaLibrary(stemgaMediaRows);
-    };
-  }
+    }catch(err){
+      console.warn('Media category click:',err);
+    }
+  };
   async function loadPublicMateri(){
     const grid=document.getElementById('publicMateriGrid');
     const empty=document.getElementById('publicMateriEmpty');
